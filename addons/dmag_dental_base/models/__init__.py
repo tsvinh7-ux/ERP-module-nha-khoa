@@ -1,4 +1,5 @@
 from . import dmag_access
+from . import dmag_print
 from . import res_company
 from . import dmag_dental_catalog
 from . import dmag_dental_chair

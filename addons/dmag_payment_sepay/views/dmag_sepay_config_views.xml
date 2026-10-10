@@ -11,6 +11,7 @@
                 <field name="account_name"/>
                 <field name="code_prefix"/>
                 <field name="enabled" widget="boolean_toggle"/>
+                <field name="demo_mode"/>
             </tree>
         </field>
     </record>

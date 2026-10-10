@@ -17,6 +17,7 @@
         'data/dmag_dental_diagnosis_data.xml',
         'data/dmag_dental_condition_data.xml',
         'data/dmag_dental_master_data.xml',
+        'report/dmag_print_helper.xml',
         'views/dmag_dental_menus.xml',
         'views/res_partner_views.xml',
         'views/dmag_dental_practitioner_views.xml',

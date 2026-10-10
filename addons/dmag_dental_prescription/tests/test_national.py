@@ -9,13 +9,15 @@ from .common import RxCommon
 class TestNationalInterconnection(RxCommon):
 
     def test_mock_send_success_and_token_cache(self):
+        # Chỉ xét nhật ký phát sinh trong bài test (CSDL có thể đã có nhật ký cũ)
+        last_log = self.env['dmag.rx.send.log'].search([], order='id desc', limit=1).id or 0
         rx = self._rx()
         rx.action_issue()
         self.assertEqual(rx.state, 'sent')
         self.assertTrue(rx.sent_at)
         ops = rx.send_log_ids.mapped('operation')
         self.assertIn('send', ops)
-        logs = self.env['dmag.rx.send.log'].search([('config_id', '=', self.config.id)])
+        logs = self.env['dmag.rx.send.log'].search([('config_id', '=', self.config.id), ('id', '>', last_log)])
         self.assertEqual(set(logs.mapped('operation')), {'login_facility', 'login_doctor', 'send'})
         send_log = rx.send_log_ids.filtered(lambda log: log.operation == 'send')
         self.assertTrue(send_log.success)
@@ -36,7 +38,7 @@ class TestNationalInterconnection(RxCommon):
         rx2 = self._rx()
         rx2.action_issue()
         self.assertEqual(rx2.state, 'sent')
-        logs = self.env['dmag.rx.send.log'].search([('config_id', '=', self.config.id)])
+        logs = self.env['dmag.rx.send.log'].search([('config_id', '=', self.config.id), ('id', '>', last_log)])
         self.assertEqual(len(logs.filtered(lambda log: log.operation == 'login_doctor')), 1)
 
     def test_mock_error_then_retry(self):

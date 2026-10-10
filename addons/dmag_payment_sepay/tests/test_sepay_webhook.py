@@ -1,6 +1,6 @@
 import json
 
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import HttpCase, tagged
 
 from .common import API_KEY, SepayCommon
@@ -41,6 +41,23 @@ class TestSepayWebhook(SepayCommon):
         self.assertFalse(tx.needs_review)
         log = visit.payment_log_ids
         self.assertEqual((log.method, log.amount, log.source), ('transfer', 400000, 'sepay'))
+
+    def test_demo_simulated_transfer(self):
+        visit = self._billable_visit()
+        data = visit.with_user(self.receptionist).get_payment_qr()
+        self.assertFalse(data['demo'])
+        request = self.env['dmag.payment.request'].browse(data['request_id'])
+        with self.assertRaises(UserError):
+            request.with_user(self.receptionist).action_simulate_transfer()
+        self.config.demo_mode = True
+        self.assertTrue(visit.get_payment_qr()['demo'])
+        status = request.with_user(self.receptionist).action_simulate_transfer()
+        self.assertEqual(status['state'], 'paid')
+        visit.invalidate_recordset()
+        self.assertEqual(visit.payment_status, 'paid')
+        self.assertEqual(request.transaction_ids.state, 'matched')
+        with self.assertRaises(UserError):
+            request.with_user(self.receptionist).action_simulate_transfer()
 
     def test_code_with_spaces_and_lowercase(self):
         visit = self._billable_visit()

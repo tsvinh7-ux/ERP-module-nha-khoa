@@ -25,100 +25,126 @@
         <field name="binding_type">report</field>
     </record>
 
-    <!-- Bố cục theo mẫu đơn thuốc Phụ lục I TT 26/2025/TT-BYT (cần đối chiếu bản gốc). Không viết tắt. -->
+    <!-- Bố cục: nội dung bắt buộc theo mẫu đơn thuốc TT 26/2025/TT-BYT (không viết tắt) + nhận diện thương hiệu
+         của phòng khám (logo, màu chủ đạo, bảng thuốc kẻ cột như mẫu đơn đang dùng). Màu = "Màu chính" của
+         công ty (Thiết lập → Công ty → Bố cục tài liệu), mặc định xanh ngọc. -->
     <template id="report_prescription_document">
         <t t-call="web.basic_layout">
             <t t-set="company" t-value="o.company_id"/>
-            <div class="page" style="font-family: 'Times New Roman', serif; font-size: 13px; color: #000;">
+            <t t-set="brand" t-value="company.primary_color or '#1C9CA6'"/>
+            <div class="page" t-attf-style="font-family: Arial, 'Helvetica Neue', sans-serif; font-size: 12.5px; color: #1d2b36; position: relative;">
+                <t t-call="dmag_dental_base.dmag_print_helper"><t t-set="paper" t-value="'A5'"/></t>
+                <div t-if="o.state in ('cancelled', 'replaced')"
+                     style="position: absolute; top: 40%; left: 0; right: 0; text-align: center; font-size: 46px; font-weight: bold; color: rgba(200,0,0,.18); transform: rotate(-20deg);">
+                    <t t-if="o.state == 'cancelled'">ĐÃ HỦY</t><t t-else="">ĐÃ THAY THẾ</t>
+                </div>
+                <!-- Đầu đơn: thương hiệu bên trái, tiêu đề + mã đơn bên phải -->
                 <table style="width: 100%; border: none;">
                     <tr>
-                        <td style="width: 62%; vertical-align: top;">
-                            <div t-if="company.dmag_health_department" style="text-transform: uppercase;" t-esc="company.dmag_health_department"/>
-                            <div style="font-weight: bold; text-transform: uppercase;" t-esc="company.name"/>
-                            <div>Địa chỉ: <t t-esc="', '.join(p for p in [company.street, company.street2, company.city, company.state_id.name] if p)"/></div>
-                            <div t-if="company.phone">Điện thoại: <t t-esc="company.phone"/></div>
-                            <div t-if="company.dmag_license_number">Giấy phép hoạt động: <t t-esc="company.dmag_license_number"/></div>
+                        <td style="width: 55%; vertical-align: top;">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 46px; max-width: 200px; margin-bottom: 4px;" alt="Logo"/>
+                            <div t-if="company.dmag_health_department" style="text-transform: uppercase; font-size: 11px;" t-esc="company.dmag_health_department"/>
+                            <div t-attf-style="font-weight: bold; text-transform: uppercase; color: {{brand}};" t-esc="company.name"/>
+                            <div style="font-size: 11px; line-height: 1.45;">
+                                <div>Địa chỉ: <t t-esc="', '.join(p for p in [company.street, company.street2, company.city, company.state_id.name] if p)"/></div>
+                                <div t-if="company.phone">Điện thoại: <t t-esc="company.phone"/></div>
+                                <div t-if="company.dmag_license_number">Giấy phép hoạt động: <t t-esc="company.dmag_license_number"/></div>
+                            </div>
                         </td>
-                        <td style="width: 38%; text-align: right; vertical-align: top;">
-                            <img t-if="o.name" style="width: 90px; height: 90px;"
-                                 t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=180&amp;height=180' % o.name"/>
-                            <div t-if="o.name" style="font-size: 12px;">Mã đơn thuốc: <b t-esc="o.name"/></div>
+                        <td style="width: 45%; vertical-align: top; text-align: right;">
+                            <div t-attf-style="font-size: 30px; font-weight: 800; letter-spacing: 1px; line-height: 1; color: {{brand}};">ĐƠN THUỐC</div>
+                            <div t-if="o.rx_type != 'c'" style="font-style: italic; font-size: 11px;" t-esc="dict(o._fields['rx_type'].selection).get(o.rx_type)"/>
+                            <table style="border: none; margin-left: auto; margin-top: 6px;">
+                                <tr>
+                                    <td style="text-align: right; vertical-align: middle; padding-right: 6px; font-size: 11px;">
+                                        Mã đơn thuốc<br/><b style="font-size: 13px; letter-spacing: .5px;" t-esc="o.name or '(chưa phát hành)'"/>
+                                    </td>
+                                    <td t-if="o.name">
+                                        <img style="width: 78px; height: 78px;" alt="QR"
+                                             t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=160&amp;height=160' % o.name"/>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                 </table>
+                <div t-attf-style="height: 3px; background: {{brand}}; margin: 6px 0 8px 0; border-radius: 2px;"/>
 
-                <h3 style="text-align: center; font-weight: bold; margin: 10px 0 2px 0;">ĐƠN THUỐC</h3>
-                <div style="text-align: center; font-style: italic; margin-bottom: 8px;" t-if="o.rx_type != 'c'"
-                     t-esc="dict(o._fields['rx_type'].selection).get(o.rx_type)"/>
-
-                <table style="width: 100%; border: none; line-height: 1.5;">
+                <!-- Thông tin người bệnh (TT 26/2025) -->
+                <table style="width: 100%; border: none; line-height: 1.6;">
                     <tr>
-                        <td colspan="2">Họ và tên: <b style="text-transform: uppercase;" t-esc="o.patient_name"/></td>
+                        <td colspan="2">Họ và tên người bệnh: <b style="text-transform: uppercase;" t-esc="o.patient_name"/></td>
                     </tr>
                     <tr>
-                        <td style="width: 60%;">Ngày sinh: <t t-esc="o.patient_birthdate and o.patient_birthdate.strftime('%d/%m/%Y')"/>
+                        <td style="width: 58%;">Ngày sinh: <t t-esc="o.patient_birthdate and o.patient_birthdate.strftime('%d/%m/%Y')"/>
                             <t t-if="o.patient_birthdate"> (<t t-esc="o._report_age_text()"/>)</t></td>
                         <td>Giới tính: <t t-esc="o._report_gender_text()"/></td>
                     </tr>
                     <tr>
-                        <td>Số định danh cá nhân / Căn cước công dân: <t t-esc="o.patient_identity or ''"/>
+                        <td>Số định danh cá nhân / CCCD: <b t-esc="o.patient_identity or ''"/>
                             <t t-if="not o.patient_identity and o.identity_exemption_reason"> (<t t-esc="o.identity_exemption_reason"/>)</t></td>
-                        <td>Số thẻ bảo hiểm y tế: <t t-esc="o.patient_bhyt or ''"/></td>
+                        <td>Số thẻ bảo hiểm y tế: <t t-esc="o.patient_bhyt or 'Không'"/></td>
                     </tr>
-                    <tr><td colspan="2">Nơi cư trú: <t t-esc="o.patient_address or ''"/></td></tr>
+                    <tr>
+                        <td>Nơi cư trú: <t t-esc="o.patient_address or ''"/></td>
+                        <td>Số điện thoại: <t t-esc="o.patient_id.mobile or o.patient_id.phone or ''"/></td>
+                    </tr>
                     <tr t-if="o.is_under_72_months">
                         <td>Số tháng tuổi: <t t-esc="o.patient_age_months"/> tháng – Cân nặng: <t t-esc="('%g' % o.weight).replace('.', ',')"/> ki-lô-gam</td>
                         <td>Họ tên người đưa trẻ đến khám: <t t-esc="o.companion_name or ''"/></td>
                     </tr>
                     <tr>
                         <td colspan="2">Chẩn đoán:
-                            <t t-esc="'; '.join('%s (%s)' % (d.name, d.code) for d in o.diagnosis_ids)"/>
+                            <b><t t-esc="'; '.join('%s (%s)' % (d.name, d.code) for d in o.diagnosis_ids)"/></b>
                             <t t-if="o.diagnosis_text"><t t-if="o.diagnosis_ids">; </t><t t-esc="o.diagnosis_text"/></t>
                         </td>
                     </tr>
                 </table>
 
-                <div style="font-weight: bold; margin-top: 8px;">Thuốc điều trị:</div>
-                <table style="width: 100%; border: none;">
-                    <t t-foreach="o.line_ids" t-as="line">
-                        <tr>
-                            <td style="width: 6%; vertical-align: top;"><t t-esc="line_index + 1"/>.</td>
-                            <td style="width: 66%; vertical-align: top;"><b t-esc="line.drug_id.name"/></td>
-                            <td style="width: 28%; text-align: right; vertical-align: top;">Số lượng: <b t-esc="line.quantity_display"/></td>
+                <!-- Bảng thuốc: tên chung (INN) + hàm lượng, số lượng (ghi 0 phía trước nếu < 10), cách dùng -->
+                <table style="width: 100%; border-collapse: collapse; margin-top: 8px;" t-attf-style="border: 1px solid {{brand}};">
+                    <thead>
+                        <tr t-attf-style="background: {{brand}}; color: #fff; font-size: 11px; text-transform: uppercase;">
+                            <th style="padding: 5px 4px; width: 6%; text-align: center;">STT</th>
+                            <th style="padding: 5px 6px; width: 38%; text-align: left;">Tên thuốc – hàm lượng</th>
+                            <th style="padding: 5px 4px; width: 13%; text-align: center;">Số lượng</th>
+                            <th style="padding: 5px 6px; width: 30%; text-align: left;">Cách dùng</th>
+                            <th style="padding: 5px 6px; width: 13%; text-align: left;">Ghi chú</th>
                         </tr>
-                        <tr>
-                            <td/>
-                            <td colspan="2" style="font-style: italic; padding-bottom: 4px;">
-                                <t t-esc="line.usage"/><t t-if="line.days"> – dùng trong <t t-esc="line.days"/> ngày</t>
-                            </td>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="o.line_ids" t-as="line" t-attf-style="border-top: 1px solid {{brand}}; vertical-align: top;">
+                            <td t-attf-style="padding: 6px 4px; text-align: center; border-right: 1px solid {{brand}};" t-esc="line_index + 1"/>
+                            <td t-attf-style="padding: 6px; border-right: 1px solid {{brand}};"><b t-esc="line.drug_id.name"/></td>
+                            <td t-attf-style="padding: 6px 4px; text-align: center; border-right: 1px solid {{brand}};"><b t-esc="line.quantity_display"/></td>
+                            <td t-attf-style="padding: 6px; border-right: 1px solid {{brand}};">
+                                <t t-esc="(line.usage or '').replace(', ' + line.usage_note.strip(), '') if line.usage_note else line.usage"/><t t-if="line.days"> – dùng <t t-esc="line.days"/> ngày</t></td>
+                            <td style="padding: 6px; font-size: 11px;" t-esc="line.usage_note or ''"/>
                         </tr>
-                    </t>
+                    </tbody>
                 </table>
 
-                <div style="margin-top: 8px;" t-if="o.advice"><b>Lời dặn:</b> <span style="white-space: pre-line;" t-esc="o.advice"/></div>
-                <div t-if="o.re_exam_date"><b>Ngày tái khám:</b> <t t-esc="o.re_exam_date.strftime('%d/%m/%Y')"/></div>
+                <div style="margin-top: 8px; line-height: 1.55;">
+                    <div><b>Lời dặn:</b> <span style="white-space: pre-line;" t-esc="o.advice or ''"/></div>
+                    <div t-if="o.re_exam_date"><b>Ngày tái khám:</b> <t t-esc="o.re_exam_date.strftime('%d/%m/%Y')"/></div>
+                </div>
 
-                <table style="width: 100%; border: none; margin-top: 10px;">
+                <table style="width: 100%; border: none; margin-top: 8px;">
                     <tr>
-                        <td style="width: 45%;"/>
-                        <td style="width: 55%; text-align: center;">
+                        <td style="width: 50%; vertical-align: bottom; font-size: 10.5px; color: #4a5a68; line-height: 1.5;">
+                            <div>- Khám lại xin mang theo đơn này.</div>
+                            <div>- Mua thuốc tại nhà thuốc bằng mã đơn thuốc; đơn có giá trị mua, lĩnh thuốc trong thời hạn theo quy định.</div>
+                            <div t-if="company.phone">- Cần hỗ trợ, gọi phòng khám: <t t-esc="company.phone"/></div>
+                        </td>
+                        <td style="width: 50%; text-align: center; vertical-align: top;">
                             <div style="font-style: italic;" t-esc="o._report_date_text()"/>
                             <div style="font-weight: bold;">Bác sĩ / Y sĩ khám bệnh</div>
-                            <div style="font-style: italic;">(Ký, ghi rõ họ tên)</div>
-                            <div style="height: 55px;"/>
-                            <div style="font-weight: bold;"><t t-esc="o.doctor_id.title or ''"/> <t t-esc="o.doctor_id.name or ''"/></div>
+                            <div style="font-style: italic; font-size: 11px;">(Ký, ghi rõ họ tên)</div>
+                            <div style="height: 50px;"/>
+                            <div t-attf-style="font-weight: bold; color: {{brand}};"><t t-esc="o.doctor_id.title or ''"/> <t t-esc="o.doctor_id.name or ''"/></div>
                         </td>
                     </tr>
                 </table>
-
-                <div style="margin-top: 10px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px;">
-                    <div>- Khám lại xin mang theo đơn này.</div>
-                    <div>- Mã đơn thuốc dùng để mua thuốc tại nhà thuốc; đơn thuốc có giá trị mua, lĩnh thuốc trong thời hạn theo quy định.</div>
-                    <div t-if="company.phone">- Số điện thoại liên hệ của phòng khám: <t t-esc="company.phone"/></div>
-                    <div t-if="o.state in ('cancelled', 'replaced')" style="font-weight: bold; color: #b00;">
-                        ĐƠN NÀY <t t-if="o.state == 'cancelled'">ĐÃ HỦY</t><t t-else="">ĐÃ ĐƯỢC THAY THẾ</t> – KHÔNG CÒN GIÁ TRỊ.
-                    </div>
-                </div>
             </div>
         </t>
     </template>

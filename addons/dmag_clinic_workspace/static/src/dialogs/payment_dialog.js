@@ -46,6 +46,16 @@ export class PaymentDialog extends Component {
         this.poll = setInterval(() => this.checkPaid(), 5000);
     }
 
+    async simulateTransfer() {
+        this.state.saving = true;
+        try {
+            await this.orm.call("dmag.payment.request", "action_simulate_transfer", [[this.state.qr.request_id]]);
+            await this.checkPaid();
+        } finally {
+            this.state.saving = false;
+        }
+    }
+
     async checkPaid() {
         const panel = await this.orm.call("dmag.workspace", "get_payment_panel", [this.props.visitId]);
         if (panel.payment_status === "paid") {

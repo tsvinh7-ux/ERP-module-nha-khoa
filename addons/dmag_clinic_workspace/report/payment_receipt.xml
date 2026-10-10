@@ -17,6 +17,7 @@
                 <t t-call="web.external_layout">
                     <t t-set="s" t-value="o.sudo()"/>
                     <div class="page" style="font-size: 13px;">
+                        <t t-call="dmag_dental_base.dmag_print_helper"><t t-set="paper" t-value="'A5'"/></t>
                         <div style="border-left: 6px solid #178BEC; padding-left: 12px; margin-bottom: 14px;">
                             <div style="color:#11346A; font-size: 22px; font-weight: 700;">PHIẾU THU</div>
                             <div class="text-muted">Lượt khám <span t-field="o.name"/> · <span t-field="o.scheduled_start" t-options="{'widget': 'date'}"/></div>

@@ -158,7 +158,38 @@ class DmagPaymentRequest(models.Model):
             'content': self.transfer_content,
             'expiry': fields.Datetime.to_string(self.expiry) if self.expiry else False,
             'state': self.state,
+            'demo': bool(config.demo_mode),
         }
+
+    def action_simulate_transfer(self, amount=False):
+        """Chế độ demo: tạo webhook SePay giả lập đúng định dạng thật cho yêu cầu này (thử toàn bộ luồng)."""
+        self.ensure_one()
+        config = self.env['dmag.sepay.config'].sudo()._get_for_company(self.company_id)
+        if not config.demo_mode:
+            raise UserError(_('Chỉ giả lập chuyển khoản được khi bật "Chế độ demo" trong cấu hình SePay.'))
+        if self.state not in ('pending', 'partial'):
+            raise UserError(_('Yêu cầu thanh toán %s không còn chờ thu.', self.name))
+        if not config.api_key:
+            config.api_key = secrets.token_urlsafe(24)
+        now = fields.Datetime.context_timestamp(self.with_context(tz=config.timezone), fields.Datetime.now())
+        payload = {
+            'id': 'DEMO-%s-%s' % (self.id, secrets.token_hex(4)),
+            'gateway': config.bank_code,
+            'transactionDate': now.strftime('%Y-%m-%d %H:%M:%S'),
+            'accountNumber': config.account_number,
+            'subAccount': None,
+            'code': None,
+            'content': '%s CHUYEN TIEN KHAM RANG (DEMO)' % (self.transfer_content or self.name),
+            'transferType': 'in',
+            'description': 'Giả lập chuyển khoản – chế độ demo',
+            'transferAmount': amount or self.residual or self.amount,
+            'accumulated': 0,
+            'referenceCode': 'DEMO%s' % secrets.token_hex(3).upper(),
+        }
+        status, res = self.env['dmag.sepay.transaction'].sudo()._sepay_handle_webhook('Apikey %s' % config.api_key, payload)
+        if status != 200:
+            raise UserError(_('Giả lập thất bại: %s', res.get('message')))
+        return self.get_status()
 
     def get_status(self):
         """Trạng thái hiện tại (cùng cấu trúc với thông báo bus) – để màn hình lễ tân hỏi lại khi cần."""

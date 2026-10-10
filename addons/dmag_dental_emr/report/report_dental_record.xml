@@ -87,6 +87,7 @@
         <t t-set="company" t-value="o.company_id"/>
         <t t-set="sign_date" t-value="o.signed_at or o.done_time or o.scheduled_start"/>
         <div class="page dmag-emr">
+            <t t-call="dmag_dental_base.dmag_print_helper"><t t-set="paper" t-value="'A4'"/></t>
             <t t-call="dmag_dental_emr.emr_styles"/>
             <!-- ===================== TRANG 1: BỆNH ÁN ===================== -->
             <t t-call="dmag_dental_emr.emr_header">

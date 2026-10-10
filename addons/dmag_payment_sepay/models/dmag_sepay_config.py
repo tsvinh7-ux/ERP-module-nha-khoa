@@ -19,6 +19,10 @@ class DmagSepayConfig(models.Model):
     company_id = fields.Many2one('res.company', string='Phòng khám', required=True,
                                  default=lambda self: self.env.company, ondelete='cascade')
     enabled = fields.Boolean('Bật thu tiền qua SePay', default=True)
+    demo_mode = fields.Boolean(
+        'Chế độ demo – cho phép giả lập chuyển khoản',
+        help='Chỉ dùng khi chạy thử: màn hình thu tiền có nút "Giả lập khách chuyển khoản" – hệ thống tự tạo '
+             'một webhook SePay giống thật để thử toàn bộ luồng (gạch nợ, hóa đơn, thông báo). TẮT khi vận hành thật.')
     bank_code = fields.Char('Ngân hàng (mã ngắn SePay)', required=True,
                             help='Tên viết tắt ngân hàng theo danh sách của SePay, '
                                  'ví dụ: MBBank, Vietcombank, ACB, TPBank, BIDV, VietinBank.')

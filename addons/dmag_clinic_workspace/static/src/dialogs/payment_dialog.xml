@@ -39,6 +39,9 @@
                                     <div><span>Nội dung</span><b t-esc="state.qr.content or state.qr.code"/></div>
                                 </div>
                                 <div class="dmag-qr-wait"><span class="dmag-pulse"/> Đang chờ ngân hàng báo có – tự xác nhận</div>
+                                <button t-if="state.qr.demo" class="dmag-btn dmag-btn-ghost w-100 mt-2" t-att-disabled="state.saving" t-on-click="simulateTransfer">
+                                    <i class="fa fa-flask me-1" title="Demo"/>Giả lập khách chuyển khoản (chế độ demo)
+                                </button>
                             </t>
                             <t t-else="">
                                 <div class="dmag-banner">Chưa bật SePay: khách chuyển khoản vào tài khoản phòng khám, kiểm tra rồi bấm xác nhận.</div>

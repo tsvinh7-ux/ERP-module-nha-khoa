@@ -9,6 +9,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 from odoo.addons.dmag_dental_base.models.dmag_access import check_director, is_director, is_workflow
+from odoo.addons.dmag_dental_base.models.dmag_print import report_url
 
 from .dmag_prescription_template import format_quantity
 
@@ -493,7 +494,7 @@ class DmagPrescription(models.Model):
             'send_error': self.send_error or '',
             'replaced_id': self.replaced_id.id, 'replaced_by_id': self.replaced_by_id.id,
             'can_edit': self.state == 'draft',
-            'print_url': f'/report/pdf/dmag_dental_prescription.report_prescription/{self.id}',
+            'print_url': report_url('dmag_dental_prescription.report_prescription', self.id),
             'lines': [line._workspace_dict() for line in self.line_ids],
         }
 

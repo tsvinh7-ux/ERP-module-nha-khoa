@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Gọi trong <div class="page"> của mọi mẫu in nha khoa:
+         <t t-call="dmag_dental_base.dmag_print_helper"><t t-set="paper" t-value="'A5'"/></t>
+         - Đặt khổ giấy khi in bằng trình duyệt (không có wkhtmltopdf).
+         - Bản HTML có nút "In" nổi (ẩn khi in). -->
+    <template id="dmag_print_helper">
+        <t t-set="paper" t-value="paper or 'A4'"/>
+        <style t-esc="'@page { size: %s portrait; margin: 8mm; } @media print { .dmag-print-bar { display: none !important; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }' % paper"/>
+        <div t-if="report_type == 'html'" class="dmag-print-bar"
+             style="position: fixed; bottom: 16px; right: 16px; z-index: 10;">
+            <button type="button" onclick="window.print()"
+                    style="background: #178BEC; color: #fff; border: 0; border-radius: 8px; padding: 8px 16px; font: 600 14px Arial, sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,.2); cursor: pointer;">
+                In / Lưu PDF
+            </button>
+        </div>
+    </template>
+</odoo>
