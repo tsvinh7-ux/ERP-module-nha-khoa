@@ -322,6 +322,7 @@ class DmagJourneyRule(models.Model):
              WHERE is_patient AND active AND birthdate IS NOT NULL
                AND EXTRACT(MONTH FROM birthdate) = %s AND EXTRACT(DAY FROM birthdate) = %s
         """
+        self.env['res.partner'].flush_model(['is_patient', 'active', 'birthdate'])
         self.env.cr.execute(query, (target.month, target.day))
         partners = self.env['res.partner'].sudo().browse([r[0] for r in self.env.cr.fetchall()])
         Visit = self.env['dmag.dental.visit'].sudo()

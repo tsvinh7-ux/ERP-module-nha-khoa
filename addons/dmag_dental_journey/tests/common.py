@@ -44,6 +44,7 @@ class JourneyCommon(DentalCommon):
 
     def _shift(self, visit, **values):
         """Ghi trực tiếp mốc thời gian (giả lập thời gian đã trôi qua)."""
+        self.env.flush_all()
         sets = ', '.join('%s = %%s' % k for k in values)
         self.env.cr.execute('UPDATE dmag_dental_visit SET %s WHERE id = %%s' % sets, (*values.values(), visit.id))
         visit.invalidate_recordset()
