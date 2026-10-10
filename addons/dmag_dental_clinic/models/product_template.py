@@ -79,7 +79,9 @@ class AccountTax(models.Model):
             ('amount', '=', 0), ('description', '=', 'KCT'),
         ], limit=1)
         if not tax:
+            tax_group = self._dmag_exempt_tax_group(company)
             tax = self.sudo().create({
+                'tax_group_id': tax_group.id,
                 'name': _('Không chịu thuế GTGT'),
                 'description': 'KCT',
                 'invoice_label': 'KCT',
@@ -89,3 +91,16 @@ class AccountTax(models.Model):
                 'company_id': company.id,
             })
         return tax
+
+    @api.model
+    def _dmag_exempt_tax_group(self, company):
+        """Nhóm thuế cho KCT. Công ty chưa nạp hệ thống tài khoản (cài mới) thì chưa có nhóm nào → tạo riêng."""
+        Group = self.env['account.tax.group'].sudo()
+        group = Group.search([('company_id', '=', company.id), ('name', '=', 'KCT')], limit=1)
+        if not group:
+            group = Group.create({
+                'name': 'KCT',
+                'company_id': company.id,
+                'country_id': company.account_fiscal_country_id.id or company.country_id.id,
+            })
+        return group
