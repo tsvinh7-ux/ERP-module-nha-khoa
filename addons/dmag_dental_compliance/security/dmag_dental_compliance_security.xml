@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_dmag_compliance_doc_company" model="ir.rule">
+        <field name="name">Hồ sơ pháp chế: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_compliance_doc"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_equipment_company" model="ir.rule">
+        <field name="name">Thiết bị: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_equipment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_equipment_log_company" model="ir.rule">
+        <field name="name">Nhật ký thiết bị: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_equipment_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_instrument_set_company" model="ir.rule">
+        <field name="name">Bộ dụng cụ: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_instrument_set"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_sterilization_batch_company" model="ir.rule">
+        <field name="name">Mẻ tiệt khuẩn: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_sterilization_batch"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

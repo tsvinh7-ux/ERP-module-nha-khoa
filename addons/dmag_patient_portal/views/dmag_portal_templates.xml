@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Lối vào từ trang /my -->
+    <template id="portal_my_home_dmag" name="Nha khoa – lối vào cổng" inherit_id="portal.portal_my_home" priority="20">
+        <xpath expr="//div[@id='portal_common_category']" position="before">
+            <div class="o_portal_category row g-2 mt-3" id="portal_dmag_dental_category">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="icon" t-value="'/dmag_patient_portal/static/description/icon.png'"/>
+                    <t t-set="title">Hồ sơ nha khoa</t>
+                    <t t-set="text">Lịch hẹn, nội dung khám, kế hoạch điều trị, bảo hành, điểm thành viên</t>
+                    <t t-set="url" t-value="'/my/dental'"/>
+                    <t t-set="config_card" t-value="True"/>
+                </t>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Khung chung: mobile-first -->
+    <template id="portal_dental_shell" name="Nha khoa – khung cổng bệnh nhân">
+        <t t-call="portal.frontend_layout">
+            <t t-set="no_footer" t-value="False"/>
+            <div class="dmag-portal">
+                <div class="dmag-hero">
+                    <div class="container dmag-container">
+                        <div class="dmag-hero-top">
+                            <div>
+                                <div class="dmag-hero-kicker">Tài khoản nha khoa</div>
+                                <h1 class="dmag-hero-title">
+                                    <t t-if="viewer">Xin chào, <t t-out="viewer.name"/></t>
+                                    <t t-else="">Nội dung khám</t>
+                                </h1>
+                            </div>
+                            <a href="/dental/booking" class="dmag-btn dmag-btn-light d-none d-md-inline-flex">Đặt lịch</a>
+                        </div>
+                        <div t-if="patients and len(patients) &gt; 1 and dmag_page != 'visit'" class="dmag-chips">
+                            <a t-attf-href="?" t-attf-class="dmag-chip #{'active' if not current_patient else ''}">Cả nhà</a>
+                            <t t-foreach="patients" t-as="p">
+                                <a t-attf-href="?patient_id=#{p.id}" t-attf-class="dmag-chip #{'active' if current_patient and current_patient.id == p.id else ''}">
+                                    <t t-out="p.name"/>
+                                </a>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+                <nav t-if="viewer" class="dmag-tabs">
+                    <div class="container dmag-container">
+                        <a href="/my/dental" t-attf-class="#{'active' if dmag_page == 'home' else ''}">Tổng quan</a>
+                        <a href="/my/dental/visits" t-attf-class="#{'active' if dmag_page in ('visits', 'visit') else ''}">Lượt khám</a>
+                        <a href="/my/dental/plans" t-attf-class="#{'active' if dmag_page == 'plans' else ''}">Kế hoạch</a>
+                        <a href="/my/dental/warranty" t-attf-class="#{'active' if dmag_page == 'warranty' else ''}">Bảo hành</a>
+                        <a href="/my/dental/loyalty" t-attf-class="#{'active' if dmag_page == 'loyalty' else ''}">Thành viên</a>
+                    </div>
+                </nav>
+                <div class="container dmag-container dmag-body">
+                    <t t-out="0"/>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_dental_visit_card" name="Nha khoa – thẻ lượt khám">
+        <a t-attf-href="/my/dental/visit/#{v['id']}" class="dmag-card dmag-visit-card">
+            <div class="dmag-visit-date">
+                <span class="dmag-visit-time" t-out="v['start_display'][:5]"/>
+                <span class="dmag-visit-day" t-out="v['start_display'][6:]"/>
+            </div>
+            <div class="dmag-visit-main">
+                <div class="dmag-visit-title">
+                    <t t-out="', '.join(v['services']) or ', '.join(v['procedures']) or 'Khám nha khoa'"/>
+                </div>
+                <div class="dmag-muted">
+                    <t t-if="v['doctor']">BS <t t-out="v['doctor']"/> · </t><t t-out="v['branch']"/>
+                </div>
+                <div t-if="patients and len(patients) &gt; 1" class="dmag-muted small"><t t-out="v['patient']"/></div>
+            </div>
+            <span t-attf-class="dmag-badge dmag-state-#{v['state']}" t-out="v['state_label']"/>
+        </a>
+    </template>
+
+    <!-- /my/dental -->
+    <template id="portal_dental_home" name="Nha khoa – tổng quan">
+        <t t-call="dmag_patient_portal.portal_dental_shell">
+            <div class="dmag-grid">
+                <section class="dmag-section">
+                    <h2 class="dmag-h2">Lịch hẹn sắp tới</h2>
+                    <t t-if="upcoming">
+                        <t t-foreach="upcoming" t-as="v"><t t-call="dmag_patient_portal.portal_dental_visit_card"/></t>
+                    </t>
+                    <div t-else="" class="dmag-card dmag-empty">
+                        Chưa có lịch hẹn. <a href="/dental/booking">Đặt lịch ngay</a>
+                    </div>
+                </section>
+                <section class="dmag-section" t-if="loyalty">
+                    <h2 class="dmag-h2">Thành viên</h2>
+                    <a href="/my/dental/loyalty" class="dmag-card dmag-tier-card"
+                       t-attf-style="--dmag-tier: #{loyalty['tier'] and loyalty['tier']['color'] or '#178BEC'}">
+                        <div class="dmag-tier-name" t-out="loyalty['tier'] and loyalty['tier']['name'] or 'Thành viên'"/>
+                        <div class="dmag-tier-points"><strong t-out="loyalty['points']"/> điểm</div>
+                        <div t-if="loyalty['next_tier']" class="dmag-progress">
+                            <div class="dmag-progress-bar" t-attf-style="width: #{loyalty['next_tier']['progress']}%"/>
+                        </div>
+                        <div t-if="loyalty['next_tier']" class="dmag-muted small">
+                            <t t-out="loyalty['next_tier']['progress']"/>% đến hạng <t t-out="loyalty['next_tier']['name']"/>
+                        </div>
+                    </a>
+                </section>
+            </div>
+            <section class="dmag-section">
+                <h2 class="dmag-h2">Thao tác nhanh</h2>
+                <div class="dmag-actions">
+                    <a href="/dental/booking" class="dmag-action"><i class="fa fa-calendar-plus-o"/><span>Đặt lịch</span></a>
+                    <a href="/my/dental/visits" class="dmag-action"><i class="fa fa-file-text-o"/><span>Nội dung khám</span></a>
+                    <a href="/my/dental/plans" class="dmag-action"><i class="fa fa-list-ol"/><span>Kế hoạch điều trị</span></a>
+                    <a href="/my/dental/warranty" class="dmag-action"><i class="fa fa-shield"/><span>Thẻ bảo hành</span></a>
+                </div>
+            </section>
+            <section class="dmag-section" t-if="recent">
+                <h2 class="dmag-h2">Lần khám gần đây</h2>
+                <t t-foreach="recent" t-as="v"><t t-call="dmag_patient_portal.portal_dental_visit_card"/></t>
+            </section>
+        </t>
+    </template>
+
+    <!-- /my/dental/visits -->
+    <template id="portal_dental_visits" name="Nha khoa – lượt khám">
+        <t t-call="dmag_patient_portal.portal_dental_shell">
+            <h2 class="dmag-h2">Lượt khám</h2>
+            <t t-if="visits">
+                <t t-foreach="visits" t-as="v"><t t-call="dmag_patient_portal.portal_dental_visit_card"/></t>
+            </t>
+            <div t-else="" class="dmag-card dmag-empty">Chưa có lượt khám nào.</div>
+        </t>
+    </template>
+
+    <!-- /my/dental/visit/<id> – "Nội dung khám hôm nay" -->
+    <template id="portal_dental_visit" name="Nha khoa – nội dung khám">
+        <t t-call="dmag_patient_portal.portal_dental_shell">
+            <t t-set="v" t-value="visit"/>
+            <div class="dmag-card dmag-visit-head">
+                <div class="dmag-kicker">Nội dung khám <t t-out="v['date_display']"/></div>
+                <h2 class="dmag-visit-patient" t-out="v['patient']"/>
+                <div class="dmag-muted">
+                    <t t-if="v['doctor']">Bác sĩ <t t-out="v['doctor']"/> · </t>
+                    <t t-out="v['branch']"/> · <t t-out="v['start_display']"/>
+                </div>
+                <span t-attf-class="dmag-badge dmag-state-#{v['state']}" t-out="v['state_label']"/>
+            </div>
+
+            <div t-if="v['diagnoses'] or v['assessment']" class="dmag-card">
+                <h3 class="dmag-h3"><i class="fa fa-stethoscope"/> Bác sĩ nhận định</h3>
+                <ul t-if="v['diagnoses']" class="dmag-list">
+                    <li t-foreach="v['diagnoses']" t-as="d" t-out="d"/>
+                </ul>
+                <p t-if="v['assessment']" class="dmag-pre" t-out="v['assessment']"/>
+            </div>
+
+            <div class="dmag-card">
+                <h3 class="dmag-h3"><i class="fa fa-check-circle"/> Việc đã làm hôm nay</h3>
+                <t t-if="v['procedure_lines']">
+                    <div t-foreach="v['procedure_lines']" t-as="p" class="dmag-row">
+                        <span t-out="p['name']"/>
+                        <span class="dmag-amount" t-out="fmt_money(p['amount'])"/>
+                    </div>
+                </t>
+                <p t-else="" class="dmag-muted">Khám và tư vấn.</p>
+                <p t-if="v['treatment_note']" class="dmag-pre dmag-muted" t-out="v['treatment_note']"/>
+            </div>
+
+            <div t-if="v['advice'] or v['aftercare']" class="dmag-card dmag-advice">
+                <h3 class="dmag-h3"><i class="fa fa-heart"/> Lời dặn sau khám</h3>
+                <p t-if="v['advice']" class="dmag-pre" t-out="v['advice']"/>
+                <div t-foreach="v['aftercare']" t-as="a" class="dmag-aftercare">
+                    <strong t-out="a['service']"/>
+                    <p class="dmag-pre" t-out="a['note']"/>
+                </div>
+            </div>
+
+            <div t-if="v['prescriptions']" class="dmag-card">
+                <h3 class="dmag-h3"><i class="fa fa-medkit"/> Đơn thuốc</h3>
+                <div t-foreach="v['prescriptions']" t-as="rx" class="dmag-row">
+                    <span>Mã đơn thuốc</span><strong class="dmag-code" t-out="rx['code']"/>
+                </div>
+                <p class="dmag-muted small">Xuất trình mã đơn thuốc tại nhà thuốc để mua đúng thuốc bác sĩ kê.</p>
+            </div>
+
+            <div class="dmag-card">
+                <h3 class="dmag-h3"><i class="fa fa-calendar"/> Lịch hẹn tiếp theo</h3>
+                <t t-if="v['next_visit']">
+                    <div class="dmag-next" t-out="v['next_visit']['start_display']"/>
+                    <div class="dmag-muted">
+                        <t t-if="v['next_visit']['doctor']">BS <t t-out="v['next_visit']['doctor']"/> · </t>
+                        <t t-out="', '.join(v['next_visit']['services'])"/>
+                    </div>
+                </t>
+                <p t-else="" class="dmag-muted">Chưa có lịch hẹn tiếp. <a href="/dental/booking">Đặt lịch</a></p>
+            </div>
+
+            <div t-if="v['invoices']" class="dmag-card">
+                <h3 class="dmag-h3"><i class="fa fa-file-text"/> Chi phí</h3>
+                <div t-foreach="v['invoices']" t-as="inv" class="dmag-row">
+                    <span><t t-out="inv['name']"/> <span class="dmag-muted small" t-out="inv['date']"/></span>
+                    <span>
+                        <span class="dmag-amount" t-out="fmt_money(inv['amount_total'])"/>
+                        <span t-if="inv['paid']" class="dmag-badge dmag-state-done">Đã thanh toán</span>
+                        <span t-else="" class="dmag-badge dmag-state-draft">Còn <t t-out="fmt_money(inv['amount_residual'])"/></span>
+                    </span>
+                </div>
+            </div>
+            <p t-if="shared_link" class="dmag-muted small text-center mt-3">
+                Đây là link chia sẻ riêng cho bạn, hiệu lực 30 ngày. Đăng nhập tài khoản để xem toàn bộ lịch sử khám.
+            </p>
+        </t>
+    </template>
+
+    <!-- /my/dental/plans -->
+    <template id="portal_dental_plans" name="Nha khoa – kế hoạch điều trị">
+        <t t-call="dmag_patient_portal.portal_dental_shell">
+            <h2 class="dmag-h2">Kế hoạch điều trị</h2>
+            <div t-if="not plans" class="dmag-card dmag-empty">Chưa có kế hoạch điều trị.</div>
+            <div t-foreach="plans" t-as="plan" class="dmag-card">
+                <div class="dmag-row">
+                    <div>
+                        <h3 class="dmag-h3 mb-0" t-out="plan['title']"/>
+                        <div class="dmag-muted small"><t t-out="plan['patient']"/> · <t t-out="plan['date']"/><t t-if="plan['doctor']"> · BS <t t-out="plan['doctor']"/></t></div>
+                    </div>
+                    <span t-attf-class="dmag-badge dmag-plan-#{plan['state']}" t-out="plan['state_label']"/>
+                </div>
+                <div t-if="plan['state'] in ('accepted', 'in_progress', 'done')" class="mt-2">
+                    <div class="dmag-progress"><div class="dmag-progress-bar" t-attf-style="width: #{plan['progress']}%"/></div>
+                    <div class="dmag-muted small">Tiến độ <t t-out="plan['progress']"/>%</div>
+                </div>
+                <div class="dmag-options">
+                    <div t-foreach="plan['options']" t-as="opt" t-attf-class="dmag-option #{'accepted' if opt['accepted'] else ''}">
+                        <div class="dmag-row">
+                            <strong t-out="opt['name']"/>
+                            <span>
+                                <span t-if="opt['recommended']" class="dmag-badge dmag-state-confirmed">Bác sĩ khuyến nghị</span>
+                                <span t-if="opt['accepted']" class="dmag-badge dmag-state-done">Đã chọn</span>
+                            </span>
+                        </div>
+                        <p t-if="opt['summary']" class="dmag-pre dmag-muted small" t-out="opt['summary']"/>
+                        <div t-foreach="opt['lines']" t-as="line" class="dmag-row small">
+                            <span><i t-attf-class="fa #{'fa-check-circle text-success' if line['done'] else 'fa-circle-o'}"/> <t t-out="line['name']"/></span>
+                            <span t-out="fmt_money(line['amount'])"/>
+                        </div>
+                        <div class="dmag-row dmag-total">
+                            <span>Tổng chi phí</span><strong t-out="fmt_money(opt['amount_total'])"/>
+                        </div>
+                        <div t-if="opt['installment_months']" class="dmag-muted small">
+                            Trả góp <t t-out="opt['installment_months']"/> tháng · mỗi tháng <t t-out="fmt_money(opt['monthly_amount'])"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- /my/dental/warranty -->
+    <template id="portal_dental_warranty" name="Nha khoa – thẻ bảo hành">
+        <t t-call="dmag_patient_portal.portal_dental_shell">
+            <h2 class="dmag-h2">Thẻ bảo hành điện tử</h2>
+            <div t-if="cards is False" class="dmag-card dmag-empty">Phòng khám chưa bật thẻ bảo hành điện tử.</div>
+            <div t-elif="not cards" class="dmag-card dmag-empty">Chưa có thẻ bảo hành.</div>
+            <div t-foreach="cards or []" t-as="card" t-attf-class="dmag-card dmag-warranty dmag-warranty-#{card['state']}">
+                <div class="dmag-row">
+                    <div>
+                        <div class="dmag-kicker" t-out="card['name']"/>
+                        <h3 class="dmag-h3 mb-0" t-out="card['service']"/>
+                        <div class="dmag-muted small"><t t-out="card['patient']"/><t t-if="card['teeth']"> · Răng <t t-out="card['teeth']"/></t></div>
+                    </div>
+                    <span class="dmag-badge" t-out="card['state_label']"/>
+                </div>
+                <div class="dmag-row small mt-2">
+                    <span>Hiệu lực <t t-out="card['start_date']"/> – <t t-out="card['end_date']"/></span>
+                    <span t-if="card['state'] == 'active'">còn <strong t-out="card['days_left']"/> ngày</span>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- /my/dental/loyalty -->
+    <template id="portal_dental_loyalty" name="Nha khoa – thành viên">
+        <t t-call="dmag_patient_portal.portal_dental_shell">
+            <div t-if="not loyalty" class="dmag-card dmag-empty">Chưa có hồ sơ thành viên.</div>
+            <t t-if="loyalty">
+                <div class="dmag-card dmag-tier-card dmag-tier-big"
+                     t-attf-style="--dmag-tier: #{loyalty['tier'] and loyalty['tier']['color'] or '#178BEC'}">
+                    <div class="dmag-kicker">Hạng thành viên<t t-if="loyalty['pooled']"> · ví gia đình</t></div>
+                    <div class="dmag-tier-name" t-out="loyalty['tier'] and loyalty['tier']['name'] or 'Thành viên'"/>
+                    <div class="dmag-tier-points"><strong t-out="loyalty['points']"/> điểm khả dụng</div>
+                    <t t-if="loyalty['next_tier']">
+                        <div class="dmag-progress"><div class="dmag-progress-bar" t-attf-style="width: #{loyalty['next_tier']['progress']}%"/></div>
+                        <div class="small">
+                            Lên hạng <t t-out="loyalty['next_tier']['name']"/>:
+                            <t t-if="loyalty['next_tier']['missing_paid']">chi tiêu thêm <t t-out="fmt_money(loyalty['next_tier']['missing_paid'])"/></t>
+                            <t t-if="loyalty['next_tier']['missing_paid'] and loyalty['next_tier']['missing_points']"> <t t-out="'hoặc' if loyalty['next_tier']['condition'] == 'or' else 'và'"/> </t>
+                            <t t-if="loyalty['next_tier']['missing_points']">thêm <t t-out="loyalty['next_tier']['missing_points']"/> điểm gắn bó (tái khám đúng hẹn, giới thiệu, khảo sát)</t>
+                        </div>
+                    </t>
+                </div>
+                <div t-if="loyalty['tier'] and loyalty['tier']['benefits']" class="dmag-card">
+                    <h3 class="dmag-h3">Quyền lợi của bạn</h3>
+                    <p class="dmag-pre" t-out="loyalty['tier']['benefits']"/>
+                </div>
+                <div t-if="loyalty['vouchers']" class="dmag-card">
+                    <h3 class="dmag-h3">Voucher</h3>
+                    <div t-foreach="loyalty['vouchers']" t-as="vc" class="dmag-row">
+                        <span><strong class="dmag-code" t-out="vc['code']"/> <span class="dmag-muted small">đến <t t-out="vc['valid_to']"/></span></span>
+                        <span t-if="vc['value_type'] == 'amount'" t-out="fmt_money(vc['value'])"/>
+                        <span t-else=""><t t-out="vc['value']"/>%</span>
+                    </div>
+                </div>
+                <div t-if="loyalty['subscriptions']" class="dmag-card">
+                    <h3 class="dmag-h3">Gói chăm sóc định kỳ</h3>
+                    <div t-foreach="loyalty['subscriptions']" t-as="sub">
+                        <div class="dmag-row"><strong t-out="sub['plan']"/><span class="dmag-muted small">đến <t t-out="sub['end_date']"/></span></div>
+                        <div t-foreach="sub['entitlements']" t-as="ent" class="dmag-row small">
+                            <span t-out="ent['service']"/><span>còn <strong t-out="int(ent['remaining'])"/>/<t t-out="int(ent['total'])"/></span>
+                        </div>
+                    </div>
+                </div>
+                <div t-if="len(loyalty['members']) &gt; 1" class="dmag-card">
+                    <h3 class="dmag-h3">Gia đình <t t-out="loyalty['family'] and loyalty['family']['name'] or ''"/></h3>
+                    <div t-foreach="loyalty['members']" t-as="m" class="dmag-row small">
+                        <span t-out="m['name']"/><span><t t-out="m['points']"/> điểm</span>
+                    </div>
+                </div>
+                <div t-if="loyalty['ledger']" class="dmag-card">
+                    <h3 class="dmag-h3">Lịch sử điểm</h3>
+                    <div t-foreach="loyalty['ledger']" t-as="l" class="dmag-row small">
+                        <span><t t-out="l['reason_label']"/> <span class="dmag-muted" t-out="l['note']"/></span>
+                        <strong t-attf-class="#{'text-success' if l['points'] &gt; 0 else 'text-danger'}"><t t-out="'+' if l['points'] &gt; 0 else ''"/><t t-out="l['points']"/></strong>
+                    </div>
+                </div>
+                <p class="dmag-muted small text-center">Mọi ưu đãi được hiển thị minh bạch tại đây. Phòng khám không áp dụng ưu đãi kiểu "chỉ hôm nay".</p>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_dental_denied" name="Nha khoa – không có quyền">
+        <t t-call="portal.frontend_layout">
+            <div class="dmag-portal">
+                <div class="container dmag-container dmag-body">
+                    <div class="dmag-card dmag-empty mt-4">
+                        <h2 class="dmag-h2">Không xem được nội dung</h2>
+                        <p t-out="message"/>
+                        <a href="/web/login" class="dmag-btn">Đăng nhập</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

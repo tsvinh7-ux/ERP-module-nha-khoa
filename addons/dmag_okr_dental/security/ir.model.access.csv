@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_okr_guardrail_okr_user,dmag_okr_guardrail okr user,model_dmag_okr_guardrail,okr_scale.group_okr_user,1,0,0,0
+access_dmag_okr_guardrail_manager,dmag_okr_guardrail manager,model_dmag_okr_guardrail,dmag_dental_base.group_dmag_manager,1,1,1,0
+access_dmag_okr_guardrail_okr_admin,dmag_okr_guardrail okr admin,model_dmag_okr_guardrail,okr_scale.group_okr_admin,1,1,1,1
+access_dmag_okr_guardrail_director,dmag_okr_guardrail director,model_dmag_okr_guardrail,dmag_dental_base.group_dmag_director,1,1,1,1

@@ -58,6 +58,14 @@ class OkrKeyResult(models.Model):
             kr.status = 'off_track'
         return res
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('progress_method') in DENTAL_KEYS:
+                # Chưa có số liệu → đứng ở mức xuất phát (không "đạt" giả với KR giảm dần)
+                vals.setdefault('current_value', vals.get('start_value', 0.0))
+        return super().create(vals_list)
+
     # ------------------------------------------------------------------ progress hook
     def _compute_progress_by_method(self):
         self.ensure_one()

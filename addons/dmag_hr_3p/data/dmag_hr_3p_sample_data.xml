@@ -101,7 +101,7 @@
     </record>
     <record id="comp_c_license" model="dmag.competency">
         <field name="code">C_LICENSE</field>
-        <field name="name">Giấy phép & phạm vi hành nghề</field>
+        <field name="name">Giấy phép &amp; phạm vi hành nghề</field>
         <field name="basis">license</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -111,7 +111,7 @@
     </record>
     <record id="comp_c_ethic" model="dmag.competency">
         <field name="code">C_ETHIC</field>
-        <field name="name">Y đức & tư vấn 2 phương án minh bạch</field>
+        <field name="name">Y đức &amp; tư vấn 2 phương án minh bạch</field>
         <field name="basis">manual</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -129,7 +129,7 @@
     </record>
     <record id="comp_c_fourhand" model="dmag.competency">
         <field name="code">C_FOURHAND</field>
-        <field name="name">Kỹ thuật bốn tay & chuẩn bị ghế</field>
+        <field name="name">Kỹ thuật bốn tay &amp; chuẩn bị ghế</field>
         <field name="basis">manual</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -138,7 +138,7 @@
     </record>
     <record id="comp_c_schedule" model="dmag.competency">
         <field name="code">C_SCHEDULE</field>
-        <field name="name">Điều phối lịch hẹn & ghế</field>
+        <field name="name">Điều phối lịch hẹn &amp; ghế</field>
         <field name="basis">manual</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -147,7 +147,7 @@
     </record>
     <record id="comp_c_service" model="dmag.competency">
         <field name="code">C_SERVICE</field>
-        <field name="name">Giao tiếp & chăm sóc khách hàng</field>
+        <field name="name">Giao tiếp &amp; chăm sóc khách hàng</field>
         <field name="basis">manual</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -156,7 +156,7 @@
     </record>
     <record id="comp_c_data" model="dmag.competency">
         <field name="code">C_DATA</field>
-        <field name="name">Chất lượng nhập liệu & sử dụng phần mềm</field>
+        <field name="name">Chất lượng nhập liệu &amp; sử dụng phần mềm</field>
         <field name="basis">manual</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -183,7 +183,7 @@
     </record>
     <record id="comp_c_lead" model="dmag.competency">
         <field name="code">C_LEAD</field>
-        <field name="name">Lãnh đạo & phát triển đội ngũ</field>
+        <field name="name">Lãnh đạo &amp; phát triển đội ngũ</field>
         <field name="basis">manual</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -192,7 +192,7 @@
     </record>
     <record id="comp_c_ops" model="dmag.competency">
         <field name="code">C_OPS</field>
-        <field name="name">Quản trị vận hành & tài chính phòng khám</field>
+        <field name="name">Quản trị vận hành &amp; tài chính phòng khám</field>
         <field name="basis">manual</field>
         <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
         <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
@@ -367,7 +367,7 @@
         <field name="is_sample" eval="True"/>
     </record>
     <record id="job_reception" model="hr.job">
-        <field name="name">Lễ tân điều phối & CSKH</field>
+        <field name="name">Lễ tân điều phối &amp; CSKH</field>
     </record>
     <record id="profile_reception" model="dmag.job.position.profile">
         <field name="job_id" ref="job_reception"/>

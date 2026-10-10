@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="booking_page" name="Nha khoa – đặt lịch trực tuyến">
+        <t t-call="portal.frontend_layout">
+            <div class="dmag-portal">
+                <div class="dmag-hero">
+                    <div class="container dmag-container">
+                        <div class="dmag-hero-kicker">Đặt lịch khám</div>
+                        <h1 class="dmag-hero-title">Chọn thời gian phù hợp với bạn</h1>
+                        <p class="dmag-hero-sub">Phòng khám sẽ gọi / nhắn Zalo xác nhận lịch trong giờ làm việc.</p>
+                    </div>
+                </div>
+                <div class="container dmag-container dmag-body">
+                    <form action="/dental/booking" method="post" class="dmag-card dmag-form" novalidate="novalidate">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="d-none" aria-hidden="true">
+                            <label for="website_url">Website</label>
+                            <input type="text" name="website_url" id="website_url" tabindex="-1" autocomplete="off"/>
+                        </div>
+                        <div t-if="error" class="alert alert-danger" role="alert" t-out="error"/>
+                        <div class="mb-3">
+                            <label class="form-label" for="dmag_name">Họ và tên *</label>
+                            <input type="text" class="form-control" name="name" id="dmag_name" required="required"
+                                   maxlength="120" t-att-value="post.get('name')" autocomplete="name"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="dmag_phone">Số điện thoại (Zalo) *</label>
+                            <input type="tel" class="form-control" name="phone" id="dmag_phone" required="required"
+                                   inputmode="tel" t-att-value="post.get('phone')" autocomplete="tel" placeholder="09xx xxx xxx"/>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-7">
+                                <label class="form-label" for="dmag_date">Ngày mong muốn *</label>
+                                <input type="date" class="form-control" name="date" id="dmag_date" required="required" t-att-value="post.get('date')"/>
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label" for="dmag_time">Giờ *</label>
+                                <select class="form-select" name="time" id="dmag_time">
+                                    <t t-foreach="slots" t-as="slot">
+                                        <option t-att-value="slot" t-att-selected="slot == (post.get('time') or '09:00')" t-out="slot"/>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="dmag_service">Dịch vụ quan tâm</label>
+                            <select class="form-select" name="service_id" id="dmag_service">
+                                <option value="">Khám tổng quát / tư vấn</option>
+                                <t t-foreach="services" t-as="svc">
+                                    <option t-att-value="svc.id" t-att-selected="str(svc.id) == str(post.get('service_id'))" t-out="svc.name"/>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="mb-3" t-if="len(branches) &gt; 1">
+                            <label class="form-label" for="dmag_branch">Chi nhánh</label>
+                            <select class="form-select" name="company_id" id="dmag_branch">
+                                <t t-foreach="branches" t-as="branch">
+                                    <option t-att-value="branch.id" t-att-selected="str(branch.id) == str(post.get('company_id'))" t-out="branch.name"/>
+                                </t>
+                            </select>
+                        </div>
+                        <input t-else="" type="hidden" name="company_id" t-att-value="branches[:1].id"/>
+                        <div class="mb-3">
+                            <label class="form-label" for="dmag_note">Ghi chú (tình trạng, mong muốn)</label>
+                            <textarea class="form-control" name="note" id="dmag_note" rows="2" maxlength="500" t-out="post.get('note') or ''"/>
+                        </div>
+                        <div class="form-check mb-3 dmag-consent">
+                            <input class="form-check-input" type="checkbox" name="consent" id="dmag_consent" required="required"/>
+                            <label class="form-check-label small" for="dmag_consent">
+                                Tôi đồng ý để phòng khám thu thập và xử lý họ tên, số điện thoại và thông tin sức khỏe tôi cung cấp
+                                nhằm đặt lịch, liên hệ xác nhận và chăm sóc sau khám, theo Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân.
+                                Tôi có thể yêu cầu rút lại sự đồng ý hoặc xóa dữ liệu bất cứ lúc nào. *
+                            </label>
+                        </div>
+                        <button type="submit" class="dmag-btn w-100">Gửi yêu cầu đặt lịch</button>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_thanks" name="Nha khoa – đặt lịch thành công">
+        <t t-call="portal.frontend_layout">
+            <div class="dmag-portal">
+                <div class="container dmag-container dmag-body">
+                    <div class="dmag-card dmag-empty mt-4">
+                        <div class="dmag-success-icon"><i class="fa fa-check"/></div>
+                        <h2 class="dmag-h2">Đã nhận yêu cầu đặt lịch</h2>
+                        <p>Mã yêu cầu: <strong t-out="booking_name"/></p>
+                        <p class="dmag-muted">Phòng khám sẽ liên hệ xác nhận lịch qua điện thoại / Zalo. Cảm ơn bạn đã tin tưởng!</p>
+                        <a href="/" class="dmag-btn">Về trang chủ</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_dmag_sterilization_batch" model="ir.sequence">
+            <field name="name">Mẻ tiệt khuẩn</field>
+            <field name="code">dmag.sterilization.batch</field>
+            <field name="prefix">TK%(y)s%(month)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Căn cứ pháp lý chỉ để tham chiếu – đối chiếu văn bản gốc trong docs/PHAP_LY_NHA_KHOA.md trước khi vận hành. -->
+        <record id="doc_type_facility_license" model="dmag.compliance.doc.type">
+            <field name="name">Giấy phép hoạt động khám bệnh, chữa bệnh</field>
+            <field name="code">GPHD</field>
+            <field name="sequence">1</field>
+            <field name="category">facility</field>
+            <field name="validity_months">0</field>
+            <field name="alert_days">90</field>
+            <field name="is_mandatory" eval="True"/>
+            <field name="legal_basis">Luật Khám bệnh, chữa bệnh số 15/2023/QH15 (giấy phép hoạt động phòng khám chuyên khoa răng hàm mặt) và Nghị định 96/2023/NĐ-CP hướng dẫn. Niêm yết giấy phép, phạm vi chuyên môn và người chịu trách nhiệm chuyên môn tại cơ sở.</field>
+        </record>
+        <record id="doc_type_practice_license" model="dmag.compliance.doc.type">
+            <field name="name">Giấy phép hành nghề</field>
+            <field name="code">GPHN</field>
+            <field name="sequence">2</field>
+            <field name="category">personnel</field>
+            <field name="validity_months">60</field>
+            <field name="alert_days">120</field>
+            <field name="per_practitioner" eval="True"/>
+            <field name="legal_basis">Luật Khám bệnh, chữa bệnh 2023: giấy phép hành nghề có thời hạn 5 năm, ghi phạm vi hành nghề; gia hạn trước khi hết hạn. Đối chiếu phạm vi hành nghề của từng bác sĩ trong "Nhân sự lâm sàng".</field>
+        </record>
+        <record id="doc_type_radiation_license" model="dmag.compliance.doc.type">
+            <field name="name">Giấy phép tiến hành công việc bức xạ (X-quang chẩn đoán y tế)</field>
+            <field name="code">GPBX</field>
+            <field name="sequence">3</field>
+            <field name="category">radiation</field>
+            <field name="alert_days">90</field>
+            <field name="is_mandatory" eval="True"/>
+            <field name="legal_basis">Nghị định 142/2020/NĐ-CP về tiến hành công việc bức xạ; Thông tư 59/2025/TT-BKHCN về an toàn bức xạ trong y tế. Mọi thiết bị X-quang / CBCT đang dùng phải có trong giấy phép; thời hạn theo giấy phép được cấp.</field>
+        </record>
+        <record id="doc_type_xray_inspection" model="dmag.compliance.doc.type">
+            <field name="name">Kiểm định thiết bị X-quang / CBCT</field>
+            <field name="code">KDXQ</field>
+            <field name="sequence">4</field>
+            <field name="category">equipment</field>
+            <field name="validity_months">12</field>
+            <field name="alert_days">45</field>
+            <field name="is_mandatory" eval="True"/>
+            <field name="per_equipment" eval="True"/>
+            <field name="equipment_categories">xray,pano,cbct</field>
+            <field name="legal_basis">Thông tư 59/2025/TT-BKHCN; Nghị định 142/2020/NĐ-CP – thiết bị X-quang chẩn đoán y tế phải được kiểm định định kỳ bởi tổ chức được cấp đăng ký dịch vụ kiểm định (chu kỳ theo chứng thư kiểm định – cần xác minh).</field>
+        </record>
+        <record id="doc_type_radiation_staff" model="dmag.compliance.doc.type">
+            <field name="name">Chứng chỉ / đào tạo an toàn bức xạ nhân viên</field>
+            <field name="code">CCBX</field>
+            <field name="sequence">5</field>
+            <field name="category">radiation</field>
+            <field name="alert_days">60</field>
+            <field name="per_practitioner" eval="True"/>
+            <field name="legal_basis">Nghị định 142/2020/NĐ-CP; Thông tư 59/2025/TT-BKHCN – người phụ trách an toàn và nhân viên bức xạ phải được đào tạo, có chứng chỉ theo quy định.</field>
+        </record>
+        <record id="doc_type_dosimetry" model="dmag.compliance.doc.type">
+            <field name="name">Kết quả đo liều chiếu xạ cá nhân (liều kế)</field>
+            <field name="code">LIEU</field>
+            <field name="sequence">6</field>
+            <field name="category">radiation</field>
+            <field name="validity_months">3</field>
+            <field name="alert_days">15</field>
+            <field name="per_practitioner" eval="True"/>
+            <field name="legal_basis">Theo dõi liều chiếu xạ nghề nghiệp cho nhân viên bức xạ (Nghị định 142/2020/NĐ-CP; Thông tư 59/2025/TT-BKHCN) – chu kỳ đọc liều cần xác minh.</field>
+        </record>
+        <record id="doc_type_waste_contract" model="dmag.compliance.doc.type">
+            <field name="name">Hợp đồng thu gom, xử lý chất thải y tế nguy hại</field>
+            <field name="code">CTYT</field>
+            <field name="sequence">7</field>
+            <field name="category">waste</field>
+            <field name="validity_months">12</field>
+            <field name="alert_days">30</field>
+            <field name="is_mandatory" eval="True"/>
+            <field name="legal_basis">Thông tư 20/2021/TT-BYT quy định về quản lý chất thải y tế trong phạm vi khuôn viên cơ sở y tế: phân loại, thu gom, lưu giữ, chuyển giao cho đơn vị có chức năng xử lý; lưu sổ / chứng từ chuyển giao.</field>
+        </record>
+        <record id="doc_type_infection_control" model="dmag.compliance.doc.type">
+            <field name="name">Quy trình kiểm soát nhiễm khuẩn, khử khuẩn – tiệt khuẩn dụng cụ</field>
+            <field name="code">KSNK</field>
+            <field name="sequence">8</field>
+            <field name="category">infection</field>
+            <field name="alert_days">30</field>
+            <field name="legal_basis">Thông tư 16/2018/TT-BYT quy định về kiểm soát nhiễm khuẩn trong cơ sở khám bệnh, chữa bệnh: quy trình khử khuẩn – tiệt khuẩn, giám sát tiệt khuẩn bằng chỉ thị, lưu hồ sơ truy vết.</field>
+        </record>
+        <record id="doc_type_fire" model="dmag.compliance.doc.type">
+            <field name="name">Hồ sơ phòng cháy chữa cháy (kiểm tra, huấn luyện, thiết bị)</field>
+            <field name="code">PCCC</field>
+            <field name="sequence">9</field>
+            <field name="category">fire</field>
+            <field name="validity_months">12</field>
+            <field name="alert_days">30</field>
+            <field name="is_mandatory" eval="True"/>
+            <field name="legal_basis">Luật Phòng cháy, chữa cháy và cứu nạn, cứu hộ 2024 và văn bản hướng dẫn (cần xác minh văn bản áp dụng cho phòng khám): hồ sơ quản lý PCCC, kiểm tra định kỳ, huấn luyện, bảo dưỡng phương tiện.</field>
+        </record>
+        <record id="doc_type_business" model="dmag.compliance.doc.type">
+            <field name="name">Giấy chứng nhận đăng ký doanh nghiệp / hộ kinh doanh</field>
+            <field name="code">DKKD</field>
+            <field name="sequence">10</field>
+            <field name="category">business</field>
+            <field name="is_mandatory" eval="True"/>
+            <field name="alert_days">30</field>
+        </record>
+        <record id="doc_type_lease" model="dmag.compliance.doc.type">
+            <field name="name">Hợp đồng thuê mặt bằng</field>
+            <field name="code">THUE</field>
+            <field name="sequence">11</field>
+            <field name="category">premises</field>
+            <field name="alert_days">90</field>
+            <field name="legal_basis">Địa điểm hoạt động phải khớp giấy phép hoạt động; hết hạn thuê làm mất điều kiện hoạt động tại địa điểm.</field>
+        </record>
+        <record id="doc_type_other" model="dmag.compliance.doc.type">
+            <field name="name">Hồ sơ khác</field>
+            <field name="code">KHAC</field>
+            <field name="sequence">99</field>
+            <field name="category">other</field>
+        </record>
+    </data>
+
+    <record id="ir_cron_dmag_compliance_alerts" model="ir.cron">
+        <field name="name">Nha khoa: cảnh báo hồ sơ pháp chế &amp; kiểm định thiết bị</field>
+        <field name="model_id" ref="model_dmag_compliance_doc"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_compliance_alerts()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
+</odoo>

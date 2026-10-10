@@ -98,7 +98,7 @@ class DmagPrescription(models.Model):
     cancel_reason = fields.Char('Lý do hủy', copy=False)
     issued_uid = fields.Many2one('res.users', string='Người phát hành', copy=False, readonly=True)
 
-    send_attempts = fields.Integer('Số lần gửi liên thông', copy=False, readonly=True)
+    send_attempts = fields.Integer('Số lần gửi liên thông', default=0, copy=False, readonly=True)
     send_error = fields.Text('Lỗi liên thông gần nhất', copy=False, readonly=True)
     sent_at = fields.Datetime('Thời điểm liên thông', copy=False, readonly=True)
     send_log_ids = fields.One2many('dmag.rx.send.log', 'prescription_id', string='Nhật ký liên thông')
@@ -535,7 +535,7 @@ class DmagPrescriptionLine(models.Model):
                             drug=name, max=max_days, days=self.days))
         return errors
 
-    @api.constrains('drug_id', 'quantity', 'days', 'dose_per_time', 'times_per_day', 'is_chronic')
+    @api.constrains('drug_id', 'days', 'dose_per_time', 'times_per_day', 'is_chronic')
     def _check_line(self):
         for line in self:
             errors = line._get_line_errors()

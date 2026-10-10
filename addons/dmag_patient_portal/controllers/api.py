@@ -152,7 +152,7 @@ class DmagPatientApi(http.Controller):
         patient = patient.sudo()
         values = dict(payload)
         values.setdefault('name', patient.name)
-        values.setdefault('phone', patient.mobile or patient.phone)
+        values.setdefault('phone', patient.mobile or patient.phone or partner.sudo().mobile or partner.sudo().phone)
         try:
             visit = request.env['dmag.portal.booking.log'].sudo()._dmag_create_booking(
                 values, ip=request.httprequest.remote_addr, channel='api',

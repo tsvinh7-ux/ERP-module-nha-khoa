@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_portal" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.portal</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='journey']" position="inside">
+                <group string="Tài khoản bệnh nhân">
+                    <field name="dmag_portal_url" widget="CopyClipboardChar" readonly="1"/>
+                    <field name="dmag_portal_token_date" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -35,26 +35,34 @@ class DmagRxLineMixin(models.AbstractModel):
 
     sequence = fields.Integer(default=10)
     drug_id = fields.Many2one('dmag.drug', string='Thuốc', required=True, ondelete='restrict')
-    route = fields.Selection(ROUTES, string='Đường dùng', compute='_compute_from_drug', store=True,
+    route = fields.Selection(ROUTES, string='Đường dùng', compute='_compute_route', store=True,
                              readonly=False)
     dose_per_time = fields.Float('Mỗi lần', default=1.0, digits=(6, 2))
     times_per_day = fields.Integer('Lần/ngày', default=2)
     days = fields.Integer('Số ngày', default=5)
-    timing = fields.Selection(TIMINGS, string='Thời điểm', compute='_compute_from_drug', store=True,
+    timing = fields.Selection(TIMINGS, string='Thời điểm', compute='_compute_timing', store=True,
                               readonly=False)
     usage_note = fields.Char('Ghi chú cách dùng', help='Bổ sung vào câu hướng dẫn, ví dụ: "uống với nhiều nước".')
     usage = fields.Char('Cách dùng', compute='_compute_usage', store=True, readonly=False,
                         help='Tự soạn từ đường dùng, liều, số lần, thời điểm; bác sĩ có thể sửa trước khi phát hành.')
     quantity = fields.Float('Số lượng', compute='_compute_quantity', store=True, readonly=False, digits=(10, 2))
-    unit = fields.Char('Đơn vị tính', compute='_compute_from_drug', store=True, readonly=False)
+    unit = fields.Char('Đơn vị tính', compute='_compute_unit', store=True, readonly=False)
+
+    # Một phương thức cho mỗi trường: giá trị truyền vào khi tạo không bị ghi đè lẫn nhau
+    @api.depends('drug_id')
+    def _compute_route(self):
+        for line in self:
+            line.route = line.drug_id.route or line.route or 'oral'
 
     @api.depends('drug_id')
-    def _compute_from_drug(self):
+    def _compute_timing(self):
         for line in self:
-            drug = line.drug_id
-            line.route = drug.route or line.route or 'oral'
-            line.timing = drug.default_timing or line.timing or 'none'
-            line.unit = drug.unit or line.unit
+            line.timing = line.drug_id.default_timing or line.timing or 'none'
+
+    @api.depends('drug_id')
+    def _compute_unit(self):
+        for line in self:
+            line.unit = line.drug_id.unit or line.unit
 
     @api.onchange('drug_id')
     def _onchange_drug_defaults(self):

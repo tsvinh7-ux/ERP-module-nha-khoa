@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_okr_guardrail_form" model="ir.ui.view">
+        <field name="name">dmag.okr.guardrail.form</field>
+        <field name="model">dmag.okr.guardrail</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_check" type="object" string="Kiểm tra ngay" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Vượt ngưỡng" bg_color="text-bg-danger" invisible="not breached"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="metric"/>
+                            <field name="threshold"/>
+                            <field name="unit"/>
+                            <field name="period_date"/>
+                            <field name="manual_value"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="value"/>
+                            <field name="is_auto"/>
+                            <field name="breached"/>
+                            <field name="last_check"/>
+                        </group>
+                    </group>
+                    <field name="key_result_ids"/>
+                    <field name="note" placeholder="Ghi chú…"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_okr_guardrail" model="ir.actions.act_window">
+        <field name="name">Chỉ số cầu chì nha khoa</field>
+        <field name="res_model">dmag.okr.guardrail</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="menu_dmag_okr_guardrail" name="Cầu chì nha khoa" parent="okr_scale.okr_menu_manage"
+              action="action_dmag_okr_guardrail" sequence="20"/>
+    <menuitem id="menu_dmag_okr_guardrail_dental" name="Cầu chì OKR" parent="dmag_dental_base.menu_dmag_config"
+              action="action_dmag_okr_guardrail" sequence="60"/>
+</odoo>

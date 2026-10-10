@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="okr_key_result_view_form_dental" model="ir.ui.view">
+        <field name="name">okr.scale.key.result.form.dmag.dental</field>
+        <field name="model">okr.scale.key.result</field>
+        <field name="inherit_id" ref="okr_scale.okr_key_result_view_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button name="action_dmag_refresh" type="object" string="Cập nhật số liệu nha khoa"
+                        invisible="not dmag_is_dental"/>
+            </header>
+            <div name="button_box" position="after">
+                <div class="alert alert-danger" role="alert" invisible="not dmag_guardrail_breached">
+                    Chỉ số cầu chì y đức / sức khỏe đang vượt ngưỡng – KR này bị đánh dấu đỏ.
+                </div>
+            </div>
+            <field name="weight" position="after">
+                <field name="dmag_is_dental" invisible="1"/>
+                <field name="dmag_date_from" invisible="not dmag_is_dental"/>
+                <field name="dmag_date_to" invisible="not dmag_is_dental"/>
+                <field name="dmag_doctor_ids" widget="many2many_tags" invisible="not dmag_is_dental"/>
+                <field name="dmag_guardrail_ids" widget="many2many_tags"/>
+                <field name="dmag_guardrail_breached" invisible="1"/>
+            </field>
+            <field name="progress" position="before">
+                <field name="start_value" invisible="not dmag_is_dental" string="Mức xuất phát"/>
+                <field name="target_value" invisible="not dmag_is_dental" string="Mục tiêu"/>
+                <field name="current_value" readonly="1" invisible="not dmag_is_dental" string="Số liệu hiện tại"/>
+                <field name="dmag_value_date" invisible="not dmag_is_dental"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_dmag_okr_guardrail_tree" model="ir.ui.view">
+        <field name="name">dmag.okr.guardrail.tree</field>
+        <field name="model">dmag.okr.guardrail</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="breached">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="metric"/>
+                <field name="period_date" widget="date"/>
+                <field name="threshold"/>
+                <field name="value"/>
+                <field name="unit"/>
+                <field name="breached"/>
+                <field name="key_result_ids" widget="many2many_tags" optional="show"/>
+                <field name="last_check" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+</odoo>
