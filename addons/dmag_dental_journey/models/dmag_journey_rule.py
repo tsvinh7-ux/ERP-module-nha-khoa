@@ -1,8 +1,6 @@
 import logging
 from datetime import timedelta
 
-from dateutil.relativedelta import relativedelta
-
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools.safe_eval import safe_eval
@@ -352,6 +350,3 @@ class DmagJourneyRule(models.Model):
             getattr(rule.sudo(), '_dmag_cron_%s' % rule.trigger)()
         return True
 
-
-def months_after(date, months):
-    return date + relativedelta(months=months)
