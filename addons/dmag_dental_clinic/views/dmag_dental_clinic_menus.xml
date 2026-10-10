@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_operation" name="Vận hành" parent="dmag_dental_base.menu_dmag_dental_root" sequence="20"/>
+    <menuitem id="menu_dmag_visit_calendar" name="Lịch hẹn" parent="menu_dmag_operation"
+              action="action_dmag_visit_calendar" sequence="10"/>
+    <menuitem id="menu_dmag_visit" name="Lượt khám" parent="menu_dmag_operation"
+              action="action_dmag_visit" sequence="20"/>
+    <menuitem id="menu_dmag_treatment_plan" name="Kế hoạch điều trị" parent="menu_dmag_operation"
+              action="action_dmag_treatment_plan" sequence="30"/>
+    <menuitem id="menu_dmag_chart_entry" name="Sơ đồ răng (ghi nhận)" parent="dmag_dental_base.menu_dmag_patients"
+              action="action_dmag_chart_entry" sequence="30"/>
+</odoo>

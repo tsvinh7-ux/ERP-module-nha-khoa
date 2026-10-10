@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ProductTemplate(models.Model):
@@ -39,3 +39,10 @@ class ProductTemplate(models.Model):
                                    help='Ví dụ cạo vôi: 6 tháng. Để 0 nếu không nhắc.')
     aftercare_note = fields.Html('Lời dặn sau thủ thuật', translate=True,
                                  help='Gửi cho bệnh nhân sau khi hoàn tất thủ thuật.')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('is_dental_service'):
+                vals.setdefault('detailed_type', 'service')
+        return super().create(vals_list)

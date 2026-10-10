@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_treatment_plan" model="ir.actions.report">
+        <field name="name">Bản tóm tắt kế hoạch điều trị</field>
+        <field name="model">dmag.treatment.plan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_dental_clinic.report_treatment_plan</field>
+        <field name="report_file">dmag_dental_clinic.report_treatment_plan</field>
+        <field name="print_report_name">'Ke hoach dieu tri - %s' % (object.patient_id.name)</field>
+        <field name="binding_model_id" ref="model_dmag_treatment_plan"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_treatment_plan_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=o.patient_id.lang)"/>
+            <div class="page" style="font-size: 13px;">
+                <div style="border-left: 6px solid #178BEC; padding-left: 12px; margin-bottom: 16px;">
+                    <div style="color:#11346A; font-size: 22px; font-weight: 700;">BẢN TÓM TẮT KẾ HOẠCH ĐIỀU TRỊ</div>
+                    <div class="text-muted"><span t-field="o.name"/> · <span t-field="o.date"/></div>
+                </div>
+                <table class="table table-sm table-borderless" style="margin-bottom: 12px;">
+                    <tr>
+                        <td style="width: 50%;"><b>Bệnh nhân:</b> <span t-field="o.patient_id.name"/>
+                            <t t-if="o.patient_id.patient_code"> (<span t-field="o.patient_id.patient_code"/>)</t></td>
+                        <td><b>Bác sĩ:</b> <span t-field="o.doctor_id.title"/> <span t-field="o.doctor_id.name"/></td>
+                    </tr>
+                    <tr t-if="o.title"><td colspan="2"><b>Nội dung:</b> <span t-field="o.title"/></td></tr>
+                </table>
+
+                <t t-foreach="o.option_ids" t-as="opt">
+                    <div t-attf-style="border: 1px solid #{'#178BEC' if opt.is_recommended else '#DDE3EA'}; border-radius: 8px; padding: 12px; margin-bottom: 14px; page-break-inside: avoid;">
+                        <div style="display:flex; justify-content: space-between;">
+                            <div style="color:#11346A; font-size: 16px; font-weight: 700;">
+                                <span t-field="opt.name"/>
+                                <span t-if="opt.is_recommended" style="background:#178BEC; color:#fff; border-radius: 10px; padding: 1px 8px; font-size: 11px; margin-left: 6px;">Bác sĩ khuyến nghị</span>
+                                <span t-if="opt.is_accepted" style="background:#12A594; color:#fff; border-radius: 10px; padding: 1px 8px; font-size: 11px; margin-left: 6px;">Đã chọn</span>
+                            </div>
+                        </div>
+                        <p t-if="opt.summary" style="white-space: pre-line; margin: 6px 0;" t-field="opt.summary"/>
+                        <table class="table table-sm" style="margin-top: 6px;">
+                            <thead style="background:#F1F5FA;">
+                                <tr><th>Buổi</th><th>Dịch vụ</th><th>Răng</th><th class="text-end">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th><th>Bảo hành</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="opt.line_ids" t-as="line">
+                                    <td><span t-field="line.phase"/></td>
+                                    <td><span t-field="line.product_id.name"/></td>
+                                    <td><t t-esc="', '.join(line.tooth_ids.mapped('code'))"/></td>
+                                    <td class="text-end"><span t-field="line.quantity"/></td>
+                                    <td class="text-end"><span t-field="line.price_unit" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    <td class="text-end"><span t-field="line.price_subtotal"/></td>
+                                    <td><t t-if="line.product_id.warranty_months"><t t-esc="line.product_id.warranty_months"/> tháng</t></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div style="display:flex; gap: 24px; justify-content: flex-end; font-size: 14px;">
+                            <div>Tổng: <b style="color:#11346A;" t-field="opt.amount_total"/></div>
+                            <div t-if="opt.deposit_amount">Đặt cọc: <b t-field="opt.deposit_amount"/></div>
+                            <div t-if="opt.installment_months">Trả góp <t t-esc="opt.installment_months"/> tháng: <b t-field="opt.monthly_amount"/>/tháng</div>
+                        </div>
+                    </div>
+                </t>
+
+                <div style="font-size: 11px; color: #666; margin-top: 10px;">
+                    Chi phí là dự kiến theo tình trạng tại thời điểm khám; mọi phát sinh sẽ được bác sĩ giải thích và
+                    bệnh nhân đồng ý trước khi thực hiện. Không áp dụng ưu đãi ép thời hạn.
+                </div>
+                <table class="table table-borderless" style="margin-top: 30px; text-align:center;">
+                    <tr><td><b>Bệnh nhân / người giám hộ</b><br/><i>(ký, ghi rõ họ tên)</i></td>
+                        <td><b>Bác sĩ điều trị</b><br/><i>(ký, ghi rõ họ tên)</i></td></tr>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_treatment_plan">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="dmag_dental_clinic.report_treatment_plan_document"/>
+            </t>
+        </t>
+    </template>
+</odoo>

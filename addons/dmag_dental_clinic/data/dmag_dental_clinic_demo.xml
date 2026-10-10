@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dmag_dental_base.demo_svc_filling" model="product.product">
+        <field name="dental_result_condition_id" ref="dmag_dental_base.condition_filling"/>
+        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+    </record>
+    <record id="dmag_dental_base.demo_svc_endo" model="product.product">
+        <field name="dental_result_condition_id" ref="dmag_dental_base.condition_root_canal"/>
+        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+    </record>
+    <record id="dmag_dental_base.demo_svc_crown_zirconia" model="product.product">
+        <field name="dental_result_condition_id" ref="dmag_dental_base.condition_crown"/>
+        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+    </record>
+    <record id="dmag_dental_base.demo_svc_crown_metal" model="product.product">
+        <field name="dental_result_condition_id" ref="dmag_dental_base.condition_crown"/>
+        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+    </record>
+    <record id="dmag_dental_base.demo_svc_implant" model="product.product">
+        <field name="dental_result_condition_id" ref="dmag_dental_base.condition_implant"/>
+        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+    </record>
+    <record id="dmag_dental_base.demo_svc_extract_wisdom" model="product.product">
+        <field name="dental_result_condition_id" ref="dmag_dental_base.condition_missing"/>
+        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+    </record>
+    <record id="dmag_dental_base.demo_svc_exam" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
+    <record id="dmag_dental_base.demo_svc_xray" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
+    <record id="dmag_dental_base.demo_svc_scaling" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
+    <record id="dmag_dental_base.demo_svc_ortho" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
+    <record id="demo_visit_1" model="dmag.dental.visit">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_1"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
+        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=1, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="reason">Cạo vôi định kỳ 6 tháng</field>
+        <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_scaling')])]"/>
+        <field name="state">done</field>
+        <field name="chair_id" ref="dmag_dental_base.demo_chair_1"/>
+        <field name="checkin_time" eval="(DateTime.today() + relativedelta(hours=1, minutes=18)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="chair_time" eval="(DateTime.today() + relativedelta(hours=1, minutes=33)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="done_time" eval="(DateTime.today() + relativedelta(hours=1, minutes=65)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="chief_complaint">Tái khám định kỳ, không đau.</field>
+        <field name="examination">Cao răng độ 1 hai hàm, lợi viêm nhẹ vùng răng cửa dưới.</field>
+        <field name="assessment">Viêm lợi mạn do cao răng.</field>
+        <field name="treatment_note">Cạo vôi, đánh bóng hai hàm.</field>
+        <field name="advice">Chải răng 2 lần/ngày, dùng chỉ nha khoa. Tái khám sau 6 tháng.</field>
+        <field name="pain_score">1</field>
+    </record>
+    <record id="demo_visit_2" model="dmag.dental.visit">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_2"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_junior"/>
+        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=2, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="reason">Ê buốt răng hàm dưới khi ăn lạnh</field>
+        <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_exam')])]"/>
+        <field name="state">in_chair</field>
+        <field name="chair_id" ref="dmag_dental_base.demo_chair_2"/>
+        <field name="checkin_time" eval="(DateTime.today() + relativedelta(hours=2, minutes=18)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="chair_time" eval="(DateTime.today() + relativedelta(hours=2, minutes=33)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+    <record id="demo_visit_3" model="dmag.dental.visit">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
+        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=3, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="reason">Tư vấn làm răng sứ</field>
+        <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_exam')])]"/>
+        <field name="state">arrived</field>
+        <field name="checkin_time" eval="(DateTime.today() + relativedelta(hours=3, minutes=-12)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+    <record id="demo_visit_4" model="dmag.dental.visit">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_5"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_ortho"/>
+        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=7, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="reason">Tư vấn niềng răng</field>
+        <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_ortho')])]"/>
+        <field name="state">confirmed</field>
+        <field name="chair_id" ref="dmag_dental_base.demo_chair_4"/>
+    </record>
+    <record id="demo_visit_5" model="dmag.dental.visit">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_3"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_ortho"/>
+        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=8, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="reason">Khám răng sữa cho bé</field>
+        <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_exam')])]"/>
+        <field name="state">draft</field>
+    </record>
+    <record id="demo_chart_e1" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_2"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_36"/>
+        <field name="surface_ids" eval="[(6, 0, [ref('dmag_dental_base.surface_o')])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_caries"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e2" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_2"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_46"/>
+        <field name="surface_ids" eval="[(6, 0, [ref('dmag_dental_base.surface_m'), ref('dmag_dental_base.surface_o')])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_caries"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e3" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_2"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_16"/>
+        <field name="surface_ids" eval="[(6, 0, [])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_missing"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e4" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_2"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_21"/>
+        <field name="surface_ids" eval="[(6, 0, [])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_crown"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e5" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_2"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_37"/>
+        <field name="surface_ids" eval="[(6, 0, [ref('dmag_dental_base.surface_o')])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_filling"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e6" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_46"/>
+        <field name="surface_ids" eval="[(6, 0, [])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_root_canal"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e7" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_36"/>
+        <field name="surface_ids" eval="[(6, 0, [])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_fracture"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e8" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_38"/>
+        <field name="surface_ids" eval="[(6, 0, [])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_impacted"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_chart_e9" model="dmag.dental.chart.entry">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
+        <field name="tooth_id" ref="dmag_dental_base.tooth_26"/>
+        <field name="surface_ids" eval="[(6, 0, [])]"/>
+        <field name="condition_id" ref="dmag_dental_base.condition_missing"/>
+        <field name="layer">existing</field>
+        <field name="practitioner_id" ref="dmag_dental_base.demo_doctor_director"/>
+    </record>
+    <record id="demo_plan_1" model="dmag.treatment.plan">
+        <field name="title">Phục hình răng hàm dưới sau điều trị tủy</field>
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
+        <field name="visit_id" ref="demo_visit_3"/>
+        <field name="state">presented</field>
+    </record>
+    <record id="demo_plan_1_opt_a" model="dmag.treatment.option">
+        <field name="plan_id" ref="demo_plan_1"/>
+        <field name="name">Phương án A – Sứ Zirconia</field>
+        <field name="sequence">1</field>
+        <field name="is_recommended" eval="True"/>
+        <field name="summary">Thẩm mỹ cao, không đen viền lợi, tương thích sinh học tốt, bảo hành 10 năm.
+Chi phí cao hơn phương án B.</field>
+        <field name="deposit_amount">3000000</field>
+        <field name="installment_months">6</field>
+    </record>
+    <record id="demo_plan_1_opt_a_l1" model="dmag.treatment.plan.line">
+        <field name="option_id" ref="demo_plan_1_opt_a"/>
+        <field name="product_id" eval="ref('dmag_dental_base.demo_svc_crown_zirconia')"/>
+        <field name="tooth_ids" eval="[(6, 0, [ref('dmag_dental_base.tooth_46'), ref('dmag_dental_base.tooth_36')])]"/>
+        <field name="quantity">2</field>
+        <field name="price_unit">5500000</field>
+        <field name="phase">1</field>
+    </record>
+    <record id="demo_plan_1_opt_b" model="dmag.treatment.option">
+        <field name="plan_id" ref="demo_plan_1"/>
+        <field name="name">Phương án B – Sứ kim loại</field>
+        <field name="sequence">2</field>
+        <field name="summary">Chi phí tiết kiệm, chịu lực tốt.
+Có thể đen viền lợi sau vài năm, bảo hành 3 năm.</field>
+    </record>
+    <record id="demo_plan_1_opt_b_l1" model="dmag.treatment.plan.line">
+        <field name="option_id" ref="demo_plan_1_opt_b"/>
+        <field name="product_id" eval="ref('dmag_dental_base.demo_svc_crown_metal')"/>
+        <field name="tooth_ids" eval="[(6, 0, [ref('dmag_dental_base.tooth_46'), ref('dmag_dental_base.tooth_36')])]"/>
+        <field name="quantity">2</field>
+        <field name="price_unit">2000000</field>
+        <field name="phase">1</field>
+    </record>
+</odoo>

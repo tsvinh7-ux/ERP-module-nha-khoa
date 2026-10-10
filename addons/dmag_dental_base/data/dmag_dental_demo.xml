@@ -45,21 +45,21 @@
     </record>
 
     <!-- Dịch vụ -->
-    <record id="demo_svc_exam" model="product.template">
+    <record id="demo_svc_exam" model="product.product">
         <field name="name">Khám &amp; tư vấn tổng quát</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">exam</field><field name="dental_duration">20</field>
         <field name="dental_complexity">light</field><field name="dental_requires_tooth" eval="False"/>
         <field name="list_price">0</field>
     </record>
-    <record id="demo_svc_xray" model="product.template">
+    <record id="demo_svc_xray" model="product.product">
         <field name="name">Chụp phim Panorama</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">imaging</field><field name="dental_duration">10</field>
         <field name="dental_complexity">light</field><field name="dental_requires_tooth" eval="False"/>
         <field name="list_price">150000</field>
     </record>
-    <record id="demo_svc_scaling" model="product.template">
+    <record id="demo_svc_scaling" model="product.product">
         <field name="name">Cạo vôi &amp; đánh bóng</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">hygiene</field><field name="dental_duration">30</field>
@@ -68,7 +68,7 @@
         <field name="recall_months">6</field>
         <field name="list_price">300000</field>
     </record>
-    <record id="demo_svc_filling" model="product.template">
+    <record id="demo_svc_filling" model="product.product">
         <field name="name">Trám răng Composite</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">restorative</field><field name="dental_duration">30</field>
@@ -76,7 +76,7 @@
         <field name="warranty_months">12</field>
         <field name="list_price">400000</field>
     </record>
-    <record id="demo_svc_endo" model="product.template">
+    <record id="demo_svc_endo" model="product.product">
         <field name="name">Điều trị tủy răng hàm</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">endo</field><field name="dental_duration">60</field>
@@ -84,7 +84,7 @@
         <field name="practice_scope_id" ref="scope_endo"/><field name="min_clinical_level_id" ref="level_2"/>
         <field name="list_price">2000000</field>
     </record>
-    <record id="demo_svc_extract_wisdom" model="product.template">
+    <record id="demo_svc_extract_wisdom" model="product.product">
         <field name="name">Nhổ răng khôn mọc lệch</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">surgery</field><field name="dental_duration">60</field>
@@ -92,7 +92,7 @@
         <field name="practice_scope_id" ref="scope_surgery"/><field name="min_clinical_level_id" ref="level_2"/>
         <field name="list_price">2500000</field>
     </record>
-    <record id="demo_svc_crown_zirconia" model="product.template">
+    <record id="demo_svc_crown_zirconia" model="product.product">
         <field name="name">Răng sứ Zirconia</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">prosthodontic</field><field name="dental_duration">45</field>
@@ -101,7 +101,7 @@
         <field name="warranty_months">120</field>
         <field name="list_price">5500000</field>
     </record>
-    <record id="demo_svc_crown_metal" model="product.template">
+    <record id="demo_svc_crown_metal" model="product.product">
         <field name="name">Răng sứ kim loại</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">prosthodontic</field><field name="dental_duration">45</field>
@@ -110,7 +110,7 @@
         <field name="warranty_months">36</field>
         <field name="list_price">2000000</field>
     </record>
-    <record id="demo_svc_implant" model="product.template">
+    <record id="demo_svc_implant" model="product.product">
         <field name="name">Cấy ghép Implant (trụ Hàn Quốc)</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">implant</field><field name="dental_duration">90</field>
@@ -119,7 +119,7 @@
         <field name="warranty_months">120</field>
         <field name="list_price">15000000</field>
     </record>
-    <record id="demo_svc_ortho" model="product.template">
+    <record id="demo_svc_ortho" model="product.product">
         <field name="name">Niềng răng mắc cài kim loại (trọn gói)</field>
         <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
         <field name="dental_category">orthodontic</field><field name="dental_duration">60</field>

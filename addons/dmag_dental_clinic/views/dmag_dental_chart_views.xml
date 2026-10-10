@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_chart_entry_tree" model="ir.ui.view">
+        <field name="name">dmag.dental.chart.entry.tree</field>
+        <field name="model">dmag.dental.chart.entry</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="date"/>
+                <field name="patient_id"/>
+                <field name="tooth_id"/>
+                <field name="surface_ids" widget="many2many_tags"/>
+                <field name="condition_id"/>
+                <field name="layer"/>
+                <field name="diagnosis_id"/>
+                <field name="note"/>
+                <field name="practitioner_id" optional="show"/>
+                <field name="visit_id" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_chart_entry_search" model="ir.ui.view">
+        <field name="name">dmag.dental.chart.entry.search</field>
+        <field name="model">dmag.dental.chart.entry</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/>
+                <field name="tooth_id"/>
+                <field name="condition_id"/>
+                <filter string="Bệnh lý chưa xử lý" name="filter_findings" domain="[('condition_category', '=', 'finding')]"/>
+                <filter string="Đã lưu trữ (đã xử lý)" name="filter_archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Răng" name="group_tooth" context="{'group_by': 'tooth_id'}"/>
+                    <filter string="Lớp" name="group_layer" context="{'group_by': 'layer'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dmag_chart_entry" model="ir.actions.act_window">
+        <field name="name">Ghi nhận sơ đồ răng</field>
+        <field name="res_model">dmag.dental.chart.entry</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

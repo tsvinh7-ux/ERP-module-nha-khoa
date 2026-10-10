@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="arch" type="xml">
+            <form string="Lượt khám">
+                <header>
+                    <button name="action_confirm" type="object" string="Xác nhận lịch" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_check_in" type="object" string="Check-in" class="btn-primary" invisible="state not in ('draft', 'confirmed')"/>
+                    <button name="action_start" type="object" string="Mời lên ghế" class="btn-primary" invisible="state != 'arrived'"/>
+                    <button name="action_done" type="object" string="Hoàn tất" class="btn-primary" invisible="state != 'in_chair'"/>
+                    <button name="action_sign_record" type="object" string="Ký bệnh án" invisible="record_state != 'draft' or state not in ('in_chair', 'done')" groups="dmag_dental_base.group_dmag_doctor"/>
+                    <button name="action_amend_record" type="object" string="Bổ sung bệnh án" invisible="record_state != 'signed'" groups="dmag_dental_base.group_dmag_manager" confirm="Mở lại bệnh án đã ký? Mọi thay đổi sẽ được ghi vết."/>
+                    <button name="action_create_invoice" type="object" string="Lập hóa đơn" invisible="payment_status != 'to_invoice'"/>
+                    <button name="action_no_show" type="object" string="Không đến" invisible="state not in ('draft', 'confirmed')"/>
+                    <button name="action_cancel" type="object" string="Hủy lịch" invisible="state not in ('draft', 'confirmed', 'arrived')"/>
+                    <button name="action_reset" type="object" string="Đặt lại" invisible="state not in ('cancel', 'no_show')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,arrived,in_chair,done"/>
+                </header>
+                <div class="alert alert-warning mb-0" role="alert" invisible="not schedule_warning">
+                    <i class="fa fa-clock-o me-1" title="Cảnh báo lịch"/><field name="schedule_warning" readonly="1"/>
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_procedures" type="object" class="oe_stat_button" icon="fa-medkit">
+                            <field name="procedure_count" widget="statinfo" string="Thủ thuật"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Bệnh án đã ký" bg_color="text-bg-success" invisible="record_state != 'signed'"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Bệnh nhân">
+                            <field name="patient_id" readonly="state not in ('draft', 'confirmed')"/>
+                            <field name="patient_code"/>
+                            <field name="patient_phone" widget="phone"/>
+                            <field name="patient_alert_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="is_new_patient"/>
+                            <field name="source_id"/>
+                            <field name="reason"/>
+                        </group>
+                        <group string="Lịch">
+                            <field name="scheduled_start"/>
+                            <field name="duration"/>
+                            <field name="scheduled_end"/>
+                            <field name="doctor_id"/>
+                            <field name="assistant_id"/>
+                            <field name="chair_id"/>
+                            <field name="service_ids" widget="many2many_tags"/>
+                            <field name="treatment_plan_id" domain="[('patient_id', '=', patient_id), ('state', 'in', ('accepted', 'in_progress'))]"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Bệnh án lượt khám" name="record">
+                            <group>
+                                <field name="chief_complaint" readonly="record_state == 'signed'"/>
+                                <field name="examination" readonly="record_state == 'signed'"/>
+                                <field name="diagnosis_ids" widget="many2many_tags" readonly="record_state == 'signed'"/>
+                                <field name="assessment" readonly="record_state == 'signed'"/>
+                                <field name="treatment_note" readonly="record_state == 'signed'"/>
+                                <field name="advice" readonly="record_state == 'signed'"/>
+                                <field name="pain_score"/>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="record_state" widget="badge" decoration-success="record_state == 'signed'"/>
+                                    <field name="signed_by_id" invisible="record_state != 'signed'"/>
+                                    <field name="signed_at" invisible="record_state != 'signed'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Thủ thuật" name="procedures">
+                            <field name="procedure_ids" context="{'default_visit_id': id}">
+                                <tree editable="bottom" decoration-success="state == 'done'">
+                                    <field name="patient_id" column_invisible="1"/>
+                                    <field name="plan_line_id" options="{'no_create': True}"/>
+                                    <field name="product_id"/>
+                                    <field name="tooth_ids" widget="many2many_tags"/>
+                                    <field name="surface_ids" widget="many2many_tags" optional="show"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="discount" optional="hide"/>
+                                    <field name="amount" sum="Tổng"/>
+                                    <field name="doctor_id" optional="show"/>
+                                    <field name="state" column_invisible="1"/>
+                                    <button name="action_done" type="object" icon="fa-check" title="Hoàn tất thủ thuật" invisible="state != 'draft'"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done'"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Sơ đồ răng (lượt này)" name="chart">
+                            <field name="chart_entry_ids" context="{'default_visit_id': id, 'default_patient_id': patient_id}">
+                                <tree editable="bottom">
+                                    <field name="patient_id" column_invisible="1"/>
+                                    <field name="tooth_id"/>
+                                    <field name="surface_ids" widget="many2many_tags"/>
+                                    <field name="condition_id"/>
+                                    <field name="layer"/>
+                                    <field name="diagnosis_id"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Hành trình &amp; thanh toán" name="journey">
+                            <group>
+                                <group string="Mốc thời gian">
+                                    <field name="checkin_time"/>
+                                    <field name="chair_time"/>
+                                    <field name="wait_minutes"/>
+                                    <field name="done_time"/>
+                                    <field name="cancel_reason" invisible="state not in ('cancel', 'no_show')"/>
+                                </group>
+                                <group string="Thanh toán">
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="payment_status" widget="badge"
+                                           decoration-warning="payment_status in ('to_invoice', 'to_pay')"
+                                           decoration-success="payment_status == 'paid'"/>
+                                    <field name="amount_due"/>
+                                    <field name="sale_order_id"/>
+                                    <field name="invoice_ids" widget="many2many_tags"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_visit_tree" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.tree</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="state in ('cancel', 'no_show')" decoration-info="state == 'arrived'" decoration-success="state == 'done'">
+                <field name="scheduled_start"/>
+                <field name="name" optional="show"/>
+                <field name="patient_code" optional="show"/>
+                <field name="patient_id"/>
+                <field name="patient_phone" optional="hide"/>
+                <field name="doctor_id"/>
+                <field name="chair_id" optional="show"/>
+                <field name="service_ids" widget="many2many_tags" optional="show"/>
+                <field name="is_new_patient" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state in ('draft', 'confirmed')"
+                       decoration-warning="state == 'arrived'" decoration-primary="state == 'in_chair'"
+                       decoration-success="state == 'done'"/>
+                <field name="payment_status" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_visit_calendar" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.calendar</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="arch" type="xml">
+            <calendar string="Lịch hẹn" date_start="scheduled_start" date_stop="scheduled_end"
+                      color="doctor_id" mode="day" quick_create="0" event_open_popup="1">
+                <field name="patient_id"/>
+                <field name="chair_id" filters="1"/>
+                <field name="doctor_id" filters="1"/>
+                <field name="service_ids" widget="many2many_tags"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_dmag_visit_kanban" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.kanban</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="0" group_create="0" records_draggable="0">
+                <field name="state"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click #{kanban_color(record.color.raw_value)}">
+                            <div class="d-flex justify-content-between">
+                                <strong><field name="patient_id"/></strong>
+                                <span class="text-muted"><field name="scheduled_start" widget="datetime" options="{'show_date': false}"/></span>
+                            </div>
+                            <div class="small text-muted"><field name="patient_code"/> · <field name="doctor_id"/></div>
+                            <div><field name="service_ids" widget="many2many_tags"/></div>
+                            <div><field name="patient_alert_ids" widget="many2many_tags" options="{'color_field': 'color'}"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_dmag_visit_search" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.search</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id" context="{'dmag_patient_search': True}"/>
+                <field name="patient_code"/>
+                <field name="name"/>
+                <field name="doctor_id"/>
+                <field name="chair_id"/>
+                <filter string="Hôm nay" name="filter_today"
+                        domain="[('scheduled_start', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0, 0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S')), ('scheduled_start', '&lt;', datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0, 0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <filter string="Của tôi" name="filter_mine" domain="[('doctor_id.user_id', '=', uid)]"/>
+                <separator/>
+                <filter string="Đang chờ" name="filter_waiting" domain="[('state', '=', 'arrived')]"/>
+                <filter string="Đang điều trị" name="filter_in_chair" domain="[('state', '=', 'in_chair')]"/>
+                <filter string="Chưa ký bệnh án" name="filter_unsigned" domain="[('state', '=', 'done'), ('record_state', '=', 'draft')]"/>
+                <filter string="Khách mới" name="filter_new" domain="[('is_new_patient', '=', True)]"/>
+                <separator/>
+                <filter string="Hủy / không đến" name="filter_lost" domain="[('state', 'in', ('cancel', 'no_show'))]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Bác sĩ" name="group_doctor" context="{'group_by': 'doctor_id'}"/>
+                    <filter string="Ghế" name="group_chair" context="{'group_by': 'chair_id'}"/>
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Ngày" name="group_day" context="{'group_by': 'scheduled_start:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_visit_calendar" model="ir.actions.act_window">
+        <field name="name">Lịch hẹn</field>
+        <field name="res_model">dmag.dental.visit</field>
+        <field name="view_mode">calendar,tree,form</field>
+        <field name="domain">[('state', 'not in', ('cancel',))]</field>
+    </record>
+
+    <record id="action_dmag_visit" model="ir.actions.act_window">
+        <field name="name">Lượt khám</field>
+        <field name="res_model">dmag.dental.visit</field>
+        <field name="view_mode">tree,kanban,form,calendar</field>
+        <field name="context">{'search_default_filter_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có lượt khám hôm nay</p>
+            <p>Đặt lịch cho bệnh nhân, check-in khi khách đến, mời lên ghế và hoàn tất – mỗi bước được ghi nhận trên hành trình khách hàng.</p>
+        </field>
+    </record>
+</odoo>

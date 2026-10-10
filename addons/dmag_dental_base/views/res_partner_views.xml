@@ -8,7 +8,7 @@
             <xpath expr="//sheet" position="before">
                 <field name="has_danger_alert" invisible="1"/>
                 <div class="alert alert-danger mb-0 rounded-0" role="alert" invisible="not has_danger_alert">
-                    <i class="fa fa-exclamation-triangle me-1"/>
+                    <i class="fa fa-exclamation-triangle me-1" title="Cảnh báo"/>
                     Bệnh nhân có cảnh báo y khoa nguy hiểm – kiểm tra trước mọi thủ thuật:
                     <field name="patient_alert_ids" widget="many2many_tags" options="{'color_field': 'color'}" readonly="1" class="d-inline"/>
                 </div>
