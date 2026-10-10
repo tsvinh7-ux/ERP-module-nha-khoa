@@ -118,7 +118,7 @@ Có thể tham khảo `tangerine_sepay_integration` (LGPL-3, bản 17) cho phầ
 
 ## 6. Hai chỗ trùng cần chốt
 
-1. **OKR**: hệ thống đang cài `biz_okr` + `biz_hr_okr` (Bizapps), trong khi DMAG có bộ **OKR Scale** riêng (repo `OKR-scale`: lõi, CFR, điểm thưởng, portal, theme). Đề xuất: **dùng OKR Scale của DMAG** (đã có hook để KR tự đo) và gỡ hoặc ẩn `biz_okr` để người dùng không thấy hai app OKR.
+1. **OKR**: hệ thống đang cài `biz_okr` + `biz_hr_okr` (Bizapps), trong khi DMAG có bộ **OKR Scale** riêng (repo `OKR-scale`: lõi, CFR, điểm thưởng, portal, theme). **Đã chốt: dùng OKR Scale của DMAG** (đã có hook để KR tự đo) và gỡ hoặc ẩn `biz_okr` để người dùng không thấy hai app OKR.
 2. **Hoa hồng**: `acs_hms_commission` / `biz_sales_commission_user_partner` / tự viết `dmag_dental_commission`. Chốt sau khi đánh giá ACS.
 
 ## 7. Chữ ký số: khuyến nghị 1–2 nhà cung cấp
@@ -130,7 +130,7 @@ Có thể tham khảo `tangerine_sepay_integration` (LGPL-3, bản 17) cho phầ
 
 Phương án dự phòng: FPT.eSign (được cấp phép ký số từ xa, mạnh ở ngân hàng/tài chính, ít tài liệu cho y tế).
 
-Module `dmag_esign` viết theo kiểu adapter: VNPT SmartCA trước, MySign sau. Trước khi tích hợp cần xin từ nhà cung cấp: **tài liệu API mới nhất, sandbox, bảng giá theo số chứng thư/lượt ký**, và xác nhận đáp ứng yêu cầu ký bệnh án điện tử theo quy định hiện hành.
+**Đã chốt: Viettel MySign.** Module `dmag_esign` vẫn viết dạng adapter để có thể thêm nhà cung cấp khác. Trước khi tích hợp cần xin từ nhà cung cấp: **tài liệu API mới nhất, sandbox, bảng giá theo số chứng thư/lượt ký**, và xác nhận đáp ứng yêu cầu ký bệnh án điện tử theo quy định hiện hành.
 
 ---
 

@@ -83,7 +83,7 @@ Bác sĩ và lễ tân **làm việc 100% ở Lớp 3**. Lớp 1–2 là giao di
 | A6 | `dmag_dental_service` | Danh mục dịch vụ: thời lượng chuẩn, **định mức vật tư (BOM)**, bậc lâm sàng tối thiểu, giá theo chi nhánh/hạng thành viên, chính sách bảo hành | `product`, `pricelist` |
 | A7 | `dmag_dental_billing` | Thu theo tiến độ, đặt cọc, trả góp, công nợ; **QR động kèm số tiền qua SePay**; **đối soát ngân hàng tự động bằng webhook SePay** → **tự phát hành HĐĐT** (qua HĐĐT Bizapps); **Chốt két 4 bước** có biên bản bàn giao | `account`, `pos`, HĐĐT Bizapps |
 | A7a | `dmag_payment_sepay` | **Viết mới** (thị trường chưa có bản Odoo 17 đầy đủ): QR động, webhook, khớp tự động, hàng chờ ngoại lệ, kích hoạt HĐĐT `biz_viettel_sinvoice_v2` | `payment`, `point_of_sale`, `account` |
-| A4a | `dmag_esign` | Adapter ký số từ xa: **VNPT SmartCA** (ưu tiên), **Viettel MySign** (phương án 2) | `sign` |
+| A4a | `dmag_esign` | Ký số từ xa **Viettel MySign** (đã chọn), viết dạng adapter | `sign` |
 | A8 | `dmag_dental_prescription` | Đơn thuốc theo TT 52/2017 & TT 04/2022, mẫu đơn theo thủ thuật, in/gửi Zalo, sẵn sàng **liên thông đơn thuốc quốc gia** | model mới |
 
 ### B. Vận hành lâm sàng
@@ -108,7 +108,7 @@ Bác sĩ và lễ tân **làm việc 100% ở Lớp 3**. Lớp 1–2 là giao di
 |---|---|---|
 | D1 | `dmag_hr_3p` | Khung ngạch bậc **P (chuyên môn) & M (quản lý)** cho từng vị trí; Lương 3P: P1 vị trí, P2 năng lực, P3 kết quả (OKR + KPI + hoa hồng); gắn vào hồ sơ nhân viên → đẩy vào **Payroll Bizapps**. Làm bản demo trước, nạp khung chuẩn sau |
 | D2 | `dmag_dental_commission` | Thủ thuật phí bác sĩ/phụ tá, hoa hồng tư vấn, telesale, lễ tân (sản phẩm 8–10%, chốt dịch vụ 1–2%); tính trên **thực thu**; tự hủy khi vi phạm cầu chì y đức |
-| D3 | `dmag_okr_dental` | Cầu nối với **OKR Scale** của DMAG (đề xuất thay `biz_okr` đang cài để tránh 2 app OKR): KR **tự cập nhật** từ dữ liệu nha khoa qua hook `_compute_progress_by_method`; **chỉ số sức khỏe/cầu chì**: tỷ lệ phàn nàn > 2%/tháng, hủy hợp đồng niềng 30 ngày > 5%, đánh giá 1–2 sao > 3/tháng |
+| D3 | `dmag_okr_dental` | Cầu nối với **OKR Scale** của DMAG (đã chốt; ẩn/gỡ `biz_okr` để tránh 2 app OKR): KR **tự cập nhật** từ dữ liệu nha khoa qua hook `_compute_progress_by_method`; **chỉ số sức khỏe/cầu chì**: tỷ lệ phàn nàn > 2%/tháng, hủy hợp đồng niềng 30 ngày > 5%, đánh giá 1–2 sao > 3/tháng |
 | D4 | `dmag_dental_chain` | Chuỗi đa chi nhánh: hồ sơ bệnh nhân dùng chung, kho/giá/doanh thu theo chi nhánh, chuyển bệnh nhân, mua hàng tập trung, báo cáo hợp nhất; bảo hiểm tư nhân (tùy chọn) |
 
 ### E. Lớp trải nghiệm (chi tiết mục 4)
@@ -271,7 +271,7 @@ Không ấn định ngày. Mỗi giai đoạn chỉ đóng khi **chạy thật t
 
 ## 12. Còn cần anh/chị cung cấp hoặc xác nhận
 
-0. **Quyết định ACS HMS** (dựng lõi trên ACS / tự dựng / đánh giá thử trước), xem HIEN_TRANG_BIZAPPS.md mục 4.
+0. **ACS HMS**: khuyến nghị tự dựng lõi `dmag_*`, chỉ dùng ACS làm tham khảo. Xem [DANH_GIA_ACS_HMS.md](DANH_GIA_ACS_HMS.md).
 
 1. **Quyền xem hệ thống Odoo Bizapps đang chạy** (tài khoản dùng thử riêng) và/hoặc danh sách addons, source.
 2. **Tài khoản SePay** (môi trường thử) để dựng QR động + webhook.
