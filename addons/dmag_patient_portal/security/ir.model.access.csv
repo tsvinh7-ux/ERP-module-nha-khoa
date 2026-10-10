@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_portal_booking_log_manager,dmag_portal_booking_log manager,model_dmag_portal_booking_log,dmag_dental_base.group_dmag_manager,1,0,0,1

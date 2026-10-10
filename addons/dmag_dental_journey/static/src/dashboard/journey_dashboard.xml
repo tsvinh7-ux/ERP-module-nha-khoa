@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_dental_journey.JourneyDashboard">
+        <div class="o_dmag_journey_dashboard o_action h-100 overflow-auto p-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                <h2 class="m-0">Hành trình khách hàng</h2>
+                <div class="btn-group">
+                    <t t-foreach="[7, 30, 90]" t-as="d" t-key="d">
+                        <button t-attf-class="btn btn-sm #{state.days === d ? 'btn-primary' : 'btn-outline-primary'}"
+                                t-on-click="() => this.setDays(d)"><t t-esc="d"/> ngày</button>
+                    </t>
+                </div>
+            </div>
+            <t t-if="state.data">
+                <t t-set="d" t-value="state.data"/>
+                <div class="o_dmag_tiles">
+                    <div class="o_dmag_tile">
+                        <div class="o_dmag_label">Tỷ lệ đến hẹn</div>
+                        <div class="o_dmag_value text-success"><t t-esc="d.show_up_rate"/>%</div>
+                        <div class="o_dmag_sub"><t t-esc="d.visits.showed"/> đến / <t t-esc="d.visits.total"/> lịch</div>
+                    </div>
+                    <div class="o_dmag_tile">
+                        <div class="o_dmag_label">Không đến (no-show)</div>
+                        <div class="o_dmag_value text-danger"><t t-esc="d.no_show_rate"/>%</div>
+                        <div class="o_dmag_sub"><t t-esc="d.visits.no_show"/> lượt · hủy <t t-esc="d.visits.cancelled"/></div>
+                    </div>
+                    <div class="o_dmag_tile" t-on-click="() => this.openAction('dmag_dental_journey.action_dmag_nps_response')">
+                        <div class="o_dmag_label">NPS</div>
+                        <div class="o_dmag_value"><t t-esc="d.nps.score"/></div>
+                        <div class="o_dmag_sub">
+                            <t t-esc="d.nps.responses"/> phản hồi · <span class="text-success"><t t-esc="d.nps.promoters"/> ủng hộ</span> ·
+                            <span class="text-danger"><t t-esc="d.nps.detractors"/> chưa hài lòng</span>
+                        </div>
+                    </div>
+                    <div class="o_dmag_tile" t-on-click="() => this.openAction('dmag_dental_journey.action_dmag_nps_response', {search_default_answered: 0, search_default_complaint_open: 1})">
+                        <div class="o_dmag_label">Phàn nàn chưa xử lý</div>
+                        <div class="o_dmag_value text-warning"><t t-esc="d.nps.complaints_open"/></div>
+                        <div class="o_dmag_sub">Phiếu NPS ≤ 6</div>
+                    </div>
+                    <div class="o_dmag_tile">
+                        <div class="o_dmag_label">Đến hạn tái khám (30 ngày)</div>
+                        <div class="o_dmag_value"><t t-esc="d.recall_due"/></div>
+                        <div class="o_dmag_sub">chưa đặt lịch lại</div>
+                    </div>
+                    <div class="o_dmag_tile" t-on-click="() => this.openAction('dmag_zalo_zns.action_dmag_zns_message')">
+                        <div class="o_dmag_label">Tin Zalo ZNS</div>
+                        <div class="o_dmag_value"><t t-esc="d.messages.sent + d.messages.delivered"/></div>
+                        <div class="o_dmag_sub">
+                            đã gửi · <span class="text-danger"><t t-esc="d.messages.failed"/> lỗi</span> ·
+                            <t t-esc="d.messages.queued"/> chờ
+                        </div>
+                    </div>
+                    <div class="o_dmag_tile" t-on-click="() => this.openTasks('today')">
+                        <div class="o_dmag_label">Việc CSKH hôm nay</div>
+                        <div class="o_dmag_value"><t t-esc="d.call_tasks.today"/></div>
+                        <div class="o_dmag_sub">sắp tới <t t-esc="d.call_tasks.planned"/></div>
+                    </div>
+                    <div class="o_dmag_tile" t-on-click="() => this.openTasks('overdue')">
+                        <div class="o_dmag_label">Việc CSKH quá hạn</div>
+                        <div class="o_dmag_value text-danger"><t t-esc="d.call_tasks.overdue"/></div>
+                        <div class="o_dmag_sub">cần xử lý ngay</div>
+                    </div>
+                </div>
+                <div class="text-muted small mt-3">Kỳ: <t t-esc="d.period.from"/> → <t t-esc="d.period.to"/></div>
+            </t>
+        </div>
+    </t>
+</templates>

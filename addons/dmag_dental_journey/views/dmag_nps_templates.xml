@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="nps_layout" name="DMAG NPS – khung trang">
+        <html lang="vi">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex"/>
+                <title>Khảo sát hài lòng – <t t-esc="company.name"/></title>
+                <style>
+                    :root { --dmag:#0e6e8c; --dmag-dark:#0a4f66; --bg:#f3f8fa; --ink:#1d2b33; --muted:#5f7480; }
+                    * { box-sizing: border-box; }
+                    body { margin:0; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+                    .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+                    .brand { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+                    .brand .logo { width:40px; height:40px; border-radius:10px; background:var(--dmag); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+                    .brand .name { font-weight:600; font-size:17px; }
+                    .card { background:#fff; border-radius:16px; padding:20px; box-shadow:0 2px 10px rgba(14,110,140,.08); }
+                    h1 { font-size:19px; line-height:1.35; margin:0 0 6px; }
+                    p { color:var(--muted); line-height:1.5; margin:0 0 14px; }
+                    .scores { display:grid; grid-template-columns: repeat(6, 1fr); gap:8px; margin:14px 0 6px; }
+                    .scores input { display:none; }
+                    .scores label { display:flex; align-items:center; justify-content:center; height:46px; border-radius:10px; border:1.5px solid #cfe0e6; font-weight:600; font-size:17px; cursor:pointer; background:#fff; }
+                    .scores input:checked + label { background:var(--dmag); border-color:var(--dmag); color:#fff; }
+                    .legend { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:14px; }
+                    textarea { width:100%; min-height:90px; border:1.5px solid #cfe0e6; border-radius:10px; padding:10px; font:inherit; }
+                    .btn { display:block; width:100%; text-align:center; padding:14px; border:0; border-radius:12px; background:var(--dmag); color:#fff; font-weight:600; font-size:16px; margin-top:14px; text-decoration:none; }
+                    .btn.secondary { background:#fff; color:var(--dmag); border:1.5px solid var(--dmag); }
+                    .error { background:#fdecea; color:#a1271b; padding:10px 12px; border-radius:10px; margin-bottom:12px; }
+                    .big { font-size:42px; text-align:center; margin:4px 0 10px; }
+                    .footer { text-align:center; font-size:12px; color:var(--muted); margin-top:18px; }
+                </style>
+            </head>
+            <body>
+                <div class="wrap">
+                    <div class="brand">
+                        <div class="logo">DM</div>
+                        <div class="name" t-esc="company.name"/>
+                    </div>
+                    <div class="card">
+                        <t t-out="0"/>
+                    </div>
+                    <div class="footer">Thông tin của bạn chỉ dùng để nâng cao chất lượng chăm sóc.</div>
+                </div>
+            </body>
+        </html>
+    </template>
+
+    <template id="nps_page" name="DMAG NPS – câu hỏi">
+        <t t-call="dmag_dental_journey.nps_layout">
+            <h1>Chào <t t-esc="partner_name"/>, bạn có sẵn lòng giới thiệu <t t-esc="company.name"/> cho người thân, bạn bè?</h1>
+            <p>Chấm điểm từ 0 (chắc chắn không) đến 10 (chắc chắn có).</p>
+            <div t-if="error" class="error" t-esc="error"/>
+            <form t-attf-action="/dmag/nps/#{token}/submit" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <div class="scores">
+                    <t t-foreach="range(11)" t-as="s">
+                        <input type="radio" name="score" t-att-id="'s%s' % s" t-att-value="s" required="required"
+                               t-att-checked="'checked' if preset == s else None"/>
+                        <label t-att-for="'s%s' % s" t-esc="s"/>
+                    </t>
+                </div>
+                <div class="legend"><span>Không hài lòng</span><span>Rất hài lòng</span></div>
+                <textarea name="comment" placeholder="Điều gì khiến bạn chấm điểm này? (không bắt buộc)"/>
+                <button type="submit" class="btn">Gửi đánh giá</button>
+            </form>
+        </t>
+    </template>
+
+    <template id="nps_thanks" name="DMAG NPS – cảm ơn">
+        <t t-call="dmag_dental_journey.nps_layout">
+            <div class="big" style="color:var(--dmag)">&#10003;</div>
+            <h1>Cảm ơn bạn đã dành thời gian!</h1>
+            <t t-if="category == 'promoter'">
+                <p>Rất vui vì bạn hài lòng. Bạn có thể chia sẻ trải nghiệm để nhiều người biết đến chúng tôi hơn:</p>
+                <a t-if="review_url" t-att-href="review_url" class="btn" target="_blank" rel="noopener">Đánh giá trên Google</a>
+                <p t-if="referral_message" style="margin-top:16px" t-esc="referral_message"/>
+                <p t-if="referral_code">Mã giới thiệu của bạn: <strong t-esc="referral_code"/></p>
+            </t>
+            <t t-elif="category == 'detractor'">
+                <p>Chúng tôi rất tiếc vì trải nghiệm chưa như mong đợi. Trưởng bộ phận Chăm sóc khách hàng sẽ liên hệ với bạn sớm nhất.</p>
+            </t>
+            <t t-else="">
+                <p>Góp ý của bạn giúp chúng tôi chăm sóc tốt hơn mỗi ngày.</p>
+            </t>
+        </t>
+    </template>
+
+    <template id="nps_unavailable" name="DMAG NPS – không khả dụng">
+        <t t-call="dmag_dental_journey.nps_layout">
+            <h1 t-esc="title"/>
+            <p t-esc="message"/>
+        </t>
+    </template>
+</odoo>

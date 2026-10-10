@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_commission" name="Hoa hồng" parent="dmag_dental_base.menu_dmag_dental_root"
+              sequence="60" groups="dmag_dental_base.group_dmag_receptionist"/>
+    <menuitem id="menu_dmag_commission_line" name="Thủ thuật phí &amp; hoa hồng" parent="menu_dmag_commission"
+              action="action_dmag_commission_line" sequence="10"/>
+    <menuitem id="menu_dmag_commission_statement" name="Bảng kê tháng" parent="menu_dmag_commission"
+              action="action_dmag_commission_statement" sequence="20"/>
+    <menuitem id="menu_dmag_commission_statement_wizard" name="Lập bảng kê tháng" parent="menu_dmag_commission"
+              action="action_dmag_commission_statement_wizard" sequence="30"
+              groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_commission_rule" name="Quy tắc hoa hồng" parent="menu_dmag_commission"
+              action="action_dmag_commission_rule" sequence="90" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>

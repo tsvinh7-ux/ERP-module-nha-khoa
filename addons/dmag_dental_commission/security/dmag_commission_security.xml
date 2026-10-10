@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_dmag_commission_rule_company" model="ir.rule">
+        <field name="name">Quy tắc hoa hồng: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_commission_rule"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_commission_line_company" model="ir.rule">
+        <field name="name">Hoa hồng: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_commission_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_commission_line_own" model="ir.rule">
+        <field name="name">Hoa hồng: nhân viên chỉ xem của mình</field>
+        <field name="model_id" ref="model_dmag_commission_line"/>
+        <field name="domain_force">['|', ('user_id', '=', user.id), ('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('dmag_dental_base.group_dmag_receptionist'))]"/>
+    </record>
+    <record id="rule_dmag_commission_line_manager" model="ir.rule">
+        <field name="name">Hoa hồng: quản lý xem tất cả</field>
+        <field name="model_id" ref="model_dmag_commission_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('dmag_dental_base.group_dmag_manager'))]"/>
+    </record>
+    <record id="rule_dmag_commission_statement_company" model="ir.rule">
+        <field name="name">Bảng kê hoa hồng: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_commission_statement"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_commission_statement_own" model="ir.rule">
+        <field name="name">Bảng kê hoa hồng: nhân viên chỉ xem của mình</field>
+        <field name="model_id" ref="model_dmag_commission_statement"/>
+        <field name="domain_force">['|', ('user_id', '=', user.id), ('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('dmag_dental_base.group_dmag_receptionist'))]"/>
+    </record>
+    <record id="rule_dmag_commission_statement_manager" model="ir.rule">
+        <field name="name">Bảng kê hoa hồng: quản lý xem tất cả</field>
+        <field name="model_id" ref="model_dmag_commission_statement"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('dmag_dental_base.group_dmag_manager'))]"/>
+    </record>
+</odoo>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_commission" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.commission</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <field name="assistant_id" position="after">
+                <field name="dmag_consultant_id"/>
+                <field name="dmag_receptionist_id"/>
+                <field name="dmag_telesale_id"/>
+            </field>
+            <notebook position="inside">
+                <page string="Hoa hồng" name="commission" groups="dmag_dental_base.group_dmag_manager">
+                    <button name="action_dmag_recompute_commission" type="object" string="Tính lại theo thực thu"
+                            class="btn-secondary mb-2"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="dmag_commission_ids" readonly="1">
+                        <tree decoration-muted="state == 'void'" decoration-danger="kind == 'reversal'">
+                            <field name="date"/>
+                            <field name="beneficiary"/>
+                            <field name="role"/>
+                            <field name="product_id"/>
+                            <field name="base_amount"/>
+                            <field name="rate"/>
+                            <field name="amount" sum="Tổng"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="kind" column_invisible="1"/>
+                            <field name="state"/>
+                            <field name="void_reason"/>
+                        </tree>
+                    </field>
+                </page>
+            </notebook>
+        </field>
+    </record>
+    <record id="view_dmag_treatment_plan_form_commission" model="ir.ui.view">
+        <field name="name">dmag.treatment.plan.form.commission</field>
+        <field name="model">dmag.treatment.plan</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_treatment_plan_form"/>
+        <field name="arch" type="xml">
+            <field name="doctor_id" position="after">
+                <field name="dmag_consultant_id"/>
+            </field>
+        </field>
+    </record>
+    <record id="view_partner_form_commission" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.commission</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <field name="category_id" position="after">
+                <field name="dmag_telesale_id" invisible="not is_patient"/>
+                <field name="is_patient" invisible="1"/>
+            </field>
+        </field>
+    </record>
+</odoo>

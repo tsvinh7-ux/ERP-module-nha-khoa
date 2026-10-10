@@ -79,7 +79,11 @@ class TestVisitFlow(DentalCommon):
         visit = self._visit()
         visit.action_check_in()
         visit.action_start()
-        visit.save_record_from_workspace({'chief_complaint': 'Đau răng', 'assessment': 'Sâu ngà 36'})
+        # Đủ thông tin pháp lý tối thiểu để ký (TT 13/2025: gắn số định danh; có khám, chẩn đoán ICD-10)
+        self.patient.citizen_id = '079090000001'
+        visit.save_record_from_workspace({
+            'chief_complaint': 'Đau răng', 'examination': 'Lỗ sâu mặt nhai 36', 'assessment': 'Sâu ngà 36',
+            'diagnosis_ids': self.env.ref('dmag_dental_base.diag_k02_1').ids})
         visit.action_sign_record()
         self.assertEqual(visit.record_state, 'signed')
         self.assertEqual(visit.signed_by_id, self.doctor)

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cổng bệnh nhân không cấp quyền đọc trực tiếp dữ liệu y khoa cho nhóm Portal:
+         controller kiểm tra quyền (chính chủ / chủ hộ gia đình / người giám hộ / token chia sẻ)
+         rồi mới đọc bằng quyền hệ thống – tránh lộ dữ liệu qua RPC. -->
+    <record id="rule_dmag_portal_booking_log_company" model="ir.rule">
+        <field name="name">Nhật ký đặt lịch online: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_portal_booking_log"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

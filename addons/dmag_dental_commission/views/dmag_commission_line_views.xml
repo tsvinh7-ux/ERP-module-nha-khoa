@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_commission_line_tree" model="ir.ui.view">
+        <field name="name">dmag.commission.line.tree</field>
+        <field name="model">dmag.commission.line</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0" decoration-muted="state == 'void'" decoration-danger="kind == 'reversal'">
+                <field name="date"/>
+                <field name="beneficiary"/>
+                <field name="role"/>
+                <field name="visit_id"/>
+                <field name="patient_id" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="base_amount" optional="show"/>
+                <field name="rate" optional="show"/>
+                <field name="amount" sum="Tổng"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="kind" optional="hide"/>
+                <field name="state" widget="badge" decoration-danger="state == 'void'"/>
+                <field name="void_reason" optional="show"/>
+                <field name="statement_id" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_commission_line_pivot" model="ir.ui.view">
+        <field name="name">dmag.commission.line.pivot</field>
+        <field name="model">dmag.commission.line</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="beneficiary" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_dmag_commission_line_search" model="ir.ui.view">
+        <field name="name">dmag.commission.line.search</field>
+        <field name="model">dmag.commission.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="beneficiary"/>
+                <field name="visit_id"/>
+                <field name="patient_id"/>
+                <filter name="valid" string="Hợp lệ" domain="[('state', '=', 'valid')]"/>
+                <filter name="void" string="Hủy – cầu chì y đức" domain="[('state', '=', 'void')]"/>
+                <filter name="mine" string="Của tôi" domain="[('user_id', '=', uid)]"/>
+                <filter name="date" string="Ngày" date="date"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_beneficiary" string="Người hưởng" context="{'group_by': 'beneficiary'}"/>
+                    <filter name="group_role" string="Vai trò" context="{'group_by': 'role'}"/>
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dmag_commission_line" model="ir.actions.act_window">
+        <field name="name">Thủ thuật phí &amp; hoa hồng</field>
+        <field name="res_model">dmag.commission.line</field>
+        <field name="view_mode">tree,pivot</field>
+        <field name="context">{'search_default_valid': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có khoản hoa hồng nào</p>
+            <p>Hoa hồng tự phát sinh khi thu tiền lượt khám (chỉ trên tiền thực thu). Nhân viên chỉ thấy khoản của mình.</p>
+        </field>
+    </record>
+</odoo>

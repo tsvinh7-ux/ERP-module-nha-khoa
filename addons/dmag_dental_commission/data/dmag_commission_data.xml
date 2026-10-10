@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Quy tắc MẪU (đang tắt) theo đề xuất DMAG – Giám đốc xác nhận tỷ lệ rồi bật. -->
+    <record id="rule_sample_doctor" model="dmag.commission.rule">
+        <field name="name">Thủ thuật phí bác sĩ – mẫu 10% thực thu</field>
+        <field name="role">doctor</field>
+        <field name="basis">collected</field>
+        <field name="rate">10</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="rule_sample_assistant" model="dmag.commission.rule">
+        <field name="name">Phụ tá – mẫu 2% thực thu</field>
+        <field name="role">assistant</field>
+        <field name="basis">collected</field>
+        <field name="rate">2</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="rule_sample_consultant" model="dmag.commission.rule">
+        <field name="name">Tư vấn viên – mẫu 3% thực thu</field>
+        <field name="role">consultant</field>
+        <field name="basis">collected</field>
+        <field name="rate">3</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="rule_sample_receptionist" model="dmag.commission.rule">
+        <field name="name">Lễ tân chốt dịch vụ – mẫu 1,5% thực thu</field>
+        <field name="role">receptionist</field>
+        <field name="basis">collected</field>
+        <field name="rate">1.5</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="rule_sample_telesale" model="dmag.commission.rule">
+        <field name="name">Telesale – mẫu 1% thực thu</field>
+        <field name="role">telesale</field>
+        <field name="basis">collected</field>
+        <field name="rate">1</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="rule_sample_referrer" model="dmag.commission.rule">
+        <field name="name">Người giới thiệu – mẫu 5% thực thu</field>
+        <field name="role">referrer</field>
+        <field name="basis">collected</field>
+        <field name="rate">5</field>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

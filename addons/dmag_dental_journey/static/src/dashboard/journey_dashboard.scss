@@ -1,0 +1,18 @@
+.o_dmag_journey_dashboard {
+    background: #f3f8fa;
+    .o_dmag_tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+    }
+    .o_dmag_tile {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 6px rgba(14, 110, 140, 0.08);
+        cursor: pointer;
+    }
+    .o_dmag_label { color: #5f7480; font-size: 13px; }
+    .o_dmag_value { font-size: 30px; font-weight: 700; color: #0e6e8c; }
+    .o_dmag_sub { color: #5f7480; font-size: 12px; }
+}

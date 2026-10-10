@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_commission_statement_tree" model="ir.ui.view">
+        <field name="name">dmag.commission.statement.tree</field>
+        <field name="model">dmag.commission.statement</field>
+        <field name="arch" type="xml">
+            <tree create="0">
+                <field name="date_from" widget="date"/>
+                <field name="beneficiary"/>
+                <field name="total" sum="Tổng"/>
+                <field name="void_total" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge" decoration-success="state == 'confirmed'"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_commission_statement_form" model="ir.ui.view">
+        <field name="name">dmag.commission.statement.form</field>
+        <field name="model">dmag.commission.statement</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_confirm" type="object" string="Chốt bảng kê" class="btn-primary"
+                            invisible="state != 'draft'" groups="dmag_dental_base.group_dmag_manager"/>
+                    <button name="action_reset_draft" type="object" string="Mở lại" invisible="state != 'confirmed'"
+                            groups="dmag_dental_base.group_dmag_director"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="beneficiary"/>
+                            <field name="date_from" readonly="1"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total"/>
+                            <field name="void_total"/>
+                        </group>
+                    </group>
+                    <field name="line_ids" readonly="1">
+                        <tree decoration-muted="state == 'void'" decoration-danger="kind == 'reversal'">
+                            <field name="date"/>
+                            <field name="role"/>
+                            <field name="visit_id"/>
+                            <field name="product_id"/>
+                            <field name="base_amount"/>
+                            <field name="rate"/>
+                            <field name="amount" sum="Tổng"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="kind" column_invisible="1"/>
+                            <field name="state"/>
+                            <field name="void_reason"/>
+                        </tree>
+                    </field>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_commission_statement" model="ir.actions.act_window">
+        <field name="name">Bảng kê hoa hồng tháng</field>
+        <field name="res_model">dmag.commission.statement</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

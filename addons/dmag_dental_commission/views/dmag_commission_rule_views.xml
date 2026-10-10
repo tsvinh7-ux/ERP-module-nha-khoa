@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_commission_rule_tree" model="ir.ui.view">
+        <field name="name">dmag.commission.rule.tree</field>
+        <field name="model">dmag.commission.rule</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="not active">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="role"/>
+                <field name="scope"/>
+                <field name="basis"/>
+                <field name="rate"/>
+                <field name="fixed_amount"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_commission_rule_form" model="ir.ui.view">
+        <field name="name">dmag.commission.rule.form</field>
+        <field name="model">dmag.commission.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Đang tắt" bg_color="text-bg-secondary" invisible="active"/>
+                    <div class="oe_title"><h1><field name="name" placeholder="Tên quy tắc"/></h1></div>
+                    <group>
+                        <group string="Áp dụng">
+                            <field name="role"/>
+                            <field name="scope"/>
+                            <field name="dental_category" invisible="scope != 'dental_category'"
+                                   required="scope == 'dental_category'"/>
+                            <field name="product_categ_id" invisible="scope != 'product_category'"
+                                   required="scope == 'product_category'"/>
+                            <field name="product_ids" widget="many2many_tags" invisible="scope != 'product'"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Cách tính">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="basis"/>
+                            <field name="rate" invisible="basis == 'fixed'"/>
+                            <field name="fixed_amount" invisible="basis != 'fixed'"/>
+                        </group>
+                    </group>
+                    <field name="tier_ids" invisible="basis != 'tiered'">
+                        <tree editable="bottom">
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="threshold"/>
+                            <field name="rate"/>
+                        </tree>
+                    </field>
+                    <div class="text-muted">
+                        Hoa hồng chỉ phát sinh trên phần tiền đã thu thực tế; tự hủy khi vi phạm cầu chì y đức
+                        (thiếu bác sĩ thứ hai duyệt chỉ định, lượt khám có phàn nàn).
+                    </div>
+                    <field name="note" placeholder="Ghi chú…"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_commission_rule" model="ir.actions.act_window">
+        <field name="name">Quy tắc hoa hồng</field>
+        <field name="res_model">dmag.commission.rule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+</odoo>
