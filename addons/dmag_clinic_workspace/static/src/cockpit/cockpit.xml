@@ -46,13 +46,14 @@
                     <div t-foreach="scorecards" t-as="card" t-key="card.key" class="dmag-scorecard">
                         <div class="dmag-scorecard-top">
                             <span class="dmag-scorecard-label" t-esc="card.label"/>
-                            <span t-att-class="'dmag-status ' + (card.ok ? 'is-good' : 'is-warn')">
+                            <span t-if="card.nodata" class="dmag-status is-muted">Chưa có số liệu</span>
+                            <span t-else="" t-att-class="'dmag-status ' + (card.ok ? 'is-good' : 'is-warn')">
                                 <i t-att-class="'fa ' + (card.ok ? 'fa-check-circle' : 'fa-exclamation-triangle')" t-att-title="card.ok ? 'Đạt' : 'Cần chú ý'"/>
                                 <t t-esc="card.ok ? 'Đạt' : 'Cần chú ý'"/>
                             </span>
                         </div>
                         <div class="dmag-scorecard-value" t-esc="card.value"/>
-                        <div class="dmag-meter"><div t-att-style="'width:' + Math.min(100, Math.max(0, card.ratio * 100)) + '%'"/></div>
+                        <div class="dmag-meter"><div t-att-style="'width:' + (card.nodata ? 0 : Math.min(100, Math.max(0, card.ratio * 100))) + '%'"/></div>
                         <div class="dmag-scorecard-target">Mục tiêu DMAG <t t-esc="card.target"/></div>
                     </div>
                 </section>

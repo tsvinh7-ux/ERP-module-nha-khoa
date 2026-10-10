@@ -58,12 +58,12 @@ export class OwnerCockpit extends Component {
         ];
         const material = this.state.data.extras.material;
         if (material && material.cogs_ratio !== undefined) {
-            cards.push({ key: "material", label: "Giá vốn vật tư + labo / doanh thu", value: this.pct(material.cogs_ratio), target: `≤ ${material.threshold || t.material_ratio}%`, ok: !material.alert, ratio: material.cogs_ratio / 100 });
+            cards.push({ key: "material", label: "Giá vốn vật tư + labo / doanh thu", value: this.pct(material.cogs_ratio), target: `≤ ${material.threshold || t.material_ratio}%`, ok: !material.alert, nodata: !material.revenue, ratio: material.cogs_ratio / 100 });
         }
         const journey = this.state.data.extras.journey;
         if (journey && journey.nps && !journey.error) {
-            cards.push({ key: "nps", label: "NPS sau điều trị", value: journey.nps.responses ? String(Math.round(journey.nps.score)) : "–", target: "≥ 50 (thang −100…100)", ok: !journey.nps.responses || journey.nps.score >= 50, ratio: Math.max(0, (journey.nps.score + 100) / 200) });
-            cards.push({ key: "showup", label: "Tỷ lệ khách đến đúng hẹn", value: this.pct(journey.show_up_rate), target: "≥ 85%", ok: journey.show_up_rate >= 85, ratio: (journey.show_up_rate || 0) / 100 });
+            cards.push({ key: "nps", label: "NPS sau điều trị", value: journey.nps.responses ? String(Math.round(journey.nps.score)) : "–", target: "≥ 50 (thang −100…100)", ok: journey.nps.score >= 50, nodata: !journey.nps.responses, ratio: Math.max(0, (journey.nps.score + 100) / 200) });
+            cards.push({ key: "showup", label: "Tỷ lệ khách đến đúng hẹn", value: this.pct(journey.show_up_rate), target: "≥ 85%", ok: journey.show_up_rate >= 85, nodata: !(journey.visits && journey.visits.total), ratio: (journey.show_up_rate || 0) / 100 });
         }
         return cards;
     }

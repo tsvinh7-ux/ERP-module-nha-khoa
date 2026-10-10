@@ -101,9 +101,22 @@ export class RxPanel extends Component {
         lines.splice(lines.indexOf(line), 1);
     }
 
+    /** Thuốc kê theo đơn vị đóng gói (chai, tuýp…) khác đơn vị liều (ml, g…): số lượng nhập tay. */
+    isPack(line) {
+        return (line.dose_unit || "").trim().toLowerCase() !== (line.unit || "").trim().toLowerCase();
+    }
+
     qtyOf(line) {
+        if (this.isPack(line)) {
+            return Math.max(1, Math.ceil(Number(line.quantity) || 1));
+        }
         const q = Number(line.dose_per_time || 0) * Number(line.times_per_day || 0) * Number(line.days || 0);
         return Math.ceil(q);
+    }
+
+    /** TT 26/2025: số lượng thuốc < 10 viết thêm số 0 phía trước. */
+    qtyLabel(line) {
+        return String(this.qtyOf(line)).padStart(2, "0");
     }
 
     _payload() {
@@ -116,6 +129,7 @@ export class RxPanel extends Component {
             companion_name: d.companion_name,
             lines: d.lines.map((l) => ({
                 drug_id: l.drug_id,
+                quantity: this.qtyOf(l),
                 dose_per_time: Number(l.dose_per_time),
                 times_per_day: Number(l.times_per_day),
                 days: Number(l.days),

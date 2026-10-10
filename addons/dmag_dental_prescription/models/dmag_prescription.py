@@ -566,4 +566,4 @@ class DmagPrescriptionLine(models.Model):
     def _workspace_dict(self):
         self.ensure_one()
         return dict(self._line_values(), id=self.id, drug_name=self.drug_id.name,
-                    quantity_display=self.quantity_display, is_chronic=self.is_chronic)
+                    dose_unit=self.drug_id._get_dose_unit(), quantity_display=self.quantity_display, is_chronic=self.is_chronic)
