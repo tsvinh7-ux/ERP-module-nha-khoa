@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dịch vụ khám chữa bệnh: thuế KCT (Luật Thuế GTGT 48/2024/QH15, Điều 5) -->
+    <function model="product.template" name="_dmag_apply_exempt_tax_all"/>
+</odoo>

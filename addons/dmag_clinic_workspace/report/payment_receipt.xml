@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_payment_receipt" model="ir.actions.report">
+        <field name="name">Phiếu thu</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_clinic_workspace.report_payment_receipt</field>
+        <field name="report_file">dmag_clinic_workspace.report_payment_receipt</field>
+        <field name="print_report_name">'Phieu thu - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="dmag_dental_clinic.model_dmag_dental_visit"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_payment_receipt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="s" t-value="o.sudo()"/>
+                    <div class="page" style="font-size: 13px;">
+                        <div style="border-left: 6px solid #178BEC; padding-left: 12px; margin-bottom: 14px;">
+                            <div style="color:#11346A; font-size: 22px; font-weight: 700;">PHIẾU THU</div>
+                            <div class="text-muted">Lượt khám <span t-field="o.name"/> · <span t-field="o.scheduled_start" t-options="{'widget': 'date'}"/></div>
+                        </div>
+                        <table class="table table-borderless table-sm">
+                            <tr><td style="width:40%">Người nộp tiền</td><td><b t-field="o.patient_id.name"/> (<span t-field="o.patient_id.patient_code"/>)</td></tr>
+                            <tr><td>Bác sĩ điều trị</td><td><span t-field="o.doctor_id.name"/></td></tr>
+                        </table>
+                        <table class="table table-sm">
+                            <thead style="background:#F1F5FA;"><tr><th>Dịch vụ đã thực hiện</th><th class="text-end">Số lượng</th><th class="text-end">Thành tiền</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="s.procedure_ids.filtered(lambda p: p.state == 'done')" t-as="p">
+                                    <td><span t-esc="p.display_name"/></td>
+                                    <td class="text-end"><span t-esc="p.quantity"/></td>
+                                    <td class="text-end"><span t-esc="p.amount" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-sm" style="width: 60%; margin-left: auto;">
+                            <tr><td>Tổng hóa đơn</td><td class="text-end"><span t-esc="sum(s.invoice_ids.mapped('amount_total'))" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                            <tr><td>Đã thu</td><td class="text-end"><b t-esc="sum(s.invoice_ids.mapped('amount_total')) - sum(s.invoice_ids.mapped('amount_residual'))" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                            <tr><td>Còn lại</td><td class="text-end"><span t-esc="sum(s.invoice_ids.mapped('amount_residual'))" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                        </table>
+                        <div style="font-size: 11px; color:#666;">Dịch vụ khám bệnh, chữa bệnh không chịu thuế giá trị gia tăng. Hóa đơn điện tử được gửi tới quý khách qua Zalo / email.</div>
+                        <table class="table table-borderless" style="margin-top: 30px; text-align:center;">
+                            <tr><td><b>Người nộp tiền</b><br/><i>(Ký, ghi rõ họ tên)</i></td>
+                                <td><b>Người thu tiền</b><br/><i>(Ký, ghi rõ họ tên)</i><br/><br/><br/><span t-esc="user.name"/></td></tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

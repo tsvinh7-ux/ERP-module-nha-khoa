@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.NewPatientDialog">
+        <Dialog title="'Bệnh nhân mới'" size="'md'" contentClass="'dmag-dialog'">
+            <div class="dmag-form">
+                <div t-if="state.duplicate" class="dmag-banner is-warn">
+                    Số điện thoại đã có hồ sơ: <b t-esc="state.duplicate.name"/> (<t t-esc="state.duplicate.code"/>).
+                    <div class="mt-2 d-flex gap-2">
+                        <button class="dmag-btn dmag-btn-primary dmag-btn-sm" t-on-click="useExisting">Dùng hồ sơ này</button>
+                        <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.save(true)">Vẫn tạo hồ sơ mới</button>
+                    </div>
+                </div>
+                <div class="dmag-form-grid">
+                    <label class="dmag-form-field dmag-span-2">
+                        <span>Họ và tên <b class="text-danger">*</b></span>
+                        <input class="dmag-input" t-model="state.name" placeholder="Nguyễn Văn A"/>
+                    </label>
+                    <label class="dmag-form-field">
+                        <span>Số điện thoại / Zalo <b class="text-danger">*</b></span>
+                        <input class="dmag-input" t-model="state.phone" placeholder="09xx xxx xxx" inputmode="tel"/>
+                    </label>
+                    <label class="dmag-form-field">
+                        <span>Ngày sinh</span>
+                        <input class="dmag-input" type="date" t-model="state.birthdate"/>
+                    </label>
+                    <div class="dmag-form-field">
+                        <span>Giới tính</span>
+                        <div class="dmag-seg">
+                            <button t-att-class="state.gender === 'male' ? 'is-on' : ''" t-on-click="() => this.state.gender = 'male'">Nam</button>
+                            <button t-att-class="state.gender === 'female' ? 'is-on' : ''" t-on-click="() => this.state.gender = 'female'">Nữ</button>
+                        </div>
+                    </div>
+                    <label class="dmag-form-field">
+                        <span>Số CCCD / định danh</span>
+                        <input class="dmag-input" t-model="state.citizen_id" placeholder="12 số" inputmode="numeric"/>
+                    </label>
+                    <label class="dmag-form-field">
+                        <span>Nguồn khách</span>
+                        <select class="dmag-select w-100" t-model="state.source_id">
+                            <option value="">—</option>
+                            <option t-foreach="props.catalog.sources" t-as="s" t-key="s.id" t-att-value="s.id" t-esc="s.name"/>
+                        </select>
+                    </label>
+                    <label class="dmag-form-field dmag-span-2">
+                        <span>Dị ứng</span>
+                        <input class="dmag-input" t-model="state.allergy" placeholder="Thuốc tê, kháng sinh, latex…"/>
+                    </label>
+                    <div class="dmag-form-field dmag-span-2">
+                        <span>Cảnh báo y khoa</span>
+                        <div class="dmag-phrases">
+                            <button t-foreach="props.catalog.alerts" t-as="a" t-key="a.id"
+                                    t-att-class="'dmag-phrase' + (state.alert_ids.includes(a.id) ? ' is-on' : '')"
+                                    t-on-click="() => this.toggleAlert(a.id)" t-esc="a.name"/>
+                        </div>
+                    </div>
+                </div>
+                <label class="dmag-consent">
+                    <input type="checkbox" t-model="state.consent"/>
+                    <span>Bệnh nhân đồng ý để phòng khám thu thập và xử lý dữ liệu cá nhân, dữ liệu sức khỏe phục vụ khám chữa bệnh và chăm sóc sau điều trị (Nghị định 13/2023/NĐ-CP).</span>
+                </label>
+            </div>
+            <t t-set-slot="footer">
+                <button class="dmag-btn dmag-btn-ghost" t-on-click="props.close">Đóng</button>
+                <button class="dmag-btn dmag-btn-primary" t-att-disabled="state.saving or !state.name or !state.phone or !state.consent" t-on-click="() => this.save()">Tạo hồ sơ</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

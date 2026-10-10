@@ -9,6 +9,7 @@
     'license': 'LGPL-3',
     'depends': ['dmag_dental_clinic', 'web'],
     'data': [
+        'report/payment_receipt.xml',
         'views/dmag_workspace_menus.xml',
     ],
     'assets': {
@@ -17,6 +18,8 @@
             'dmag_clinic_workspace/static/src/js/**/*',
             'dmag_clinic_workspace/static/src/odontogram/**/*',
             'dmag_clinic_workspace/static/src/consult/**/*',
+            'dmag_clinic_workspace/static/src/dialogs/**/*',
+            'dmag_clinic_workspace/static/src/cockpit/**/*',
             'dmag_clinic_workspace/static/src/frontdesk/**/*',
             'dmag_clinic_workspace/static/src/doctor_desk/**/*',
         ],

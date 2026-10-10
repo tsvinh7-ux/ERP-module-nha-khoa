@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.BookingDialog">
+        <Dialog title="'Đặt lịch hẹn'" size="'xl'" contentClass="'dmag-dialog'">
+            <div class="dmag-booking">
+                <!-- Bước 1: bệnh nhân -->
+                <section class="dmag-step">
+                    <div class="dmag-step-title"><span class="dmag-step-no">1</span>Bệnh nhân</div>
+                    <div t-if="state.patient" class="dmag-picked">
+                        <div class="dmag-avatar" t-esc="state.patient.name.split(' ').slice(-1)[0][0]"/>
+                        <div class="flex-grow-1"><b t-esc="state.patient.name"/><div class="small text-muted" t-esc="state.patient.code"/></div>
+                        <button class="dmag-link" t-on-click="() => this.state.patient = null">Đổi</button>
+                    </div>
+                    <t t-else="">
+                        <div class="dmag-search w-100">
+                            <i class="fa fa-search" title="Tìm"/>
+                            <input type="search" placeholder="Tên, mã BN hoặc số điện thoại…" t-on-input="onSearch" t-att-value="state.query"/>
+                        </div>
+                        <div class="dmag-results">
+                            <button t-foreach="state.results" t-as="p" t-key="p.id" class="dmag-result" t-on-click="() => this.pickPatient(p)">
+                                <b t-esc="p.name"/> <span class="text-muted"><t t-esc="p.code"/> · <t t-esc="p.phone"/></span>
+                                <span t-foreach="p.alerts" t-as="a" t-key="a.name" t-att-class="'dmag-chip is-' + a.severity" t-esc="a.name"/>
+                            </button>
+                            <button class="dmag-result is-new" t-on-click="newPatient"><i class="fa fa-user-plus me-2" title="Mới"/>Tạo bệnh nhân mới<t t-if="state.query"> "<t t-esc="state.query"/>"</t></button>
+                        </div>
+                    </t>
+                </section>
+
+                <!-- Bước 2: dịch vụ & bác sĩ -->
+                <section class="dmag-step">
+                    <div class="dmag-step-title"><span class="dmag-step-no">2</span>Dịch vụ &amp; bác sĩ
+                        <span class="ms-auto small text-muted">~<t t-esc="duration"/> phút · <t t-esc="formatMoney(total)"/></span></div>
+                    <div class="dmag-phrases">
+                        <button t-foreach="state.catalog.services" t-as="s" t-key="s.id"
+                                t-att-class="'dmag-phrase' + (state.serviceIds.includes(s.id) ? ' is-on' : '')"
+                                t-on-click="() => this.toggleService(s.id)">
+                            <t t-esc="s.name"/><t t-if="s.heavy"> ●</t>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                        <select class="dmag-select" t-on-change="setDoctor">
+                            <option value="">Bác sĩ bất kỳ</option>
+                            <option t-foreach="state.catalog.doctors" t-as="d" t-key="d.id" t-att-value="d.id" t-att-selected="d.id === state.doctorId" t-esc="(d.title ? d.title + ' ' : '') + d.name"/>
+                        </select>
+                        <input class="dmag-input flex-grow-1 mb-0" placeholder="Lý do / ghi chú (ví dụ: đau răng hàm dưới)" t-model="state.reason"/>
+                    </div>
+                </section>
+
+                <!-- Bước 3: ngày giờ -->
+                <section class="dmag-step dmag-span-2">
+                    <div class="dmag-step-title"><span class="dmag-step-no">3</span>Chọn giờ trống
+                        <span class="ms-auto small text-muted">● khung chiều cần lấp ghế</span></div>
+                    <div class="dmag-days">
+                        <button t-foreach="days" t-as="d" t-key="d.iso" t-att-class="'dmag-day' + (state.date === d.iso ? ' is-on' : '')" t-on-click="() => this.setDate(d.iso)" t-esc="d.label"/>
+                        <input type="date" class="dmag-input mb-0" t-att-value="state.date" t-on-change="(ev) => this.setDate(ev.target.value)"/>
+                    </div>
+                    <div t-if="state.loadingSlots" class="text-muted small py-3">Đang tìm giờ trống…</div>
+                    <t t-else="">
+                        <div t-if="!state.slots.length" class="dmag-empty-sm">Không còn giờ trống trong ngày này.</div>
+                        <div t-foreach="[['Buổi sáng', morningSlots], ['Buổi chiều – tối', afternoonSlots]]" t-as="grp" t-key="grp[0]" class="dmag-slot-group" t-if="grp[1].length">
+                            <div class="dmag-slot-label" t-esc="grp[0]"/>
+                            <div class="dmag-slots">
+                                <button t-foreach="grp[1]" t-as="slot" t-key="slot.time"
+                                        t-att-class="'dmag-slot' + (state.time === slot.time ? ' is-on' : '') + (slot.afternoon ? ' is-fill' : '') + (!slot.doctor_free ? ' is-busy-doc' : '')"
+                                        t-att-title="slot.doctor_free ? 'Trống ' + slot.chairs.length + ' ghế' : 'Bác sĩ đang có lịch khác'"
+                                        t-on-click="() => this.pickSlot(slot)" t-esc="slot.time"/>
+                            </div>
+                        </div>
+                        <div t-if="state.time" class="dmag-slot-chairs">
+                            Ghế:
+                            <button t-foreach="state.slotChairs || []" t-as="cid" t-key="cid" t-att-class="'dmag-day' + (state.chairId === cid ? ' is-on' : '')" t-on-click="() => this.state.chairId = cid" t-esc="chairName(cid)"/>
+                        </div>
+                    </t>
+                </section>
+            </div>
+            <t t-set-slot="footer">
+                <label class="dmag-toggle me-auto"><input type="checkbox" t-model="state.confirm"/> Đã xác nhận với khách (gửi tin xác nhận)</label>
+                <button class="dmag-btn dmag-btn-ghost" t-on-click="props.close">Đóng</button>
+                <button class="dmag-btn dmag-btn-primary" t-att-disabled="state.saving or !state.patient or !state.time" t-on-click="book">
+                    Đặt lịch<t t-if="state.time"> lúc <t t-esc="state.time"/></t>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

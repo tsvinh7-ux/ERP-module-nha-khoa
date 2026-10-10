@@ -3,6 +3,9 @@
 import { Component, onWillStart, onMounted, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { BookingDialog } from "../dialogs/booking_dialog";
+import { NewPatientDialog } from "../dialogs/patient_dialog";
+import { PaymentDialog } from "../dialogs/payment_dialog";
 import { formatDuration, formatMoney, formatTime, minutesSince, PAYMENT_STATES, VISIT_STATES } from "../js/utils";
 
 const WAIT_ALERT_MINUTES = 15;
@@ -15,6 +18,7 @@ export class FrontDesk extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
         this.state = useState({
             loading: true,
             board: { visits: [], chairs: [], doctors: [] },
@@ -173,12 +177,8 @@ export class FrontDesk extends Component {
         await this.callVisit("action_no_show", visit);
     }
 
-    async collect(visit) {
-        if (visit.payment_status === "to_invoice") {
-            const action = await this.orm.call("dmag.dental.visit", "action_create_invoice", [[visit.id]]);
-            return this.action.doAction(action, { onClose: () => this.load() });
-        }
-        return this.openVisit(visit);
+    collect(visit) {
+        this.dialog.add(PaymentDialog, { visitId: visit.id, onPaid: () => this.load() });
     }
 
     openVisit(visit) {
@@ -205,31 +205,15 @@ export class FrontDesk extends Component {
     }
 
     newBooking() {
-        return this.action.doAction(
-            {
-                type: "ir.actions.act_window",
-                res_model: "dmag.dental.visit",
-                views: [[false, "form"]],
-                target: "new",
-                name: "Đặt lịch hẹn",
-                context: { default_doctor_id: this.state.doctorId || false },
-            },
-            { onClose: () => this.load() }
-        );
+        this.dialog.add(BookingDialog, { doctorId: this.state.doctorId || false, onBooked: () => this.load() });
     }
 
-    newPatient() {
-        return this.action.doAction(
-            {
-                type: "ir.actions.act_window",
-                res_model: "res.partner",
-                views: [[false, "form"]],
-                target: "new",
-                name: "Bệnh nhân mới",
-                context: { default_is_patient: true, default_is_company: false },
-            },
-            { onClose: () => this.load() }
-        );
+    async newPatient() {
+        const catalog = await this.orm.call("dmag.workspace", "get_booking_catalog", []);
+        this.dialog.add(NewPatientDialog, {
+            catalog,
+            onCreated: () => this.load(),
+        });
     }
 
     openCalendar() {

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.PaymentDialog">
+        <Dialog title="'Thu tiền'" size="'lg'" contentClass="'dmag-dialog'">
+            <div t-if="!state.panel" class="text-muted">Đang tải…</div>
+            <div t-else="" class="dmag-pay">
+                <div class="dmag-pay-left">
+                    <div class="dmag-pay-patient"><b t-esc="state.panel.patient"/> <span class="text-muted" t-esc="state.panel.code"/></div>
+                    <div class="dmag-pay-lines">
+                        <div t-foreach="state.panel.lines" t-as="l" t-key="l_index" class="dmag-pay-line">
+                            <span t-esc="l.name"/><b t-esc="formatMoney(l.amount)"/>
+                        </div>
+                        <div t-if="!state.panel.lines.length" class="text-muted small">Không có thủ thuật trong lượt này (thu theo kế hoạch / công nợ).</div>
+                    </div>
+                    <div class="dmag-pay-total"><span>Cần thu</span><b t-esc="formatMoney(state.panel.amount_due)"/></div>
+                    <div class="small text-muted mt-2">Dịch vụ khám chữa bệnh không chịu thuế GTGT. Hóa đơn điện tử phát hành tự động sau khi thu.</div>
+                </div>
+                <div class="dmag-pay-right">
+                    <div t-if="state.paid" class="dmag-pay-done">
+                        <i class="fa fa-check-circle" title="Đã thu"/>
+                        <div>Đã thu tiền</div>
+                        <button class="dmag-btn dmag-btn-ghost" t-on-click="printReceipt"><i class="fa fa-print me-1" title="In"/>In phiếu thu</button>
+                    </div>
+                    <t t-else="">
+                        <div class="dmag-pay-methods">
+                            <button t-foreach="METHODS" t-as="m" t-key="m.key"
+                                    t-att-class="'dmag-pay-method' + (state.method === m.key ? ' is-on' : '')"
+                                    t-on-click="() => this.setMethod(m.key)">
+                                <i t-att-class="'fa ' + m.icon" t-att-title="m.label"/><span t-esc="m.label"/>
+                            </button>
+                        </div>
+                        <div t-if="state.method === 'transfer'">
+                            <t t-if="state.qr">
+                                <div class="dmag-qr"><img t-att-src="state.qr.qr_url" alt="QR chuyển khoản"/></div>
+                                <div class="dmag-qr-info">
+                                    <div><span>Ngân hàng</span><b t-esc="state.qr.bank"/></div>
+                                    <div><span>Số tài khoản</span><b t-esc="state.qr.account_number"/></div>
+                                    <div><span>Chủ tài khoản</span><b t-esc="state.qr.account_name"/></div>
+                                    <div><span>Nội dung</span><b t-esc="state.qr.content or state.qr.code"/></div>
+                                </div>
+                                <div class="dmag-qr-wait"><span class="dmag-pulse"/> Đang chờ ngân hàng báo có – tự xác nhận</div>
+                            </t>
+                            <t t-else="">
+                                <div class="dmag-banner">Chưa bật SePay: khách chuyển khoản vào tài khoản phòng khám, kiểm tra rồi bấm xác nhận.</div>
+                                <button class="dmag-btn dmag-btn-primary w-100" t-att-disabled="state.saving" t-on-click="confirm">Xác nhận đã nhận chuyển khoản</button>
+                            </t>
+                        </div>
+                        <div t-if="state.method === 'cash'" class="dmag-cash">
+                            <label class="dmag-form-field"><span>Khách đưa</span>
+                                <input class="dmag-input dmag-input-lg" inputmode="numeric" t-model="state.received" placeholder="0"/></label>
+                            <div class="dmag-pay-change"><span>Tiền thừa trả khách</span><b t-esc="formatMoney(change)"/></div>
+                            <button class="dmag-btn dmag-btn-primary dmag-btn-lg w-100" t-att-disabled="state.saving" t-on-click="confirm">Xác nhận thu tiền mặt</button>
+                        </div>
+                        <div t-if="state.method === 'card'">
+                            <div class="dmag-banner">Quẹt thẻ trên máy POS ngân hàng, sau đó xác nhận.</div>
+                            <button class="dmag-btn dmag-btn-primary dmag-btn-lg w-100" t-att-disabled="state.saving" t-on-click="confirm">Xác nhận đã quẹt thẻ</button>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="dmag-btn dmag-btn-ghost" t-on-click="props.close">Đóng</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

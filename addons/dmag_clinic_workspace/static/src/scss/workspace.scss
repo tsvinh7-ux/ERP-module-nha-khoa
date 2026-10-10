@@ -325,3 +325,95 @@ $dmag-radius: 14px;
     .dmag-builder-notes { grid-template-columns: 1fr; }
     .dmag-search input { min-width: 160px; }
 }
+
+// ---------------------------------------------------------------- dialogs
+.dmag-dialog {
+    color: $dmag-text;
+    .modal-body { background: $dmag-bg; }
+    .modal-footer { gap: 8px; }
+}
+.dmag-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.dmag-span-2 { grid-column: span 2; }
+.dmag-form-field { display: flex; flex-direction: column; gap: 4px; margin: 0;
+    > span { font-weight: 700; color: $dmag-navy; font-size: 13px; }
+    .dmag-input { margin-bottom: 0; } }
+.dmag-input-lg { font-size: 22px; font-weight: 800; padding: 10px 12px; }
+.dmag-consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 12px; background: #fff; border: 1px solid $dmag-line; border-radius: 12px; font-size: 13px;
+    input { margin-top: 3px; } }
+
+.dmag-booking { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.dmag-step { background: #fff; border: 1px solid $dmag-line; border-radius: 16px; padding: 14px; }
+.dmag-step-title { display: flex; align-items: center; gap: 8px; font-weight: 800; color: $dmag-navy; margin-bottom: 10px; }
+.dmag-step-no { width: 24px; height: 24px; border-radius: 50%; background: $dmag-blue; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+.dmag-picked { display: flex; align-items: center; gap: 10px; background: $dmag-blue-soft; border-radius: 12px; padding: 10px; }
+.dmag-results { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.dmag-result { text-align: left; border: 1px solid transparent; background: $dmag-bg; border-radius: 10px; padding: 8px 10px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    &:hover { border-color: $dmag-blue; }
+    &.is-new { color: $dmag-blue; font-weight: 700; background: #fff; border: 1px dashed $dmag-blue; } }
+.dmag-days { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.dmag-day { border: 1px solid $dmag-line; background: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 600; font-size: 13px;
+    &.is-on { background: $dmag-navy; color: #fff; border-color: $dmag-navy; } }
+.dmag-slot-group { margin-bottom: 10px; }
+.dmag-slot-label { font-size: 12px; color: $dmag-muted; font-weight: 700; margin-bottom: 6px; }
+.dmag-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 6px; }
+.dmag-slot { border: 1px solid $dmag-line; background: #fff; border-radius: 10px; padding: 8px 0; font-weight: 700; font-size: 14px; position: relative;
+    &:hover { border-color: $dmag-blue; }
+    &.is-fill::after { content: ""; position: absolute; top: 5px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: $dmag-ok; }
+    &.is-busy-doc { color: $dmag-muted; background: #F3F5F8; text-decoration: line-through; }
+    &.is-on { background: $dmag-blue; color: #fff; border-color: $dmag-blue; } }
+.dmag-slot-chairs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; font-weight: 700; color: $dmag-navy; }
+
+.dmag-pay { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dmag-pay-left, .dmag-pay-right { background: #fff; border: 1px solid $dmag-line; border-radius: 16px; padding: 16px; }
+.dmag-pay-patient { font-size: 16px; margin-bottom: 10px; }
+.dmag-pay-line { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed $dmag-line; font-size: 13px; }
+.dmag-pay-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px;
+    span { font-weight: 700; color: $dmag-navy; } b { font-size: 28px; color: $dmag-blue; } }
+.dmag-pay-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.dmag-pay-method { border: 1px solid $dmag-line; background: #fff; border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: 13px;
+    i { font-size: 20px; color: $dmag-navy; }
+    &.is-on { border-color: $dmag-blue; background: $dmag-blue-soft; box-shadow: 0 0 0 3px rgba($dmag-blue, .15); } }
+.dmag-qr { display: flex; justify-content: center; img { width: 220px; height: 220px; border-radius: 12px; border: 1px solid $dmag-line; } }
+.dmag-qr-info { margin-top: 10px; font-size: 13px; div { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; } span { color: $dmag-muted; } }
+.dmag-qr-wait { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 10px; color: $dmag-navy; font-weight: 600; font-size: 13px; }
+.dmag-pulse { width: 10px; height: 10px; border-radius: 50%; background: $dmag-ok; animation: dmag-pulse 1.4s infinite; }
+@keyframes dmag-pulse { 0% { box-shadow: 0 0 0 0 rgba($dmag-ok, .6); } 100% { box-shadow: 0 0 0 12px rgba($dmag-ok, 0); } }
+.dmag-cash { display: flex; flex-direction: column; gap: 10px; }
+.dmag-pay-change { display: flex; justify-content: space-between; align-items: baseline; b { font-size: 22px; color: $dmag-ok; } }
+.dmag-pay-done { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 30px 0; font-weight: 800; color: #0B7A6D; font-size: 18px;
+    i { font-size: 54px; color: $dmag-ok; } }
+
+// ---------------------------------------------------------------- owner cockpit
+.dmag-cockpit { padding-bottom: 24px; }
+.dmag-hero-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 6px 22px; }
+.dmag-hero { background: #fff; border: 1px solid $dmag-line; border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;
+    &.is-primary { background: linear-gradient(135deg, $dmag-navy, darken($dmag-blue, 6%)); color: #fff; border: 0;
+        .dmag-hero-label, .dmag-hero-sub { color: rgba(255, 255, 255, .8); } .dmag-hero-value { color: #fff; } } }
+.dmag-hero-label { color: $dmag-muted; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.dmag-hero-value { font-size: 28px; font-weight: 800; color: $dmag-navy; line-height: 1.15; &.is-bad { color: $dmag-danger; } }
+.dmag-hero-sub { color: $dmag-muted; font-size: 13px; }
+.dmag-scorecards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 10px 22px; }
+.dmag-scorecard { background: #fff; border: 1px solid $dmag-line; border-radius: 16px; padding: 14px 16px; }
+.dmag-scorecard-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.dmag-scorecard-label { font-weight: 700; color: $dmag-navy; font-size: 13px; }
+.dmag-scorecard-value { font-size: 26px; font-weight: 800; color: $dmag-text; margin: 6px 0; }
+.dmag-scorecard-target { color: $dmag-muted; font-size: 12px; margin-top: 6px; }
+.dmag-status { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+    &.is-good { background: #E6F7F4; color: #0B7A6D; } &.is-warn { background: #FFF4E0; color: #9A5B00; } }
+.dmag-meter { height: 8px; background: #E9EEF5; border-radius: 99px; overflow: hidden; div { height: 100%; background: $dmag-blue; border-radius: 99px; } }
+.dmag-cockpit-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 10px 22px; align-items: start;
+    .dmag-chart-panel { grid-row: span 2; } }
+.dmag-bars { width: 100%; height: auto; }
+.dmag-grid { stroke: #E9EEF5; stroke-width: 1; }
+.dmag-baseline { stroke: #C4D0DF; stroke-width: 1; }
+.dmag-axis { font-size: 11px; fill: $dmag-muted; }
+.dmag-bar { fill: $dmag-blue; &:hover { fill: $dmag-navy; } }
+.dmag-tooltip-line { font-size: 13px; color: $dmag-muted; margin-top: 6px; min-height: 20px; b { color: $dmag-navy; } }
+.dmag-hbar { margin-bottom: 10px; }
+.dmag-hbar-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 4px; b { color: $dmag-navy; } }
+.dmag-hbar-track { height: 10px; background: #EEF2F7; border-radius: 99px; overflow: hidden; div { height: 100%; background: $dmag-blue; border-radius: 99px; } }
+
+@media (max-width: 900px) {
+    .dmag-booking, .dmag-pay, .dmag-cockpit-grid, .dmag-form-grid { grid-template-columns: 1fr; }
+    .dmag-span-2 { grid-column: auto; }
+}

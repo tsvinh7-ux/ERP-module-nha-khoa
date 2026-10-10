@@ -12,6 +12,7 @@
         'security/dmag_dental_clinic_security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
+        'data/dmag_vat_data.xml',
         'report/dmag_treatment_plan_report.xml',
         'views/dmag_dental_visit_views.xml',
         'views/dmag_dental_chart_views.xml',
@@ -22,6 +23,7 @@
     ],
     'demo': [
         'data/dmag_dental_clinic_demo.xml',
+        'data/dmag_vat_data.xml',
     ],
     'installable': True,
 }

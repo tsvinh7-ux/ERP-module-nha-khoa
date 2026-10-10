@@ -55,6 +55,11 @@ class ProductTemplate(models.Model):
             self.filtered(lambda t: t.dental_vat_regime == 'exempt')._dmag_apply_exempt_tax()
         return res
 
+    @api.model
+    def _dmag_apply_exempt_tax_all(self):
+        """Khi cài / nâng cấp: gán thuế KCT cho mọi dịch vụ nha khoa thuộc diện không chịu thuế."""
+        self.search([('is_dental_service', '=', True), ('dental_vat_regime', '=', 'exempt')])._dmag_apply_exempt_tax()
+
     def _dmag_apply_exempt_tax(self):
         for tmpl in self:
             company = tmpl.company_id or self.env.company
