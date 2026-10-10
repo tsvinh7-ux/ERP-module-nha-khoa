@@ -1,5 +1,16 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
+
+from odoo.addons.dmag_dental_base.models.dmag_access import check_director, check_discount, is_director, is_workflow
+
+
+def _check_plan_editable(env, plans):
+    """Kế hoạch chỉ soạn / sửa được khi đang soạn. Sau khi tư vấn / chốt: tạo được – không sửa."""
+    if is_workflow(env) or is_director(env):
+        return
+    for plan in plans:
+        if plan.state != 'draft':
+            raise AccessError(_('Kế hoạch %s đã tư vấn / chốt – bấm "Soạn lại" (nếu chưa chốt) hoặc nhờ Giám đốc / Quản lý cấp cao.', plan.name))
 
 
 class DmagTreatmentPlan(models.Model):
@@ -69,11 +80,24 @@ class DmagTreatmentPlan(models.Model):
             plan.second_opinion_required = any(
                 plan.option_ids.mapped('line_ids.product_id.requires_second_opinion'))
 
+    def write(self, vals):
+        _check_plan_editable(self.env, self)
+        return super().write(vals)
+
+    def unlink(self):
+        if any(p.sale_order_id for p in self):
+            raise UserError(_('Kế hoạch đã lập hợp đồng – không xóa được, hãy hủy.'))
+        _check_plan_editable(self.env, self)
+        return super().unlink()
+
+    def _workflow_write(self, vals):
+        return self.with_context(dmag_workflow=True).write(vals)
+
     def action_present(self):
         for plan in self:
             if not plan.option_ids or not plan.option_ids.mapped('line_ids'):
                 raise UserError(_('Kế hoạch %s chưa có phương án / dịch vụ.', plan.name))
-        self.filtered(lambda p: p.state == 'draft').write({'state': 'presented'})
+        self.filtered(lambda p: p.state == 'draft')._workflow_write({'state': 'presented'})
         return True
 
     def action_second_opinion(self):
@@ -83,31 +107,35 @@ class DmagTreatmentPlan(models.Model):
                 raise UserError(_('Chỉ bác sĩ mới được duyệt chỉ định.'))
             if practitioner == plan.doctor_id:
                 raise UserError(_('Bác sĩ thứ hai phải khác bác sĩ lập kế hoạch.'))
-            plan.write({'second_opinion_by_id': practitioner.id,
+            plan._workflow_write({'second_opinion_by_id': practitioner.id,
                         'second_opinion_date': fields.Datetime.now()})
             plan.message_post(body=_('BS %s đã duyệt chỉ định (cầu chì y đức).', practitioner.name))
         return True
 
     def action_cancel(self):
+        if any(p.sale_order_id for p in self):
+            check_director(self.env, _('Kế hoạch đã lập hợp đồng – chỉ Giám đốc / Quản lý cấp cao được hủy.'))
         for plan in self:
             if plan.sale_order_id and plan.sale_order_id.state == 'sale' and plan.progress:
                 raise UserError(_('Kế hoạch đã điều trị một phần, không hủy được. Hãy điều chỉnh phương án.'))
             if plan.sale_order_id and plan.sale_order_id.state != 'cancel':
-                plan.sale_order_id._action_cancel()
-        self.write({'state': 'cancel'})
+                plan.sale_order_id.sudo()._action_cancel()
+        self._workflow_write({'state': 'cancel'})
         return True
 
     def action_reset_draft(self):
-        self.filtered(lambda p: p.state in ('presented', 'cancel') and not p.sale_order_id).write(
-            {'state': 'draft'})
+        plans = self.filtered(lambda p: p.state in ('presented', 'cancel') and not p.sale_order_id)
+        plans._workflow_write({'state': 'draft'})
+        for plan in plans:
+            plan.message_post(body=_('Soạn lại kế hoạch bởi %s.', self.env.user.name))
         return True
 
     def _check_progress_state(self):
         for plan in self.filtered(lambda p: p.state in ('accepted', 'in_progress')):
             if plan.progress >= 100:
-                plan.state = 'done'
+                plan._workflow_write({'state': 'done'})
             elif plan.progress > 0:
-                plan.state = 'in_progress'
+                plan._workflow_write({'state': 'in_progress'})
 
     def action_open_sale_order(self):
         self.ensure_one()
@@ -206,6 +234,20 @@ class DmagTreatmentOption(models.Model):
         for option in self:
             option.is_accepted = option.plan_id.accepted_option_id == option
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        options = super().create(vals_list)
+        _check_plan_editable(self.env, options.mapped('plan_id'))
+        return options
+
+    def write(self, vals):
+        _check_plan_editable(self.env, self.mapped('plan_id'))
+        return super().write(vals)
+
+    def unlink(self):
+        _check_plan_editable(self.env, self.mapped('plan_id'))
+        return super().unlink()
+
     @api.constrains('installment_months', 'deposit_amount')
     def _check_installment(self):
         for option in self:
@@ -233,10 +275,11 @@ class DmagTreatmentOption(models.Model):
             'order_line': [(0, 0, line._prepare_sale_line()) for line in self.line_ids],
         })
         order.action_confirm()
-        for line, sale_line in zip(self.line_ids, order.order_line):
-            line.sale_line_id = sale_line
-        self.line_ids._create_planned_chart_entries()
-        plan.write({
+        lines = self.line_ids.with_context(dmag_workflow=True)
+        for line, sale_line in zip(lines, order.order_line):
+            line.sale_line_id = sale_line.id
+        lines._create_planned_chart_entries()
+        plan._workflow_write({
             'accepted_option_id': self.id,
             'accepted_date': fields.Datetime.now(),
             'sale_order_id': order.id,
@@ -314,11 +357,35 @@ class DmagTreatmentPlanLine(models.Model):
             if not 0 <= line.discount <= 100:
                 raise ValidationError(_('Giảm giá phải trong khoảng 0–100%.'))
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        _check_plan_editable(self.env, lines.mapped('plan_id'))
+        lines._check_price_policy()
+        return lines
+
     def write(self, vals):
+        _check_plan_editable(self.env, self.mapped('plan_id'))
         res = super().write(vals)
+        if {'price_unit', 'discount', 'product_id'} & set(vals):
+            self._check_price_policy()
         if 'state' in vals:
             self.mapped('plan_id')._check_progress_state()
         return res
+
+    def unlink(self):
+        _check_plan_editable(self.env, self.mapped('plan_id'))
+        return super().unlink()
+
+    def _check_price_policy(self):
+        """Giá theo bảng giá; giảm giá trong hạn mức – vượt cần Giám đốc."""
+        if is_workflow(self.env) or is_director(self.env):
+            return
+        for line in self:
+            if line.product_id and abs(line.price_unit - line.product_id.lst_price) > 0.01:
+                raise AccessError(_('Giá "%s" lấy theo bảng giá – chỉ Giám đốc / Quản lý cấp cao được đổi giá.',
+                                    line.product_id.name))
+            check_discount(self.env, line.discount, line.plan_id.company_id)
 
     @api.depends('product_id', 'tooth_ids')
     def _compute_display_name(self):

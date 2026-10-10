@@ -1,5 +1,9 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
+
+from odoo.addons.dmag_dental_base.models.dmag_access import check_director, check_discount, is_director, is_workflow
+
+PRICE_FIELDS = {'price_unit', 'discount', 'quantity', 'product_id', 'plan_line_id'}
 
 
 class DmagDentalProcedure(models.Model):
@@ -76,9 +80,25 @@ class DmagDentalProcedure(models.Model):
                 vals.setdefault('quantity', line.quantity)
                 vals.setdefault('price_unit', line.price_unit)
                 vals.setdefault('discount', line.discount)
-            elif 'price_unit' not in vals and vals.get('product_id'):
-                vals['price_unit'] = self.env['product.product'].browse(vals['product_id']).lst_price
+            elif vals.get('product_id'):
+                list_price = self.env['product.product'].browse(vals['product_id']).lst_price
+                if 'price_unit' not in vals:
+                    vals['price_unit'] = list_price
+                elif vals['price_unit'] != list_price and not is_director(self.env):
+                    raise AccessError(_('Giá thủ thuật lấy theo bảng giá – chỉ Giám đốc / Quản lý cấp cao được đổi giá.'))
+            check_discount(self.env, vals.get('discount'), visit.company_id)
         return super().create(vals_list)
+
+    def write(self, vals):
+        if not is_workflow(self.env) and not is_director(self.env):
+            if any(p.state == 'done' for p in self):
+                raise AccessError(_('Thủ thuật đã hoàn tất – chỉ Giám đốc / Quản lý cấp cao được sửa.'))
+            if 'price_unit' in vals:
+                raise AccessError(_('Giá thủ thuật lấy theo bảng giá – chỉ Giám đốc / Quản lý cấp cao được đổi giá.'))
+            if 'discount' in vals:
+                for proc in self:
+                    check_discount(self.env, vals['discount'], proc.company_id)
+        return super().write(vals)
 
     @api.constrains('product_id', 'tooth_ids')
     def _check_tooth(self):
@@ -88,7 +108,7 @@ class DmagDentalProcedure(models.Model):
 
     def unlink(self):
         if any(p.state == 'done' for p in self):
-            raise UserError(_('Không xóa được thủ thuật đã hoàn tất.'))
+            raise UserError(_('Không xóa được thủ thuật đã hoàn tất (đã ghi sơ đồ răng và doanh thu).'))
         return super().unlink()
 
     @api.depends('product_id', 'tooth_ids')
@@ -103,6 +123,7 @@ class DmagDentalProcedure(models.Model):
                 raise UserError(_('Bệnh nhân cần lên ghế trước khi ghi nhận thủ thuật.'))
             if proc.doctor_id:
                 proc.doctor_id.check_can_perform(proc.product_id)
+            proc = proc.with_context(dmag_workflow=True)
             proc._update_chart()
             proc._update_sale_line()
             proc.state = 'done'

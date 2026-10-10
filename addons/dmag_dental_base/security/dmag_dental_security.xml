@@ -31,8 +31,15 @@
         <field name="name">Quản lý phòng khám</field>
         <field name="category_id" ref="module_category_dmag_dental"/>
         <field name="implied_ids" eval="[(4, ref('group_dmag_doctor'))]"/>
+        <field name="comment">Vận hành phòng khám: cấu hình ghế, bác sĩ, dịch vụ, danh mục; sửa thông tin hành chính bệnh nhân.</field>
+    </record>
+
+    <record id="group_dmag_director" model="res.groups">
+        <field name="name">Giám đốc / Quản lý cấp cao</field>
+        <field name="category_id" ref="module_category_dmag_dental"/>
+        <field name="implied_ids" eval="[(4, ref('group_dmag_manager'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
-        <field name="comment">Toàn quyền cấu hình, danh mục, mở khóa bệnh án có ghi vết.</field>
+        <field name="comment">Duy nhất nhóm này được sửa / hủy chứng từ đã ghi nhận, sửa giá, duyệt giảm giá vượt hạn mức, mở bổ sung bệnh án đã ký. Mọi thao tác được ghi vết.</field>
     </record>
 
     <record id="rule_dmag_chair_company" model="ir.rule">

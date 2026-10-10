@@ -3,6 +3,11 @@ from dateutil.relativedelta import relativedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+from .dmag_access import is_manager, is_workflow
+
+# Định danh bệnh nhân: khóa sau khi đã có hồ sơ y khoa, chỉ Quản lý trở lên được sửa
+IDENTITY_FIELDS = {'name', 'birthdate', 'gender', 'citizen_id', 'patient_code'}
+
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
@@ -76,7 +81,18 @@ class ResPartner(models.Model):
                 vals['data_consent_date'] = fields.Datetime.now()
         return super().create(vals_list)
 
+    def _dmag_has_medical_records(self):
+        """Ghi đè ở module vận hành: bệnh nhân đã có lượt khám hoàn tất / bệnh án."""
+        return False
+
     def write(self, vals):
+        if IDENTITY_FIELDS & set(vals) and not is_manager(self.env) and not is_workflow(self.env):
+            locked = self.filtered(lambda p: p.is_patient and p._dmag_has_medical_records())
+            if locked:
+                from odoo.exceptions import AccessError
+                raise AccessError(_(
+                    'Thông tin định danh của bệnh nhân %s đã gắn với hồ sơ bệnh án – chỉ Quản lý '
+                    'phòng khám trở lên được sửa.', ', '.join(locked.mapped('name'))))
         if vals.get('data_consent'):
             vals.setdefault('data_consent_date', fields.Datetime.now())
         res = super().write(vals)

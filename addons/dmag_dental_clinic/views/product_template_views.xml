@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='dental_requires_tooth']" position="after">
                 <field name="dental_result_condition_id"/>
+                <field name="dental_vat_regime"/>
             </xpath>
         </field>
     </record>

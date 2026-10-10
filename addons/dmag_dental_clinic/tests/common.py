@@ -34,7 +34,7 @@ class DentalCommon(TransactionCase):
         })
         cls.chair1 = env['dmag.dental.chair'].create({'name': 'Ghế T1'})
         cls.chair2 = env['dmag.dental.chair'].create({'name': 'Ghế T2'})
-        Product = env['product.product'].with_context(default_taxes_id=False)
+        Product = env['product.product']
         cls.svc_filling = Product.create({
             'name': 'Trám T', 'is_dental_service': True, 'list_price': 400000,
             'dental_duration': 30, 'practice_scope_id': cls.scope_general.id,

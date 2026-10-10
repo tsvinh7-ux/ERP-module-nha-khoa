@@ -1,5 +1,7 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
+
+from odoo.addons.dmag_dental_base.models.dmag_access import check_director, is_director, is_workflow
 
 LAYERS = [
     ('existing', 'Hiện trạng'),
@@ -116,8 +118,17 @@ class DmagDentalChartEntry(models.Model):
                 'note': note or False,
                 'practitioner_id': practitioner.id,
             })
-        return self.create(vals_list).ids
+        return self.with_context(dmag_workflow=True).create(vals_list).ids
+
+    def write(self, vals):
+        if not is_workflow(self.env) and not is_director(self.env):
+            raise AccessError(_('Ghi nhận sơ đồ răng không sửa được. Hãy tạo ghi nhận mới hoặc đánh dấu "Đã xử lý".'))
+        return super().write(vals)
+
+    def unlink(self):
+        check_director(self.env, _('Chỉ Giám đốc / Quản lý cấp cao được xóa ghi nhận sơ đồ răng.'))
+        return super().unlink()
 
     def action_resolve(self):
-        self.write({'active': False})
+        self.with_context(dmag_workflow=True).write({'active': False})
         return True

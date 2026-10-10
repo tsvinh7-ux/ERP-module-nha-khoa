@@ -9,6 +9,11 @@ class ResPartner(models.Model):
     dental_plan_count = fields.Integer(compute='_compute_dental_counts', string='Số kế hoạch')
     last_visit_date = fields.Datetime(compute='_compute_dental_counts', string='Lần khám gần nhất')
 
+    def _dmag_has_medical_records(self):
+        self.ensure_one()
+        return bool(self.env['dmag.dental.visit'].sudo().search_count(
+            [('patient_id', '=', self.id), ('state', 'in', ('in_chair', 'done'))], limit=1))
+
     def _compute_dental_counts(self):
         Visit = self.env['dmag.dental.visit']
         Plan = self.env['dmag.treatment.plan']

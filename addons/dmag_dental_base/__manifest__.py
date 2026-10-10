@@ -23,6 +23,7 @@
         'views/dmag_dental_chair_views.xml',
         'views/dmag_dental_catalog_views.xml',
         'views/product_template_views.xml',
+        'views/res_company_views.xml',
     ],
     'demo': [
         'data/dmag_dental_demo.xml',

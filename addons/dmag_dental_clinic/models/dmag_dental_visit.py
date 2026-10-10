@@ -1,15 +1,22 @@
 from datetime import timedelta
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
+
+from odoo.addons.dmag_dental_base.models.dmag_access import check_director, is_director, is_workflow
 
 ACTIVE_STATES = ('draft', 'confirmed', 'arrived', 'in_chair')
+PAYMENT_METHODS = [('cash', 'Tiền mặt'), ('transfer', 'Chuyển khoản'), ('card', 'Quẹt thẻ')]
 
 # Trường bệnh án: khóa sau khi bác sĩ ký
 CLINICAL_FIELDS = {
     'chief_complaint', 'examination', 'assessment', 'diagnosis_ids',
     'treatment_note', 'advice',
 }
+# Trường bác sĩ được ghi tiếp khi bệnh án chưa ký (kể cả sau khi lượt khám hoàn tất)
+RECORD_EDITABLE = CLINICAL_FIELDS | {'pain_score'}
+# Sau khi khách đã đến, không đổi người bệnh / phòng khám
+LOCK_AFTER_ARRIVAL = {'patient_id', 'company_id'}
 
 
 class DmagDentalVisit(models.Model):
@@ -147,7 +154,7 @@ class DmagDentalVisit(models.Model):
                  'invoice_ids.amount_residual')
     def _compute_payment_status(self):
         for visit in self:
-            posted = visit.invoice_ids.filtered(lambda m: m.state == 'posted')
+            posted = visit.sudo().invoice_ids.filtered(lambda m: m.state == 'posted')
             to_invoice = visit._get_lines_to_invoice()
             residual = sum(posted.mapped('amount_residual'))
             visit.amount_due = residual + sum(
@@ -180,6 +187,8 @@ class DmagDentalVisit(models.Model):
         return visits
 
     def write(self, vals):
+        if not is_workflow(self.env) and not is_director(self.env):
+            self._check_write_allowed(vals)
         if CLINICAL_FIELDS & set(vals) and not self.env.context.get('dmag_record_amend'):
             locked = self.filtered(lambda v: v.record_state == 'signed')
             if locked:
@@ -187,6 +196,28 @@ class DmagDentalVisit(models.Model):
                     'Bệnh án lượt khám %s đã ký và bị khóa. Dùng "Bổ sung bệnh án" '
                     '(quyền Quản lý) để sửa có ghi vết.', ', '.join(locked.mapped('name'))))
         return super().write(vals)
+
+    def _check_write_allowed(self, vals):
+        """Tạo được – không sửa: chặn sửa lượt khám đã có hiệu lực."""
+        fields_changed = set(vals)
+        for visit in self:
+            if visit.state in ('done', 'cancel', 'no_show'):
+                if visit.state == 'done' and fields_changed <= RECORD_EDITABLE and visit.record_state == 'draft':
+                    continue
+                raise AccessError(_('Lượt khám %s đã kết thúc – chỉ Giám đốc / Quản lý cấp cao được sửa.', visit.name))
+            if visit.state in ('arrived', 'in_chair') and fields_changed & LOCK_AFTER_ARRIVAL:
+                raise AccessError(_('Bệnh nhân đã check-in – không đổi được người bệnh của lượt khám %s.', visit.name))
+
+    def unlink(self):
+        for visit in self:
+            if visit.state not in ('draft', 'cancel', 'no_show') or visit.procedure_ids:
+                raise UserError(_('Không xóa được lượt khám %s đã phát sinh khám / thủ thuật. Hãy hủy lịch.', visit.name))
+        if not is_director(self.env):
+            check_director(self.env, _('Chỉ Giám đốc / Quản lý cấp cao được xóa lịch hẹn. Hãy dùng "Hủy lịch".'))
+        return super().unlink()
+
+    def _workflow_write(self, vals):
+        return self.with_context(dmag_workflow=True).write(vals)
 
     # ------------------------------------------------------------------ constraints
     def _get_schedule_conflicts(self, soft=False):
@@ -244,7 +275,7 @@ class DmagDentalVisit(models.Model):
         return True
 
     def action_confirm(self):
-        self.filtered(lambda v: v.state == 'draft').write({'state': 'confirmed'})
+        self.filtered(lambda v: v.state == 'draft')._workflow_write({'state': 'confirmed'})
         self._dmag_journey_event('confirmed')
         return True
 
@@ -252,7 +283,7 @@ class DmagDentalVisit(models.Model):
         for visit in self:
             if visit.state not in ('draft', 'confirmed'):
                 raise UserError(_('Lượt khám %s không ở trạng thái chờ đến.', visit.name))
-        self.write({'state': 'arrived', 'checkin_time': fields.Datetime.now()})
+        self._workflow_write({'state': 'arrived', 'checkin_time': fields.Datetime.now()})
         self._dmag_journey_event('arrived')
         return True
 
@@ -271,7 +302,7 @@ class DmagDentalVisit(models.Model):
                 practitioner = self._current_practitioner()
                 if practitioner.role == 'doctor':
                     vals['doctor_id'] = practitioner.id
-            visit.write(vals)
+            visit._workflow_write(vals)
         self._dmag_journey_event('in_chair')
         return True
 
@@ -279,22 +310,23 @@ class DmagDentalVisit(models.Model):
         for visit in self:
             if visit.state != 'in_chair':
                 raise UserError(_('Chỉ hoàn tất được lượt khám đang điều trị.'))
-        self.write({'state': 'done', 'done_time': fields.Datetime.now()})
+        self._workflow_write({'state': 'done', 'done_time': fields.Datetime.now()})
         self._dmag_journey_event('done')
         return True
 
     def action_cancel(self):
-        self.filtered(lambda v: v.state in ACTIVE_STATES).write({'state': 'cancel'})
+        self.filtered(lambda v: v.state in ACTIVE_STATES)._workflow_write({'state': 'cancel'})
         self._dmag_journey_event('cancelled')
         return True
 
     def action_no_show(self):
-        self.filtered(lambda v: v.state in ('draft', 'confirmed')).write({'state': 'no_show'})
+        self.filtered(lambda v: v.state in ('draft', 'confirmed'))._workflow_write({'state': 'no_show'})
         self._dmag_journey_event('no_show')
         return True
 
     def action_reset(self):
-        self.filtered(lambda v: v.state in ('cancel', 'no_show')).write({'state': 'draft', 'cancel_reason': False})
+        check_director(self.env, _('Chỉ Giám đốc / Quản lý cấp cao được khôi phục lịch đã hủy.'))
+        self.filtered(lambda v: v.state in ('cancel', 'no_show'))._workflow_write({'state': 'draft', 'cancel_reason': False})
         return True
 
     # ------------------------------------------------------------------ medical record
@@ -313,7 +345,7 @@ class DmagDentalVisit(models.Model):
                 continue
             if not (visit.chief_complaint or visit.examination or visit.assessment or visit.procedure_ids):
                 raise UserError(_('Bệnh án %s chưa có nội dung để ký.', visit.name))
-            visit.write({
+            visit._workflow_write({
                 'record_state': 'signed',
                 'signed_by_id': practitioner.id,
                 'signed_at': fields.Datetime.now(),
@@ -327,46 +359,101 @@ class DmagDentalVisit(models.Model):
         return True
 
     def action_amend_record(self):
-        if not self.env.user.has_group('dmag_dental_base.group_dmag_manager'):
-            raise UserError(_('Chỉ Quản lý phòng khám được mở bổ sung bệnh án đã ký.'))
+        check_director(self.env, _('Chỉ Giám đốc / Quản lý cấp cao được mở bổ sung bệnh án đã ký.'))
         for visit in self:
             visit.message_post(body=_('Mở bổ sung bệnh án đã ký bởi %s.', self.env.user.name))
-        self.with_context(dmag_record_amend=True).write({'record_state': 'draft'})
+        self.with_context(dmag_record_amend=True, dmag_workflow=True).write({'record_state': 'draft'})
         return True
 
     # ------------------------------------------------------------------ billing
     def _get_lines_to_invoice(self):
         self.ensure_one()
-        lines = self.procedure_ids.mapped('sale_line_id')
+        lines = self.sudo().procedure_ids.mapped('sale_line_id')
         return lines.filtered(lambda l: l.qty_to_invoice > 0 and l.state == 'sale')
 
     def _get_or_create_sale_order(self):
         self.ensure_one()
         if not self.sale_order_id:
-            self.sale_order_id = self.env['sale.order'].sudo().create({
+            so = self.env['sale.order'].sudo().create({
                 'partner_id': self.patient_id.id,
                 'company_id': self.company_id.id,
                 'dental_visit_id': self.id,
                 'origin': self.name,
             })
+            self._workflow_write({'sale_order_id': so.id})
         return self.sale_order_id.sudo()
 
-    def action_create_invoice(self):
-        """Lập hóa đơn cho phần đã làm trong lượt khám (thu theo tiến độ)."""
+    def _create_and_post_invoices(self):
+        """Lập + ghi sổ hóa đơn phần đã làm (thu theo tiến độ). Chạy quyền hệ thống:
+        lễ tân tạo được chứng từ nhưng không sửa được hóa đơn."""
         self.ensure_one()
         lines = self._get_lines_to_invoice()
         if not lines:
-            raise UserError(_('Không còn thủ thuật nào chờ lập hóa đơn trong lượt khám này.'))
-        orders = lines.mapped('order_id')
+            return self.env['account.move']
+        orders = lines.mapped('order_id').sudo()
         moves = orders._create_invoices()
-        self.invoice_ids = [(4, m.id) for m in moves]
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'account.move',
-            'view_mode': 'form',
-            'res_id': moves[:1].id,
-            'name': _('Hóa đơn'),
-        }
+        moves.action_post()
+        self._workflow_write({'invoice_ids': [(4, m.id) for m in moves]})
+        for move in moves:
+            self.message_post(body=_('Lập hóa đơn %(name)s – %(amount)s', name=move.name,
+                                     amount=move.amount_total))
+        self._dmag_on_invoices_posted(moves)
+        return moves
+
+    def _dmag_on_invoices_posted(self, moves):
+        """Điểm móc phát hành hóa đơn điện tử (Viettel S-Invoice / VNPT của Bizapps)."""
+        return True
+
+    def action_create_invoice(self):
+        self.ensure_one()
+        moves = self._create_and_post_invoices()
+        if not moves:
+            raise UserError(_('Không còn thủ thuật nào chờ lập hóa đơn trong lượt khám này.'))
+        return True
+
+    def _get_open_invoices(self):
+        self.ensure_one()
+        return self.sudo().invoice_ids.filtered(
+            lambda m: m.state == 'posted' and m.payment_state not in ('paid', 'in_payment', 'reversed'))
+
+    def register_payment(self, method, amount=False, reference=False):
+        """Ghi nhận thu tiền tại quầy (tiền mặt / chuyển khoản / thẻ).
+
+        Tạo chứng từ thanh toán bằng quyền hệ thống, đối trừ vào hóa đơn còn nợ.
+        Nhân viên không sửa / hủy được – sai sót do Giám đốc xử lý.
+        """
+        self.ensure_one()
+        if self.payment_status == 'to_invoice':
+            self._create_and_post_invoices()
+        invoices = self._get_open_invoices()
+        if not invoices:
+            raise UserError(_('Lượt khám %s không còn khoản phải thu.', self.name))
+        journal = self._get_payment_journal(method)
+        residual = sum(invoices.mapped('amount_residual'))
+        amount = amount or residual
+        if amount <= 0 or amount > residual + 0.5:
+            raise UserError(_('Số tiền thu không hợp lệ (còn phải thu %s).', residual))
+        wizard = self.env['account.payment.register'].sudo().with_context(
+            active_model='account.move', active_ids=invoices.ids).create({
+                'journal_id': journal.id,
+                'amount': amount,
+                'payment_date': fields.Date.context_today(self),
+                'communication': reference or self.name,
+                'group_payment': True,
+            })
+        payments = wizard._create_payments()
+        self.message_post(body=_('Thu %(amount)s – %(method)s – người thu: %(user)s',
+                                 amount=amount, method=dict(PAYMENT_METHODS)[method], user=self.env.user.name))
+        self._dmag_journey_event('paid')
+        return payments.ids
+
+    def _get_payment_journal(self, method):
+        Journal = self.env['account.journal'].sudo()
+        jtype = 'cash' if method == 'cash' else 'bank'
+        journal = Journal.search([('company_id', '=', self.company_id.id), ('type', '=', jtype)], limit=1)
+        if not journal:
+            raise UserError(_('Chưa cấu hình sổ nhật ký %s cho phòng khám.', jtype))
+        return journal
 
     # ------------------------------------------------------------------ actions UI
     def action_open_procedures(self):

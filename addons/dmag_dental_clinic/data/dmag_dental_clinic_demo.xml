@@ -2,32 +2,32 @@
 <odoo>
     <record id="dmag_dental_base.demo_svc_filling" model="product.product">
         <field name="dental_result_condition_id" ref="dmag_dental_base.condition_filling"/>
-        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="invoice_policy">delivery</field>
     </record>
     <record id="dmag_dental_base.demo_svc_endo" model="product.product">
         <field name="dental_result_condition_id" ref="dmag_dental_base.condition_root_canal"/>
-        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="invoice_policy">delivery</field>
     </record>
     <record id="dmag_dental_base.demo_svc_crown_zirconia" model="product.product">
         <field name="dental_result_condition_id" ref="dmag_dental_base.condition_crown"/>
-        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="invoice_policy">delivery</field>
     </record>
     <record id="dmag_dental_base.demo_svc_crown_metal" model="product.product">
         <field name="dental_result_condition_id" ref="dmag_dental_base.condition_crown"/>
-        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="invoice_policy">delivery</field>
     </record>
     <record id="dmag_dental_base.demo_svc_implant" model="product.product">
         <field name="dental_result_condition_id" ref="dmag_dental_base.condition_implant"/>
-        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="invoice_policy">delivery</field>
     </record>
     <record id="dmag_dental_base.demo_svc_extract_wisdom" model="product.product">
         <field name="dental_result_condition_id" ref="dmag_dental_base.condition_missing"/>
-        <field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="invoice_policy">delivery</field>
     </record>
-    <record id="dmag_dental_base.demo_svc_exam" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
-    <record id="dmag_dental_base.demo_svc_xray" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
-    <record id="dmag_dental_base.demo_svc_scaling" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
-    <record id="dmag_dental_base.demo_svc_ortho" model="product.product"><field name="invoice_policy">delivery</field><field name="taxes_id" eval="[(5, 0, 0)]"/></record>
+    <record id="dmag_dental_base.demo_svc_exam" model="product.product"><field name="invoice_policy">delivery</field></record>
+    <record id="dmag_dental_base.demo_svc_xray" model="product.product"><field name="invoice_policy">delivery</field></record>
+    <record id="dmag_dental_base.demo_svc_scaling" model="product.product"><field name="invoice_policy">delivery</field></record>
+    <record id="dmag_dental_base.demo_svc_ortho" model="product.product"><field name="invoice_policy">delivery</field></record>
     <record id="demo_visit_1" model="dmag.dental.visit">
         <field name="patient_id" ref="dmag_dental_base.demo_patient_1"/>
         <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
