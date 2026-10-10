@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_tooth_tree" model="ir.ui.view">
+        <field name="name">dmag.dental.tooth.tree</field>
+        <field name="model">dmag.dental.tooth</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="dentition"/>
+                <field name="quadrant"/>
+                <field name="position"/>
+                <field name="arch"/>
+                <field name="tooth_type"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_tooth" model="ir.actions.act_window">
+        <field name="name">Răng (FDI)</field>
+        <field name="res_model">dmag.dental.tooth</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_tooth" name="Răng (FDI)" parent="menu_dmag_config_catalog" action="action_dmag_tooth" sequence="10"/>
+    <record id="view_dmag_surface_tree" model="ir.ui.view">
+        <field name="name">dmag.dental.surface.tree</field>
+        <field name="model">dmag.dental.surface</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_surface" model="ir.actions.act_window">
+        <field name="name">Mặt răng</field>
+        <field name="res_model">dmag.dental.surface</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_surface" name="Mặt răng" parent="menu_dmag_config_catalog" action="action_dmag_surface" sequence="20"/>
+    <record id="view_dmag_condition_tree" model="ir.ui.view">
+        <field name="name">dmag.dental.condition.tree</field>
+        <field name="model">dmag.dental.condition</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="scope"/>
+                <field name="symbol"/>
+                <field name="color" widget="color"/>
+                <field name="diagnosis_id"/>
+                <field name="suggested_service_ids" widget="many2many_tags"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_condition" model="ir.actions.act_window">
+        <field name="name">Tình trạng răng</field>
+        <field name="res_model">dmag.dental.condition</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_condition" name="Tình trạng răng" parent="menu_dmag_config_catalog" action="action_dmag_condition" sequence="30"/>
+    <record id="view_dmag_diagnosis_tree" model="ir.ui.view">
+        <field name="name">dmag.dental.diagnosis.tree</field>
+        <field name="model">dmag.dental.diagnosis</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_diagnosis" model="ir.actions.act_window">
+        <field name="name">Chẩn đoán ICD-10</field>
+        <field name="res_model">dmag.dental.diagnosis</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_diagnosis" name="Chẩn đoán ICD-10" parent="menu_dmag_config_catalog" action="action_dmag_diagnosis" sequence="40"/>
+    <record id="view_dmag_level_tree" model="ir.ui.view">
+        <field name="name">dmag.clinical.level.tree</field>
+        <field name="model">dmag.clinical.level</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="level"/>
+                <field name="name"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_level" model="ir.actions.act_window">
+        <field name="name">Bậc lâm sàng</field>
+        <field name="res_model">dmag.clinical.level</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_level" name="Bậc lâm sàng" parent="menu_dmag_config_catalog" action="action_dmag_level" sequence="50"/>
+    <record id="view_dmag_scope_tree" model="ir.ui.view">
+        <field name="name">dmag.practice.scope.tree</field>
+        <field name="model">dmag.practice.scope</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_scope" model="ir.actions.act_window">
+        <field name="name">Phạm vi hành nghề</field>
+        <field name="res_model">dmag.practice.scope</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_scope" name="Phạm vi hành nghề" parent="menu_dmag_config_catalog" action="action_dmag_scope" sequence="60"/>
+    <record id="view_dmag_alert_tree" model="ir.ui.view">
+        <field name="name">dmag.patient.alert.tree</field>
+        <field name="model">dmag.patient.alert</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="severity"/>
+                <field name="color" widget="color_picker"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_alert" model="ir.actions.act_window">
+        <field name="name">Cảnh báo y khoa</field>
+        <field name="res_model">dmag.patient.alert</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_alert" name="Cảnh báo y khoa" parent="menu_dmag_config_crm" action="action_dmag_alert" sequence="10"/>
+    <record id="view_dmag_source_tree" model="ir.ui.view">
+        <field name="name">dmag.customer.source.tree</field>
+        <field name="model">dmag.customer.source</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="is_referral"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_source" model="ir.actions.act_window">
+        <field name="name">Nguồn khách</field>
+        <field name="res_model">dmag.customer.source</field>
+        <field name="view_mode">tree</field>
+    </record>
+    <menuitem id="menu_dmag_source" name="Nguồn khách" parent="menu_dmag_config_crm" action="action_dmag_source" sequence="20"/>
+</odoo>

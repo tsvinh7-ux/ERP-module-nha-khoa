@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="alert_heart" model="dmag.patient.alert">
+        <field name="name">Bệnh tim mạch</field>
+        <field name="severity">danger</field>
+        <field name="color">1</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="alert_hypertension" model="dmag.patient.alert">
+        <field name="name">Tăng huyết áp</field>
+        <field name="severity">warning</field>
+        <field name="color">2</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="alert_diabetes" model="dmag.patient.alert">
+        <field name="name">Tiểu đường</field>
+        <field name="severity">warning</field>
+        <field name="color">3</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="alert_bleeding" model="dmag.patient.alert">
+        <field name="name">Rối loạn đông máu / dùng thuốc chống đông</field>
+        <field name="severity">danger</field>
+        <field name="color">1</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="alert_drug_allergy" model="dmag.patient.alert">
+        <field name="name">Dị ứng thuốc</field>
+        <field name="severity">danger</field>
+        <field name="color">1</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="alert_anesthetic" model="dmag.patient.alert">
+        <field name="name">Dị ứng thuốc tê</field>
+        <field name="severity">danger</field>
+        <field name="color">1</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="alert_pregnant" model="dmag.patient.alert">
+        <field name="name">Đang mang thai / cho con bú</field>
+        <field name="severity">warning</field>
+        <field name="color">4</field>
+        <field name="sequence">70</field>
+    </record>
+    <record id="alert_infectious" model="dmag.patient.alert">
+        <field name="name">Bệnh truyền nhiễm (viêm gan, HIV…)</field>
+        <field name="severity">danger</field>
+        <field name="color">9</field>
+        <field name="sequence">80</field>
+    </record>
+    <record id="alert_anxiety" model="dmag.patient.alert">
+        <field name="name">Sợ điều trị nha khoa</field>
+        <field name="severity">info</field>
+        <field name="color">5</field>
+        <field name="sequence">90</field>
+    </record>
+    <record id="scope_general" model="dmag.practice.scope">
+        <field name="name">Răng hàm mặt tổng quát</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="scope_endo" model="dmag.practice.scope">
+        <field name="name">Nội nha</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="scope_surgery" model="dmag.practice.scope">
+        <field name="name">Phẫu thuật miệng</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="scope_implant" model="dmag.practice.scope">
+        <field name="name">Cấy ghép Implant</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="scope_prostho" model="dmag.practice.scope">
+        <field name="name">Phục hình</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="scope_ortho" model="dmag.practice.scope">
+        <field name="name">Chỉnh nha</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="scope_pedo" model="dmag.practice.scope">
+        <field name="name">Răng trẻ em</field>
+        <field name="sequence">70</field>
+    </record>
+    <record id="scope_perio" model="dmag.practice.scope">
+        <field name="name">Nha chu</field>
+        <field name="sequence">80</field>
+    </record>
+    <record id="level_1" model="dmag.clinical.level">
+        <field name="level">1</field>
+        <field name="name">Bậc 1 – Bác sĩ mới</field>
+        <field name="description">Cạo vôi, trám, nhổ răng thường</field>
+    </record>
+    <record id="level_2" model="dmag.clinical.level">
+        <field name="level">2</field>
+        <field name="name">Bậc 2 – Bác sĩ vững tay</field>
+        <field name="description">Phục hình sứ, răng khôn, nội nha khó</field>
+    </record>
+    <record id="level_3" model="dmag.clinical.level">
+        <field name="level">3</field>
+        <field name="name">Bậc 3 – Giám đốc chuyên môn</field>
+        <field name="description">Implant phức tạp, chỉnh nha ca khó, hội chẩn</field>
+    </record>
+    <record id="source_facebook" model="dmag.customer.source">
+        <field name="name">Facebook</field>
+        <field name="code">facebook</field>
+        <field name="sequence">10</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+    <record id="source_tiktok" model="dmag.customer.source">
+        <field name="name">TikTok</field>
+        <field name="code">tiktok</field>
+        <field name="sequence">20</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+    <record id="source_zalo" model="dmag.customer.source">
+        <field name="name">Zalo OA</field>
+        <field name="code">zalo</field>
+        <field name="sequence">30</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+    <record id="source_google" model="dmag.customer.source">
+        <field name="name">Google / Website</field>
+        <field name="code">google</field>
+        <field name="sequence">40</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+    <record id="source_hotline" model="dmag.customer.source">
+        <field name="name">Hotline</field>
+        <field name="code">hotline</field>
+        <field name="sequence">50</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+    <record id="source_referral" model="dmag.customer.source">
+        <field name="name">Người quen giới thiệu</field>
+        <field name="code">referral</field>
+        <field name="sequence">60</field>
+        <field name="is_referral" eval="True"/>
+    </record>
+    <record id="source_walk_in" model="dmag.customer.source">
+        <field name="name">Khách vãng lai</field>
+        <field name="code">walk_in</field>
+        <field name="sequence">70</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+    <record id="source_returning" model="dmag.customer.source">
+        <field name="name">Khách cũ quay lại</field>
+        <field name="code">returning</field>
+        <field name="sequence">80</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+    <record id="source_event" model="dmag.customer.source">
+        <field name="name">Sự kiện / hội thảo</field>
+        <field name="code">event</field>
+        <field name="sequence">90</field>
+        <field name="is_referral" eval="False"/>
+    </record>
+</odoo>

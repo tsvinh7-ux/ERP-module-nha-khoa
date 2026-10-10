@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="condition_caries" model="dmag.dental.condition">
+        <field name="code">caries</field>
+        <field name="name">Sâu răng</field>
+        <field name="sequence">10</field>
+        <field name="category">finding</field>
+        <field name="scope">surface</field>
+        <field name="color">#E5484D</field>
+        <field name="symbol">fill</field>
+        <field name="diagnosis_id" ref="diag_k02_1"/>
+    </record>
+    <record id="condition_pulpitis" model="dmag.dental.condition">
+        <field name="code">pulpitis</field>
+        <field name="name">Viêm tủy</field>
+        <field name="sequence">20</field>
+        <field name="category">finding</field>
+        <field name="scope">tooth</field>
+        <field name="color">#D6409F</field>
+        <field name="symbol">root</field>
+        <field name="diagnosis_id" ref="diag_k04_0"/>
+    </record>
+    <record id="condition_periapical" model="dmag.dental.condition">
+        <field name="code">periapical</field>
+        <field name="name">Viêm quanh cuống</field>
+        <field name="sequence">30</field>
+        <field name="category">finding</field>
+        <field name="scope">tooth</field>
+        <field name="color">#AB4ABA</field>
+        <field name="symbol">root</field>
+        <field name="diagnosis_id" ref="diag_k04_5"/>
+    </record>
+    <record id="condition_fracture" model="dmag.dental.condition">
+        <field name="code">fracture</field>
+        <field name="name">Nứt / vỡ răng</field>
+        <field name="sequence">40</field>
+        <field name="category">finding</field>
+        <field name="scope">tooth</field>
+        <field name="color">#F76B15</field>
+        <field name="symbol">fill</field>
+    </record>
+    <record id="condition_calculus" model="dmag.dental.condition">
+        <field name="code">calculus</field>
+        <field name="name">Cao răng</field>
+        <field name="sequence">50</field>
+        <field name="category">finding</field>
+        <field name="scope">tooth</field>
+        <field name="color">#AD7F58</field>
+        <field name="symbol">dash</field>
+        <field name="diagnosis_id" ref="diag_k03_6"/>
+    </record>
+    <record id="condition_mobility" model="dmag.dental.condition">
+        <field name="code">mobility</field>
+        <field name="name">Lung lay</field>
+        <field name="sequence">60</field>
+        <field name="category">finding</field>
+        <field name="scope">tooth</field>
+        <field name="color">#FFB224</field>
+        <field name="symbol">ring</field>
+        <field name="diagnosis_id" ref="diag_k05_3"/>
+    </record>
+    <record id="condition_residual_root" model="dmag.dental.condition">
+        <field name="code">residual_root</field>
+        <field name="name">Chân răng sót</field>
+        <field name="sequence">70</field>
+        <field name="category">finding</field>
+        <field name="scope">tooth</field>
+        <field name="color">#8E4EC6</field>
+        <field name="symbol">root</field>
+        <field name="diagnosis_id" ref="diag_k08_3"/>
+    </record>
+    <record id="condition_impacted" model="dmag.dental.condition">
+        <field name="code">impacted</field>
+        <field name="name">Răng ngầm / mọc lệch</field>
+        <field name="sequence">80</field>
+        <field name="category">finding</field>
+        <field name="scope">tooth</field>
+        <field name="color">#6E56CF</field>
+        <field name="symbol">dash</field>
+        <field name="diagnosis_id" ref="diag_k01_1"/>
+    </record>
+    <record id="condition_filling" model="dmag.dental.condition">
+        <field name="code">filling</field>
+        <field name="name">Đã trám</field>
+        <field name="sequence">90</field>
+        <field name="category">existing</field>
+        <field name="scope">surface</field>
+        <field name="color">#178BEC</field>
+        <field name="symbol">fill</field>
+    </record>
+    <record id="condition_root_canal" model="dmag.dental.condition">
+        <field name="code">root_canal</field>
+        <field name="name">Đã điều trị tủy</field>
+        <field name="sequence">100</field>
+        <field name="category">existing</field>
+        <field name="scope">tooth</field>
+        <field name="color">#0090FF</field>
+        <field name="symbol">root</field>
+    </record>
+    <record id="condition_crown" model="dmag.dental.condition">
+        <field name="code">crown</field>
+        <field name="name">Mão / chụp răng</field>
+        <field name="sequence">110</field>
+        <field name="category">existing</field>
+        <field name="scope">tooth</field>
+        <field name="color">#11346A</field>
+        <field name="symbol">ring</field>
+    </record>
+    <record id="condition_bridge" model="dmag.dental.condition">
+        <field name="code">bridge</field>
+        <field name="name">Cầu răng</field>
+        <field name="sequence">120</field>
+        <field name="category">existing</field>
+        <field name="scope">tooth</field>
+        <field name="color">#3E63DD</field>
+        <field name="symbol">ring</field>
+    </record>
+    <record id="condition_implant" model="dmag.dental.condition">
+        <field name="code">implant</field>
+        <field name="name">Implant</field>
+        <field name="sequence">130</field>
+        <field name="category">existing</field>
+        <field name="scope">tooth</field>
+        <field name="color">#12A594</field>
+        <field name="symbol">implant</field>
+    </record>
+    <record id="condition_veneer" model="dmag.dental.condition">
+        <field name="code">veneer</field>
+        <field name="name">Mặt dán sứ</field>
+        <field name="sequence">140</field>
+        <field name="category">existing</field>
+        <field name="scope">surface</field>
+        <field name="color">#00A2C7</field>
+        <field name="symbol">fill</field>
+    </record>
+    <record id="condition_missing" model="dmag.dental.condition">
+        <field name="code">missing</field>
+        <field name="name">Mất răng</field>
+        <field name="sequence">150</field>
+        <field name="category">missing</field>
+        <field name="scope">tooth</field>
+        <field name="color">#8B8D98</field>
+        <field name="symbol">cross</field>
+        <field name="diagnosis_id" ref="diag_k08_1"/>
+    </record>
+    <record id="condition_unerupted" model="dmag.dental.condition">
+        <field name="code">unerupted</field>
+        <field name="name">Chưa mọc</field>
+        <field name="sequence">160</field>
+        <field name="category">missing</field>
+        <field name="scope">tooth</field>
+        <field name="color">#B9BBC6</field>
+        <field name="symbol">dash</field>
+    </record>
+</odoo>

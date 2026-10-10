@@ -1,0 +1,32 @@
+{
+    'name': 'DMAG Dental – Nền tảng',
+    'summary': 'Danh mục nha khoa (răng FDI, mặt răng, tình trạng, ICD-10), bệnh nhân, '
+               'ghế nha, bác sĩ & phạm vi hành nghề, phân quyền phòng khám',
+    'version': '17.0.1.0.0',
+    'category': 'Healthcare/Dental',
+    'author': 'DMAG – Dental Management & Analytics Group',
+    'website': 'https://dmagroup.vn',
+    'license': 'LGPL-3',
+    'depends': ['mail', 'contacts', 'product', 'hr'],
+    'data': [
+        'security/dmag_dental_security.xml',
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'data/dmag_dental_tooth_data.xml',
+        'data/dmag_dental_surface_data.xml',
+        'data/dmag_dental_diagnosis_data.xml',
+        'data/dmag_dental_condition_data.xml',
+        'data/dmag_dental_master_data.xml',
+        'views/dmag_dental_menus.xml',
+        'views/res_partner_views.xml',
+        'views/dmag_dental_practitioner_views.xml',
+        'views/dmag_dental_chair_views.xml',
+        'views/dmag_dental_catalog_views.xml',
+        'views/product_template_views.xml',
+    ],
+    'demo': [
+        'data/dmag_dental_demo.xml',
+    ],
+    'application': True,
+    'installable': True,
+}

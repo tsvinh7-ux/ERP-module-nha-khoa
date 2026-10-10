@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_dmag" model="ir.ui.view">
+        <field name="name">product.template.form.dmag</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='options']" position="inside">
+                <span class="d-inline-block">
+                    <field name="is_dental_service"/>
+                    <label for="is_dental_service"/>
+                </span>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Nha khoa" name="dmag_dental" invisible="not is_dental_service">
+                    <group>
+                        <group string="Lâm sàng">
+                            <field name="dental_category"/>
+                            <field name="dental_duration"/>
+                            <field name="dental_complexity"/>
+                            <field name="dental_requires_tooth"/>
+                        </group>
+                        <group string="Ai được làm">
+                            <field name="practice_scope_id"/>
+                            <field name="min_clinical_level_id"/>
+                            <field name="requires_second_opinion"/>
+                        </group>
+                        <group string="Sau điều trị">
+                            <field name="warranty_months"/>
+                            <field name="recall_months"/>
+                        </group>
+                    </group>
+                    <label for="aftercare_note"/>
+                    <field name="aftercare_note" placeholder="Lời dặn gửi bệnh nhân sau thủ thuật…"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_dmag_service" model="ir.actions.act_window">
+        <field name="name">Dịch vụ nha khoa</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('is_dental_service', '=', True)]</field>
+        <field name="context">{'default_is_dental_service': True, 'default_detailed_type': 'service', 'default_sale_ok': True, 'default_purchase_ok': False}</field>
+    </record>
+    <menuitem id="menu_dmag_service" name="Dịch vụ &amp; bảng giá" parent="menu_dmag_config_clinic"
+              action="action_dmag_service" sequence="30"/>
+</odoo>

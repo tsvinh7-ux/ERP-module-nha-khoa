@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_dmag_patient" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.patient</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <field name="has_danger_alert" invisible="1"/>
+                <div class="alert alert-danger mb-0 rounded-0" role="alert" invisible="not has_danger_alert">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    Bệnh nhân có cảnh báo y khoa nguy hiểm – kiểm tra trước mọi thủ thuật:
+                    <field name="patient_alert_ids" widget="many2many_tags" options="{'color_field': 'color'}" readonly="1" class="d-inline"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="is_patient"/>
+                <field name="patient_code" invisible="not is_patient"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Hồ sơ bệnh nhân" name="dmag_patient" invisible="not is_patient">
+                    <group>
+                        <group string="Hành chính">
+                            <field name="birthdate"/>
+                            <field name="age" invisible="not birthdate"/>
+                            <field name="gender"/>
+                            <field name="citizen_id"/>
+                            <field name="occupation"/>
+                            <field name="zalo_phone" placeholder="Để trống nếu trùng số di động"/>
+                        </group>
+                        <group string="Nguồn &amp; gia đình">
+                            <field name="customer_source_id"/>
+                            <field name="referrer_id" context="{'dmag_patient_search': True}"/>
+                            <field name="dental_family_id"/>
+                            <field name="guardian_id" context="{'dmag_patient_search': True}"/>
+                            <field name="guardian_relation" invisible="not guardian_id"/>
+                        </group>
+                    </group>
+                    <group string="Y khoa">
+                        <field name="patient_alert_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create': True}"/>
+                        <field name="is_pregnant" invisible="gender != 'female'"/>
+                        <field name="allergy" placeholder="Thuốc, vật liệu, latex…"/>
+                        <field name="medical_history" placeholder="Tim mạch, huyết áp, tiểu đường, phẫu thuật…"/>
+                        <field name="current_medication"/>
+                        <field name="dental_history"/>
+                    </group>
+                    <group string="Đồng ý">
+                        <field name="data_consent"/>
+                        <field name="data_consent_date" invisible="not data_consent"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_tree_dmag_patient" model="ir.ui.view">
+        <field name="name">res.partner.tree.dmag.patient</field>
+        <field name="model">res.partner</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <tree string="Bệnh nhân">
+                <field name="patient_code"/>
+                <field name="name"/>
+                <field name="mobile"/>
+                <field name="phone" optional="hide"/>
+                <field name="birthdate" optional="show"/>
+                <field name="gender" optional="show"/>
+                <field name="customer_source_id" optional="show"/>
+                <field name="patient_alert_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_partner_search_dmag_patient" model="ir.ui.view">
+        <field name="name">res.partner.search.dmag.patient</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="patient_code"/>
+                <field name="citizen_id"/>
+                <field name="customer_source_id"/>
+                <field name="dental_family_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='type_person']" position="before">
+                <filter string="Bệnh nhân" name="filter_patient" domain="[('is_patient', '=', True)]"/>
+                <filter string="Có cảnh báo y khoa" name="filter_alert" domain="[('patient_alert_ids', '!=', False)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_dmag_patient" model="ir.actions.act_window">
+        <field name="name">Bệnh nhân</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('is_patient', '=', True)]</field>
+        <field name="context">{'default_is_patient': True, 'default_is_company': False, 'dmag_patient_search': True}</field>
+        <field name="search_view_id" ref="view_partner_search_dmag_patient"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo hồ sơ bệnh nhân đầu tiên</p>
+            <p>Mã bệnh nhân được tự sinh. Tìm nhanh theo tên, mã, số điện thoại.</p>
+        </field>
+    </record>
+    <record id="action_dmag_patient_tree" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_partner_tree_dmag_patient"/>
+        <field name="act_window_id" ref="action_dmag_patient"/>
+    </record>
+
+    <record id="action_dmag_family" model="ir.actions.act_window">
+        <field name="name">Nhóm gia đình</field>
+        <field name="res_model">dmag.patient.family</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_dmag_family_form" model="ir.ui.view">
+        <field name="name">dmag.patient.family.form</field>
+        <field name="model">dmag.patient.family</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="head_id" context="{'dmag_patient_search': True}"/>
+                    </group>
+                    <field name="member_ids" readonly="1">
+                        <tree>
+                            <field name="patient_code"/>
+                            <field name="name"/>
+                            <field name="mobile"/>
+                            <field name="birthdate"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_family_tree" model="ir.ui.view">
+        <field name="name">dmag.patient.family.tree</field>
+        <field name="model">dmag.patient.family</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="head_id"/>
+                <field name="member_count"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="menu_dmag_patient_list" name="Hồ sơ bệnh nhân" parent="menu_dmag_patients"
+              action="action_dmag_patient" sequence="10"/>
+    <menuitem id="menu_dmag_family" name="Nhóm gia đình" parent="menu_dmag_patients"
+              action="action_dmag_family" sequence="20"/>
+</odoo>

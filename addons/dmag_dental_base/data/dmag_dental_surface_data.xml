@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="surface_m" model="dmag.dental.surface">
+        <field name="code">M</field>
+        <field name="name">Mặt gần (Mesial)</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="surface_d" model="dmag.dental.surface">
+        <field name="code">D</field>
+        <field name="name">Mặt xa (Distal)</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="surface_o" model="dmag.dental.surface">
+        <field name="code">O</field>
+        <field name="name">Mặt nhai (Occlusal)</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="surface_i" model="dmag.dental.surface">
+        <field name="code">I</field>
+        <field name="name">Rìa cắn (Incisal)</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="surface_b" model="dmag.dental.surface">
+        <field name="code">B</field>
+        <field name="name">Mặt ngoài (má/môi)</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="surface_l" model="dmag.dental.surface">
+        <field name="code">L</field>
+        <field name="name">Mặt trong (lưỡi/khẩu cái)</field>
+        <field name="sequence">60</field>
+    </record>
+</odoo>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ghế -->
+    <record id="demo_chair_1" model="dmag.dental.chair"><field name="name">Ghế 1</field><field name="room">Phòng điều trị A</field><field name="sequence">1</field></record>
+    <record id="demo_chair_2" model="dmag.dental.chair"><field name="name">Ghế 2</field><field name="room">Phòng điều trị A</field><field name="sequence">2</field></record>
+    <record id="demo_chair_3" model="dmag.dental.chair"><field name="name">Ghế 3</field><field name="room">Phòng Implant</field><field name="sequence">3</field></record>
+    <record id="demo_chair_4" model="dmag.dental.chair"><field name="name">Ghế 4</field><field name="room">Phòng Chỉnh nha</field><field name="sequence">4</field></record>
+
+    <!-- Nhân sự lâm sàng -->
+    <record id="demo_doctor_director" model="dmag.dental.practitioner">
+        <field name="name">Nguyễn Văn An</field>
+        <field name="title">ThS.BS</field>
+        <field name="role">doctor</field>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="clinical_level_id" ref="level_3"/>
+        <field name="scope_ids" eval="[(6, 0, [ref('scope_general'), ref('scope_endo'), ref('scope_surgery'), ref('scope_implant'), ref('scope_prostho')])]"/>
+        <field name="license_number">001234/BYT-CCHN</field>
+        <field name="license_issue_date" eval="(DateTime.today() - relativedelta(years=3)).strftime('%Y-%m-%d')"/>
+        <field name="license_expiry_date" eval="(DateTime.today() + relativedelta(years=2)).strftime('%Y-%m-%d')"/>
+        <field name="color">4</field>
+    </record>
+    <record id="demo_doctor_ortho" model="dmag.dental.practitioner">
+        <field name="name">Trần Thu Hà</field>
+        <field name="title">BSCKI</field>
+        <field name="role">doctor</field>
+        <field name="clinical_level_id" ref="level_2"/>
+        <field name="scope_ids" eval="[(6, 0, [ref('scope_general'), ref('scope_ortho'), ref('scope_pedo')])]"/>
+        <field name="license_number">004567/HNO-CCHN</field>
+        <field name="license_expiry_date" eval="(DateTime.today() + relativedelta(days=40)).strftime('%Y-%m-%d')"/>
+        <field name="color">10</field>
+    </record>
+    <record id="demo_doctor_junior" model="dmag.dental.practitioner">
+        <field name="name">Lê Minh Khoa</field>
+        <field name="title">BS</field>
+        <field name="role">doctor</field>
+        <field name="clinical_level_id" ref="level_1"/>
+        <field name="scope_ids" eval="[(6, 0, [ref('scope_general')])]"/>
+        <field name="license_number">007890/HNO-CCHN</field>
+        <field name="license_expiry_date" eval="(DateTime.today() + relativedelta(years=4)).strftime('%Y-%m-%d')"/>
+        <field name="color">2</field>
+    </record>
+    <record id="demo_assistant_1" model="dmag.dental.practitioner">
+        <field name="name">Phạm Thị Lan</field>
+        <field name="role">assistant</field>
+    </record>
+
+    <!-- Dịch vụ -->
+    <record id="demo_svc_exam" model="product.template">
+        <field name="name">Khám &amp; tư vấn tổng quát</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">exam</field><field name="dental_duration">20</field>
+        <field name="dental_complexity">light</field><field name="dental_requires_tooth" eval="False"/>
+        <field name="list_price">0</field>
+    </record>
+    <record id="demo_svc_xray" model="product.template">
+        <field name="name">Chụp phim Panorama</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">imaging</field><field name="dental_duration">10</field>
+        <field name="dental_complexity">light</field><field name="dental_requires_tooth" eval="False"/>
+        <field name="list_price">150000</field>
+    </record>
+    <record id="demo_svc_scaling" model="product.template">
+        <field name="name">Cạo vôi &amp; đánh bóng</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">hygiene</field><field name="dental_duration">30</field>
+        <field name="dental_complexity">light</field><field name="dental_requires_tooth" eval="False"/>
+        <field name="practice_scope_id" ref="scope_general"/><field name="min_clinical_level_id" ref="level_1"/>
+        <field name="recall_months">6</field>
+        <field name="list_price">300000</field>
+    </record>
+    <record id="demo_svc_filling" model="product.template">
+        <field name="name">Trám răng Composite</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">restorative</field><field name="dental_duration">30</field>
+        <field name="practice_scope_id" ref="scope_general"/><field name="min_clinical_level_id" ref="level_1"/>
+        <field name="warranty_months">12</field>
+        <field name="list_price">400000</field>
+    </record>
+    <record id="demo_svc_endo" model="product.template">
+        <field name="name">Điều trị tủy răng hàm</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">endo</field><field name="dental_duration">60</field>
+        <field name="dental_complexity">heavy</field>
+        <field name="practice_scope_id" ref="scope_endo"/><field name="min_clinical_level_id" ref="level_2"/>
+        <field name="list_price">2000000</field>
+    </record>
+    <record id="demo_svc_extract_wisdom" model="product.template">
+        <field name="name">Nhổ răng khôn mọc lệch</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">surgery</field><field name="dental_duration">60</field>
+        <field name="dental_complexity">heavy</field>
+        <field name="practice_scope_id" ref="scope_surgery"/><field name="min_clinical_level_id" ref="level_2"/>
+        <field name="list_price">2500000</field>
+    </record>
+    <record id="demo_svc_crown_zirconia" model="product.template">
+        <field name="name">Răng sứ Zirconia</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">prosthodontic</field><field name="dental_duration">45</field>
+        <field name="practice_scope_id" ref="scope_prostho"/><field name="min_clinical_level_id" ref="level_2"/>
+        <field name="requires_second_opinion" eval="True"/>
+        <field name="warranty_months">120</field>
+        <field name="list_price">5500000</field>
+    </record>
+    <record id="demo_svc_crown_metal" model="product.template">
+        <field name="name">Răng sứ kim loại</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">prosthodontic</field><field name="dental_duration">45</field>
+        <field name="practice_scope_id" ref="scope_prostho"/><field name="min_clinical_level_id" ref="level_2"/>
+        <field name="requires_second_opinion" eval="True"/>
+        <field name="warranty_months">36</field>
+        <field name="list_price">2000000</field>
+    </record>
+    <record id="demo_svc_implant" model="product.template">
+        <field name="name">Cấy ghép Implant (trụ Hàn Quốc)</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">implant</field><field name="dental_duration">90</field>
+        <field name="dental_complexity">heavy</field>
+        <field name="practice_scope_id" ref="scope_implant"/><field name="min_clinical_level_id" ref="level_3"/>
+        <field name="warranty_months">120</field>
+        <field name="list_price">15000000</field>
+    </record>
+    <record id="demo_svc_ortho" model="product.template">
+        <field name="name">Niềng răng mắc cài kim loại (trọn gói)</field>
+        <field name="detailed_type">service</field><field name="is_dental_service" eval="True"/>
+        <field name="dental_category">orthodontic</field><field name="dental_duration">60</field>
+        <field name="dental_requires_tooth" eval="False"/>
+        <field name="practice_scope_id" ref="scope_ortho"/><field name="min_clinical_level_id" ref="level_2"/>
+        <field name="list_price">30000000</field>
+    </record>
+
+
+    <!-- Bệnh nhân -->
+    <record id="demo_family_hoang" model="dmag.patient.family"><field name="name">Gia đình anh Hoàng</field></record>
+    <record id="demo_patient_1" model="res.partner">
+        <field name="name">Hoàng Minh Tuấn</field>
+        <field name="is_patient" eval="True"/>
+        <field name="mobile">0912 345 678</field>
+        <field name="birthdate">1988-05-12</field>
+        <field name="gender">male</field>
+        <field name="customer_source_id" ref="source_facebook"/>
+        <field name="dental_family_id" ref="demo_family_hoang"/>
+        <field name="patient_alert_ids" eval="[(6, 0, [ref('alert_hypertension')])]"/>
+        <field name="data_consent" eval="True"/>
+    </record>
+    <record id="demo_patient_2" model="res.partner">
+        <field name="name">Nguyễn Thị Mai</field>
+        <field name="is_patient" eval="True"/>
+        <field name="mobile">0987 654 321</field>
+        <field name="birthdate">1995-11-02</field>
+        <field name="gender">female</field>
+        <field name="customer_source_id" ref="source_referral"/>
+        <field name="referrer_id" ref="demo_patient_1"/>
+        <field name="patient_alert_ids" eval="[(6, 0, [ref('alert_anesthetic')])]"/>
+        <field name="allergy">Dị ứng Lidocaine</field>
+        <field name="data_consent" eval="True"/>
+    </record>
+    <record id="demo_patient_3" model="res.partner">
+        <field name="name">Hoàng Gia Bảo</field>
+        <field name="is_patient" eval="True"/>
+        <field name="mobile">0912 345 679</field>
+        <field name="birthdate" eval="(DateTime.today() - relativedelta(years=9)).strftime('%Y-%m-%d')"/>
+        <field name="gender">male</field>
+        <field name="guardian_id" ref="demo_patient_1"/>
+        <field name="guardian_relation">Bố</field>
+        <field name="dental_family_id" ref="demo_family_hoang"/>
+        <field name="customer_source_id" ref="source_returning"/>
+    </record>
+    <record id="demo_patient_4" model="res.partner">
+        <field name="name">Đỗ Thanh Hương</field>
+        <field name="is_patient" eval="True"/>
+        <field name="mobile">0903 222 111</field>
+        <field name="birthdate">1979-03-20</field>
+        <field name="gender">female</field>
+        <field name="customer_source_id" ref="source_tiktok"/>
+        <field name="patient_alert_ids" eval="[(6, 0, [ref('alert_diabetes'), ref('alert_anxiety')])]"/>
+    </record>
+    <record id="demo_patient_5" model="res.partner">
+        <field name="name">Vũ Quốc Khánh</field>
+        <field name="is_patient" eval="True"/>
+        <field name="mobile">0977 888 999</field>
+        <field name="birthdate">2001-07-07</field>
+        <field name="gender">male</field>
+        <field name="customer_source_id" ref="source_zalo"/>
+    </record>
+</odoo>

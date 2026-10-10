@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_dental_root" name="Nha khoa"
+              web_icon="dmag_dental_base,static/description/icon.png"
+              groups="group_dmag_receptionist" sequence="5"/>
+
+    <menuitem id="menu_dmag_patients" name="Bệnh nhân" parent="menu_dmag_dental_root" sequence="40"/>
+    <menuitem id="menu_dmag_config" name="Cấu hình" parent="menu_dmag_dental_root"
+              sequence="90" groups="group_dmag_manager"/>
+    <menuitem id="menu_dmag_config_clinic" name="Phòng khám" parent="menu_dmag_config" sequence="10"/>
+    <menuitem id="menu_dmag_config_catalog" name="Danh mục lâm sàng" parent="menu_dmag_config" sequence="20"/>
+    <menuitem id="menu_dmag_config_crm" name="Khách hàng" parent="menu_dmag_config" sequence="30"/>
+</odoo>

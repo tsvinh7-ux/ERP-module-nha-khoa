@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_practitioner_form" model="ir.ui.view">
+        <field name="name">dmag.dental.practitioner.form</field>
+        <field name="model">dmag.dental.practitioner</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Giấy phép hết hạn" bg_color="text-bg-danger" invisible="license_state != 'expired'"/>
+                    <widget name="web_ribbon" title="Sắp hết hạn" bg_color="text-bg-warning" invisible="license_state != 'expiring'"/>
+                    <field name="image_128" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Họ tên"/></h1>
+                        <field name="title" placeholder="Học hàm / chức danh (ThS.BS, BSCKI…)"/>
+                    </div>
+                    <group>
+                        <group string="Công việc">
+                            <field name="role" widget="radio" options="{'horizontal': true}"/>
+                            <field name="user_id"/>
+                            <field name="employee_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="phone"/>
+                            <field name="color" widget="color_picker"/>
+                        </group>
+                        <group string="Chuyên môn">
+                            <field name="clinical_level_id"/>
+                            <field name="scope_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group string="Giấy phép hành nghề">
+                        <group>
+                            <field name="license_number"/>
+                            <field name="license_state" widget="badge"
+                                   decoration-success="license_state == 'valid'"
+                                   decoration-warning="license_state == 'expiring'"
+                                   decoration-danger="license_state == 'expired'"/>
+                        </group>
+                        <group>
+                            <field name="license_issue_date"/>
+                            <field name="license_expiry_date"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_practitioner_tree" model="ir.ui.view">
+        <field name="name">dmag.dental.practitioner.tree</field>
+        <field name="model">dmag.dental.practitioner</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="role"/>
+                <field name="clinical_level_id"/>
+                <field name="scope_ids" widget="many2many_tags"/>
+                <field name="license_expiry_date"/>
+                <field name="license_state" widget="badge"
+                       decoration-success="license_state == 'valid'"
+                       decoration-warning="license_state == 'expiring'"
+                       decoration-danger="license_state == 'expired'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_practitioner" model="ir.actions.act_window">
+        <field name="name">Nhân sự lâm sàng</field>
+        <field name="res_model">dmag.dental.practitioner</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_dmag_practitioner" name="Bác sĩ &amp; phụ tá" parent="menu_dmag_config_clinic"
+              action="action_dmag_practitioner" sequence="10"/>
+</odoo>

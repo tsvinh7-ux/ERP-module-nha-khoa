@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="diag_k00_0" model="dmag.dental.diagnosis">
+        <field name="code">K00.0</field>
+        <field name="name">Không có răng (thiếu răng bẩm sinh)</field>
+    </record>
+    <record id="diag_k00_6" model="dmag.dental.diagnosis">
+        <field name="code">K00.6</field>
+        <field name="name">Rối loạn mọc răng</field>
+    </record>
+    <record id="diag_k01_0" model="dmag.dental.diagnosis">
+        <field name="code">K01.0</field>
+        <field name="name">Răng kẹt</field>
+    </record>
+    <record id="diag_k01_1" model="dmag.dental.diagnosis">
+        <field name="code">K01.1</field>
+        <field name="name">Răng ngầm</field>
+    </record>
+    <record id="diag_k02_0" model="dmag.dental.diagnosis">
+        <field name="code">K02.0</field>
+        <field name="name">Sâu răng giới hạn ở men</field>
+    </record>
+    <record id="diag_k02_1" model="dmag.dental.diagnosis">
+        <field name="code">K02.1</field>
+        <field name="name">Sâu ngà răng</field>
+    </record>
+    <record id="diag_k02_2" model="dmag.dental.diagnosis">
+        <field name="code">K02.2</field>
+        <field name="name">Sâu xê măng</field>
+    </record>
+    <record id="diag_k02_3" model="dmag.dental.diagnosis">
+        <field name="code">K02.3</field>
+        <field name="name">Sâu răng ngừng tiến triển</field>
+    </record>
+    <record id="diag_k02_5" model="dmag.dental.diagnosis">
+        <field name="code">K02.5</field>
+        <field name="name">Sâu răng có hở tủy</field>
+    </record>
+    <record id="diag_k03_0" model="dmag.dental.diagnosis">
+        <field name="code">K03.0</field>
+        <field name="name">Mòn răng</field>
+    </record>
+    <record id="diag_k03_1" model="dmag.dental.diagnosis">
+        <field name="code">K03.1</field>
+        <field name="name">Mài mòn răng</field>
+    </record>
+    <record id="diag_k03_6" model="dmag.dental.diagnosis">
+        <field name="code">K03.6</field>
+        <field name="name">Cặn bám trên răng (cao răng)</field>
+    </record>
+    <record id="diag_k03_7" model="dmag.dental.diagnosis">
+        <field name="code">K03.7</field>
+        <field name="name">Thay đổi màu sắc mô cứng của răng sau khi mọc</field>
+    </record>
+    <record id="diag_k04_0" model="dmag.dental.diagnosis">
+        <field name="code">K04.0</field>
+        <field name="name">Viêm tủy răng</field>
+    </record>
+    <record id="diag_k04_1" model="dmag.dental.diagnosis">
+        <field name="code">K04.1</field>
+        <field name="name">Hoại tử tủy</field>
+    </record>
+    <record id="diag_k04_4" model="dmag.dental.diagnosis">
+        <field name="code">K04.4</field>
+        <field name="name">Viêm quanh cuống cấp do tủy</field>
+    </record>
+    <record id="diag_k04_5" model="dmag.dental.diagnosis">
+        <field name="code">K04.5</field>
+        <field name="name">Viêm quanh cuống mạn</field>
+    </record>
+    <record id="diag_k04_7" model="dmag.dental.diagnosis">
+        <field name="code">K04.7</field>
+        <field name="name">Áp xe quanh cuống không có lỗ dò</field>
+    </record>
+    <record id="diag_k05_0" model="dmag.dental.diagnosis">
+        <field name="code">K05.0</field>
+        <field name="name">Viêm lợi cấp</field>
+    </record>
+    <record id="diag_k05_1" model="dmag.dental.diagnosis">
+        <field name="code">K05.1</field>
+        <field name="name">Viêm lợi mạn</field>
+    </record>
+    <record id="diag_k05_2" model="dmag.dental.diagnosis">
+        <field name="code">K05.2</field>
+        <field name="name">Viêm quanh răng cấp</field>
+    </record>
+    <record id="diag_k05_3" model="dmag.dental.diagnosis">
+        <field name="code">K05.3</field>
+        <field name="name">Viêm quanh răng mạn</field>
+    </record>
+    <record id="diag_k06_0" model="dmag.dental.diagnosis">
+        <field name="code">K06.0</field>
+        <field name="name">Tụt lợi</field>
+    </record>
+    <record id="diag_k07_2" model="dmag.dental.diagnosis">
+        <field name="code">K07.2</field>
+        <field name="name">Bất thường tương quan hai hàm</field>
+    </record>
+    <record id="diag_k07_3" model="dmag.dental.diagnosis">
+        <field name="code">K07.3</field>
+        <field name="name">Bất thường vị trí răng</field>
+    </record>
+    <record id="diag_k07_6" model="dmag.dental.diagnosis">
+        <field name="code">K07.6</field>
+        <field name="name">Rối loạn khớp thái dương hàm</field>
+    </record>
+    <record id="diag_k08_1" model="dmag.dental.diagnosis">
+        <field name="code">K08.1</field>
+        <field name="name">Mất răng do tai nạn, nhổ răng hoặc bệnh quanh răng</field>
+    </record>
+    <record id="diag_k08_3" model="dmag.dental.diagnosis">
+        <field name="code">K08.3</field>
+        <field name="name">Chân răng còn sót</field>
+    </record>
+    <record id="diag_k10_3" model="dmag.dental.diagnosis">
+        <field name="code">K10.3</field>
+        <field name="name">Viêm xương ổ răng (huyệt ổ răng khô)</field>
+    </record>
+    <record id="diag_k12_0" model="dmag.dental.diagnosis">
+        <field name="code">K12.0</field>
+        <field name="name">Áp tơ miệng tái phát</field>
+    </record>
+</odoo>
