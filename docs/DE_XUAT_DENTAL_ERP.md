@@ -13,12 +13,12 @@ Dental ERP không phải "phần mềm quản lý phòng khám" thông thường
 
 | Mục tiêu | Chỉ số ERP phải tự đo (không nhập tay) | Nguồn |
 |---|---|---|
-| Tuân thủ "3 lằn ranh đỏ" | Bệnh án điện tử trước 31/12/2026; 100% doanh thu có HĐĐT; giấy phép, phạm vi hành nghề, bức xạ, chất thải còn hiệu lực | Q-Summit, TT 13/2025/TT-BYT, NĐ 70/2025 |
+| Tuân thủ "3 lằn ranh đỏ" | Bệnh án điện tử chuẩn; 100% doanh thu có HĐĐT; giấy phép, phạm vi hành nghề, bức xạ, chất thải còn hiệu lực | Q-Summit, TT 13/2025/TT-BYT, NĐ 70/2025 |
 | Dòng tiền minh bạch | Két cuối ngày khớp 100% (tiền mặt + POS + chuyển khoản so với phần mềm) | Q-Summit, "Chốt két 4 bước" |
 | Năng suất vận hành | Công suất ghế buổi chiều ≥ 65%; giá vốn vật tư & labo ≤ 22% doanh thu; bác sĩ phụ đảm nhận ≥ 50% số ca | Q-Summit, KR 90 ngày |
 | Trải nghiệm & tăng trưởng | NPS sau điều trị; điểm đau sau thủ thuật; thời gian chờ; tỷ lệ đồng thuận kế hoạch điều trị; doanh thu từ khách giới thiệu | OKRs Nha khoa – bản mẫu |
 
-Toàn bộ chỉ số trên cùng đổ về **Radar DDA (thang 100, 10 trụ cột)**. Radar dùng để phân **5 phân khúc** khách hàng của DMAG, và đó cũng là cơ sở **đóng gói ERP** (mục 10).
+Các chỉ số trên hiển thị tại Buồng lái Chủ phòng khám và là nguồn tự đo cho OKR. Quy mô phòng khám (số ghế, doanh thu, số cơ sở) là cơ sở **đóng gói ERP** (mục 10).
 
 ---
 
@@ -57,13 +57,13 @@ Toàn bộ chỉ số trên cùng đổ về **Radar DDA (thang 100, 10 trụ c�
 ├──────────────────────────────────────────────────────────────────────────┤
 │  LỚP 2 · NGHIỆP VỤ NHA KHOA (addons dmag_*)                              │
 │  EMR · Sơ đồ răng · Kế hoạch điều trị · Labo · Định mức · Hành trình KH  │
-│  · Loyalty · 3P · OKR nha khoa · Radar DDA · Pháp chế                    │
+│  · Loyalty · 3P · OKR nha khoa · Pháp chế                                │
 ├──────────────────────────────────────────────────────────────────────────┤
 │  LỚP 1 · NỀN BIZAPPS (có sẵn – chỉ kế thừa)                              │
 │  Contacts · Appointment · Sales · POS · Accounting · HĐĐT · Sign ·       │
 │  Documents · Inventory · Purchase · HR · Payroll · CRM · Loyalty · Portal│
 └──────────────────────────────────────────────────────────────────────────┘
-          ▲ Zalo OA/ZNS · Cổng thanh toán/ngân hàng · PACS/thiết bị ảnh · CA chữ ký số
+          ▲ Zalo OA/ZNS · Cổng thanh toán/ngân hàng · PACS/thiết bị ảnh · Chữ ký số
 ```
 
 Bác sĩ và lễ tân **làm việc 100% ở Lớp 3**. Lớp 1–2 là giao diện Odoo chuẩn, dành cho kế toán, kho, quản lý và admin.
@@ -81,7 +81,7 @@ Bác sĩ và lễ tân **làm việc 100% ở Lớp 3**. Lớp 1–2 là giao di
 | A4 | `dmag_dental_emr` | **Bệnh án điện tử theo TT 13/2025**: phiếu khám, **sơ đồ răng tương tác**, chẩn đoán, tiến trình từng lần (SOAP), chỉ định và kết quả cận lâm sàng, **chữ ký số** bác sĩ, khóa hồ sơ, nhật ký truy cập, xuất bệnh án; phiếu đồng ý qua **Sign** | `sign`, `documents` |
 | A5 | `dmag_dental_treatment` | Kế hoạch điều trị **2+ phương án**, chia giai đoạn theo răng; bệnh nhân tự chọn → báo giá/đơn hàng; **Bản tóm tắt bệnh án mini** (in màu/gửi Zalo) kèm **lộ trình chi phí theo tháng & trả góp**; theo dõi % hoàn thành; **cầu chì y đức**: ca bọc sứ/mài cùi bắt buộc bác sĩ thứ hai duyệt | `sale` |
 | A6 | `dmag_dental_service` | Danh mục dịch vụ: thời lượng chuẩn, **định mức vật tư (BOM)**, bậc lâm sàng tối thiểu, giá theo chi nhánh/hạng thành viên, chính sách bảo hành | `product`, `pricelist` |
-| A7 | `dmag_dental_billing` | Thu theo tiến độ, đặt cọc, trả góp, công nợ; **QR động kèm số tiền** / cổng thanh toán; **đối soát ngân hàng tự động** → **tự phát hành HĐĐT** (qua HĐĐT Bizapps); **Chốt két 4 bước** có biên bản bàn giao | `account`, `pos`, HĐĐT Bizapps |
+| A7 | `dmag_dental_billing` | Thu theo tiến độ, đặt cọc, trả góp, công nợ; **QR động kèm số tiền qua SePay**; **đối soát ngân hàng tự động bằng webhook SePay** → **tự phát hành HĐĐT** (qua HĐĐT Bizapps); **Chốt két 4 bước** có biên bản bàn giao | `account`, `pos`, HĐĐT Bizapps |
 | A8 | `dmag_dental_prescription` | Đơn thuốc theo TT 52/2017 & TT 04/2022, mẫu đơn theo thủ thuật, in/gửi Zalo, sẵn sàng **liên thông đơn thuốc quốc gia** | model mới |
 
 ### B. Vận hành lâm sàng
@@ -104,18 +104,17 @@ Bác sĩ và lễ tân **làm việc 100% ở Lớp 3**. Lớp 1–2 là giao di
 ### D. Con người & quản trị (chi tiết mục 6)
 | # | Module | Chức năng chính |
 |---|---|---|
-| D1 | `dmag_hr_3p` | Lương 3P: P1 vị trí, P2 năng lực (bậc lâm sàng, chứng chỉ, thâm niên), P3 kết quả (OKR + KPI + hoa hồng); đẩy vào **Payroll Bizapps** |
+| D1 | `dmag_hr_3p` | Khung ngạch bậc **P (chuyên môn) & M (quản lý)** cho từng vị trí; Lương 3P: P1 vị trí, P2 năng lực, P3 kết quả (OKR + KPI + hoa hồng); gắn vào hồ sơ nhân viên → đẩy vào **Payroll Bizapps**. Làm bản demo trước, nạp khung chuẩn sau |
 | D2 | `dmag_dental_commission` | Thủ thuật phí bác sĩ/phụ tá, hoa hồng tư vấn, telesale, lễ tân (sản phẩm 8–10%, chốt dịch vụ 1–2%); tính trên **thực thu**; tự hủy khi vi phạm cầu chì y đức |
 | D3 | `dmag_okr_dental` | Cầu nối với **OKR Scale** (đã có): KR **tự cập nhật** từ dữ liệu nha khoa qua hook `_compute_progress_by_method`; **chỉ số sức khỏe/cầu chì**: tỷ lệ phàn nàn > 2%/tháng, hủy hợp đồng niềng 30 ngày > 5%, đánh giá 1–2 sao > 3/tháng |
-| D4 | `dmag_dda_radar` | **Radar DDA 10 trụ cột, thang 100**: tự chấm từ dữ liệu ERP + phần tự đánh giá (Survey); xếp phân khúc 1–5; theo dõi 90 ngày |
-| D5 | `dmag_dental_chain` | Chuỗi đa chi nhánh: hồ sơ bệnh nhân dùng chung, kho/giá/doanh thu theo chi nhánh, chuyển bệnh nhân, mua hàng tập trung, báo cáo hợp nhất; bảo hiểm tư nhân (tùy chọn) |
+| D4 | `dmag_dental_chain` | Chuỗi đa chi nhánh: hồ sơ bệnh nhân dùng chung, kho/giá/doanh thu theo chi nhánh, chuyển bệnh nhân, mua hàng tập trung, báo cáo hợp nhất; bảo hiểm tư nhân (tùy chọn) |
 
 ### E. Lớp trải nghiệm (chi tiết mục 4)
 | # | Module | Chức năng chính |
 |---|---|---|
 | E1 | `dmag_clinic_workspace` | Ứng dụng OWL toàn màn hình, tối ưu tablet và màn hình cảm ứng: Bàn làm việc Bác sĩ, Bảng điều phối Lễ tân, Chế độ Tư vấn, Buồng lái Chủ phòng khám; dùng màu nhận diện DMAG (`#11346A` navy, `#178BEC` xanh) từ `dmag_brand_theme` |
 
-Tổng cộng **23 module mới** cùng 7 module OKR Scale/brand theme đã có.
+Tổng cộng **22 module mới** cùng 7 module OKR Scale/brand theme đã có.
 
 ---
 
@@ -130,7 +129,7 @@ Nguyên tắc UX: bác sĩ **không bao giờ thấy menu Odoo**. Mỗi thao tá
 | **Ghi bệnh án nhanh** | Bác sĩ, phụ tá | Mẫu SOAP theo thủ thuật (nhổ, nội nha, implant…) tự điền sẵn; **nhập giọng nói** tiếng Việt (tùy chọn); phụ tá ghi vật tư; bác sĩ ký số 1 chạm |
 | **Chế độ Tư vấn** (Tư vấn đồng thuận 2 bước) | Bác sĩ, tư vấn viên | Màn hình hướng về bệnh nhân: **ảnh camera trong miệng/phim** → **2 phương án** đặt cạnh nhau (ưu nhược, thời gian, chi phí, trả góp) → bệnh nhân chọn → **ký Sign trên tablet** → tạo lịch và đơn |
 | **Bảng điều phối Lễ tân** | Lễ tân | Sơ đồ ghế theo trạng thái (trống / đang làm / sắp xong / vệ sinh); hàng chờ có **đồng hồ đếm phút** (đỏ khi > 15 phút); check-in bằng SĐT/QR; thu tiền, QR động, chốt két ngay trên màn hình |
-| **Buồng lái Chủ phòng khám** | Chủ, quản lý | Radar DDA, doanh thu/thực thu, két ngày, công suất ghế theo khung giờ, COGS, % ca bác sĩ phụ, NPS, OKR xanh/vàng/đỏ, cảnh báo pháp chế |
+| **Buồng lái Chủ phòng khám** | Chủ, quản lý | Doanh thu/thực thu, két ngày, công suất ghế theo khung giờ, COGS, % ca bác sĩ phụ, NPS, OKR xanh/vàng/đỏ, cảnh báo pháp chế |
 
 Kỹ thuật: OWL 2 client actions, cập nhật thời gian thực qua bus (`bus.bus`), dùng được như PWA (cài lên tablet như app), API dùng chung với app bệnh nhân sau này.
 
@@ -204,13 +203,19 @@ Nguyên tắc (theo OKR mẫu DMAG):
 - Check-in tuần (OKR Scale đã có) hiển thị cả **bản đồ tự tin** và **interlock** giữa các khối.
 - Bảng lương 3P đẩy thẳng vào **Payroll Bizapps**, không viết lại phần tính thuế TNCN và bảo hiểm.
 
+**Cách làm: demo trước, nạp chuẩn sau.**
+1. Dựng cấu trúc dữ liệu **ngạch P (chuyên môn) và M (quản lý)**: ngạch → bậc → khung P1, tiêu chí P2, bộ chỉ tiêu P3 cho từng vị trí. Bản demo dùng dữ liệu mẫu từ các JD hiện có (Bác sĩ, Điều dưỡng, Lễ tân, KTV).
+2. Khi DMAG chuẩn hóa xong hệ P/M cho từng vị trí, chỉ cần **nạp khung chuẩn** (import), không sửa code.
+3. Gán ngạch/bậc vào **hồ sơ nhân viên**. Ứng dụng lương Bizapps đọc P1/P2/P3 như các khoản thu nhập, chạy bảng lương như hiện nay.
+
 ---
 
 ## 7. Thanh toán & hóa đơn (lễ tân can thiệp được bán hàng)
 
 1. Lễ tân mở đơn từ lịch hẹn hoặc kế hoạch điều trị trên **POS / Bảng điều phối**. Lễ tân được thêm sản phẩm bán lẻ và áp ưu đãi trong hạn mức được phân quyền.
-2. Khách thanh toán bằng **QR động** (có sẵn số tiền và mã đơn), **cổng thanh toán** (thẻ, ví) hoặc tiền mặt.
-3. Ngân hàng báo có (webhook hoặc API đối soát), hệ thống **tự ghi nhận thanh toán và tự phát hành HĐĐT** qua HĐĐT Bizapps, rồi gửi hóa đơn qua Zalo/email.
+2. Khách thanh toán bằng **QR động VietQR do SePay sinh** (có sẵn số tiền và **mã thanh toán** trong nội dung chuyển khoản), quẹt thẻ POS hoặc tiền mặt.
+3. SePay theo dõi tài khoản ngân hàng của phòng khám và gọi **webhook** khi có tiền vào. ERP khớp giao dịch theo mã thanh toán + số tiền (chống ghi trùng, ghi thiếu/thừa thì đưa vào hàng chờ xử lý), rồi **tự ghi nhận thanh toán và tự phát hành HĐĐT** qua HĐĐT Bizapps, rồi gửi hóa đơn qua Zalo/email.
+   - Kết nối thanh toán viết theo dạng **adapter**: SePay là mặc định, đổi sang nhà cung cấp khác không phải sửa nghiệp vụ.
 4. Cuối ca: **Chốt két 4 bước**: tiền mặt + POS + chuyển khoản khớp 100% phần mềm, lễ tân và thu ngân ký biên bản bàn giao (Sign), chênh lệch được cảnh báo về Buồng lái chủ phòng khám.
 
 ---
@@ -223,10 +228,10 @@ Nguyên tắc (theo OKR mẫu DMAG):
 
 ---
 
-## 9. Tuân thủ pháp lý: hạn bệnh án điện tử 31/12/2026
+## 9. Tuân thủ pháp lý
 
-Hôm nay là 10/10/2026, còn **khoảng 12 tuần**. Đề xuất ưu tiên tuyệt đối gói tuân thủ trong giai đoạn 1:
-- EMR đạt yêu cầu TT 13/2025/TT-BYT: **chữ ký số** (tích hợp CA ký từ xa), lưu trữ, phân quyền, nhật ký truy cập, khóa và sửa có vết, xuất bệnh án.
+Làm chuẩn, không chạy theo hạn; mỗi phần đều kiểm thử tại phòng khám thí điểm trước khi mở rộng:
+- EMR đạt yêu cầu TT 13/2025/TT-BYT: **chữ ký số** (adapter, chọn nhà cung cấp CA giá tốt và API thuận tiện sau), lưu trữ, phân quyền, nhật ký truy cập, khóa và sửa có vết, xuất bệnh án.
 - Đơn thuốc: TT 52/2017 và TT 04/2022.
 - HĐĐT: dùng tích hợp sẵn của Bizapps (NĐ 70/2025).
 - Bảo vệ dữ liệu cá nhân: đồng ý của bệnh nhân, che dữ liệu nhạy cảm theo vai trò.
@@ -236,40 +241,37 @@ Hôm nay là 10/10/2026, còn **khoảng 12 tuần**. Đề xuất ưu tiên tuy
 
 ---
 
-## 10. Đóng gói ERP theo 5 phân khúc DMAG
+## 10. Đóng gói ERP theo 5 phân khúc quy mô (DMAG)
 
 | Gói | Phân khúc (Q-Summit) | Đặc điểm khách | Module trong gói |
 |---|---|---|---|
-| **DMAG Nền tảng** | PK1 · Xây nền · DDA < 40 · 1–2 ghế · < 200 tr/tháng (~4.200 PK) | Thiếu khách, tiền két lẫn ví cá nhân | A1–A4, A6–A8, B5, C3 (nhắc lịch cơ bản), E1 (Lễ tân + Bác sĩ) |
-| **DMAG Khởi sắc** | PK2 · DDA 40–49,5 · 2–4 ghế · 250–550 tr/tháng (~1.300 PK) | Rò rỉ két, lo rủi ro thuế | + A5, B2, B3, B4, C1, C2 cơ bản, D2 |
-| **DMAG Tăng trưởng ★** | PK3 · Chạm trần · DDA 50–74,5 · 4–7 ghế · 0,6–1,3 tỷ (~650 PK) | Chủ ngồi ghế 50–60 giờ/tuần, COGS > 25% | + B1, C1–C4 đầy đủ, D1 (3P), D3 (OKR), D4 (Radar DDA), Chế độ Tư vấn, Buồng lái |
-| **DMAG Doanh nghiệp** | PK4 · DDA 75–84,5 · 6–10+ ghế · 1,4–2,5 tỷ (~220 PK) | Bị chuỗi ép giá vốn | + P&L theo ghế/bác sĩ, mua hàng tập trung qua liên minh DMAG, Studio, API mở |
-| **DMAG Chuỗi** | PK5 · DDA ≥ 85 · 2–10+ cơ sở · > 2,5 tỷ (~100 cơ sở) | Quản trị đa điểm, bài toán định giá | + D5, tổng đài CSKH tập trung, báo cáo hợp nhất, định giá doanh nghiệp |
+| **DMAG Nền tảng** | PK1 · Xây nền · 1–2 ghế · < 200 tr/tháng (~4.200 PK) | Thiếu khách, tiền két lẫn ví cá nhân | A1–A4, A6–A8, B5, C3 (nhắc lịch cơ bản), E1 (Lễ tân + Bác sĩ) |
+| **DMAG Khởi sắc** | PK2 · 2–4 ghế · 250–550 tr/tháng (~1.300 PK) | Rò rỉ két, lo rủi ro thuế | + A5, B2, B3, B4, C1, C2 cơ bản, D2 |
+| **DMAG Tăng trưởng ★** | PK3 · Chạm trần · 4–7 ghế · 0,6–1,3 tỷ (~650 PK) | Chủ ngồi ghế 50–60 giờ/tuần, COGS > 25% | + B1, C1–C4 đầy đủ, D1 (3P), D3 (OKR), Chế độ Tư vấn, Buồng lái |
+| **DMAG Doanh nghiệp** | PK4 · 6–10+ ghế · 1,4–2,5 tỷ (~220 PK) | Bị chuỗi ép giá vốn | + P&L theo ghế/bác sĩ, mua hàng tập trung qua liên minh DMAG, Studio, API mở |
+| **DMAG Chuỗi** | PK5 · 2–10+ cơ sở · > 2,5 tỷ (~100 cơ sở) | Quản trị đa điểm, bài toán định giá | + D4, tổng đài CSKH tập trung, báo cáo hợp nhất, định giá doanh nghiệp |
 
-Mỗi gói là một **module meta** (ví dụ `dmag_pack_growth`) chỉ khai báo `depends`. Khi lên gói chỉ cần cài thêm, dữ liệu giữ nguyên. Radar DDA trong ERP tự gợi ý thời điểm khách nên nâng gói.
+Mỗi gói là một **module meta** (ví dụ `dmag_pack_growth`) chỉ khai báo `depends`. Khi lên gói chỉ cần cài thêm, dữ liệu giữ nguyên.
 
 ---
 
-## 11. Lộ trình đề xuất
+## 11. Lộ trình: làm chuẩn, thử nghiệm từng giai đoạn
 
-| Giai đoạn | Thời gian (dự kiến) | Phạm vi | Đích |
-|---|---|---|---|
-| **GĐ 1 – Tuân thủ & vận hành lõi** | 10/2026 → 12/2026 | A1–A4, A6, A7, A8, B5, E1 (Bàn làm việc Bác sĩ + Bảng điều phối Lễ tân), C3 (nhắc lịch ZNS) | Kịp hạn EMR 31/12/2026; chạy thí điểm 1 phòng khám |
-| **GĐ 2 – Trải nghiệm & tăng trưởng** | Q1/2027 | A5, B1–B4, C1, C2, C4, Chế độ Tư vấn | Hành trình Trước–Trong–Sau, loyalty, tài khoản bệnh nhân |
-| **GĐ 3 – Con người & quản trị** | Q2/2027 | D1–D4, Buồng lái | 3P, OKR tự đo, Radar DDA |
-| **GĐ 4 – Quy mô** | Q3/2027 | D5, gói Doanh nghiệp/Chuỗi, API cho app bệnh nhân | Đóng gói đủ 5 phân khúc |
+Không ấn định ngày. Mỗi giai đoạn chỉ đóng khi **chạy thật tại phòng khám thí điểm** và đạt tiêu chí nghiệm thu, rồi mới sang giai đoạn sau.
 
-> GĐ 1 chỉ có khoảng 12 tuần, khá sát. Muốn kịp hạn cần có sớm source/staging Bizapps, đơn vị CA chữ ký số và một phòng khám thí điểm.
-
+| Giai đoạn | Phạm vi | Tiêu chí nghiệm thu tại phòng khám thí điểm |
+|---|---|---|
+| **GĐ 1 – Vận hành lõi** | A1–A4, A6, A7 (SePay + HĐĐT), A8, B5, E1 (Bàn làm việc Bác sĩ + Bảng điều phối Lễ tân), C3 (nhắc lịch ZNS) | Một ngày phòng khám chạy trọn trên ERP: hẹn → check-in → khám → thu tiền → HĐĐT → chốt két khớp 100% |
+| **GĐ 2 – Trải nghiệm & tăng trưởng** | A5, B1–B4, C1, C2, C4, Chế độ Tư vấn | Hành trình Trước–Trong–Sau chạy tự động; NPS, tái khám đo được |
+| **GĐ 3 – Con người & quản trị** | D1 (demo P/M + 3P → nạp khung chuẩn), D2, D3, Buồng lái | Bảng lương 3P chạy song song 1 kỳ, khớp với cách tính hiện tại |
+| **GĐ 4 – Quy mô** | D4, gói Doanh nghiệp/Chuỗi, API cho app bệnh nhân | Thí điểm thêm 1 phòng khám ở phân khúc khác |
 ---
 
 ## 12. Còn cần anh/chị cung cấp hoặc xác nhận
 
-1. **Source hoặc danh sách addons Bizapps** (hoặc đẩy vào repo này / cấp quyền repo), kèm **môi trường staging** để kiểm thử.
-2. **10 trụ cột của Radar DDA** và cách chấm (để `dmag_dda_radar` tự đo đúng).
-3. **Danh sách thiết bị/phần mềm hình ảnh** đang phổ biến ở khách hàng (hãng máy CBCT/panorama, sensor, phần mềm viewer).
-4. **Ngân hàng / cổng thanh toán** muốn dùng cho QR động và đối soát tự động.
-5. **Nhà cung cấp CA chữ ký số** cho bác sĩ.
-6. **Phòng khám thí điểm** cho GĐ 1 (thuộc phân khúc nào).
-7. Khung lương **3P** hiện hành của DMAG/khách hàng (nếu có mẫu) để làm dữ liệu mặc định.
-8. Phê duyệt danh sách module (mục 3), gói (mục 10) và lộ trình (mục 11).
+1. **Quyền xem hệ thống Odoo Bizapps đang chạy** (tài khoản dùng thử riêng) và/hoặc danh sách addons, source.
+2. **Tài khoản SePay** (môi trường thử) để dựng QR động + webhook.
+3. **Danh sách thiết bị/phần mềm hình ảnh** khi đã rõ, chưa cần ngay (GĐ 2).
+4. **Nhà cung cấp chữ ký số** khi đã chọn, hệ thống viết sẵn adapter.
+5. **Phòng khám thí điểm** cho GĐ 1.
+6. Khung ngạch bậc **P/M** và 3P chuẩn: chưa cần, GĐ 3 dựng bản demo trước.
