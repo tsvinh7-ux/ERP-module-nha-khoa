@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_stock" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.stock</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='procedure_ids']/tree/field[@name='surface_ids']" position="after">
+                <field name="dmag_lot_product_ids" column_invisible="1"/>
+                <field name="dmag_lot_required" column_invisible="1"/>
+                <field name="lot_ids" widget="many2many_tags" optional="show" string="Serial / lô"
+                       domain="[('product_id', 'in', dmag_lot_product_ids)]"
+                       required="dmag_lot_required and state == 'draft'"
+                       readonly="not dmag_lot_required or state != 'draft'"
+                       options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='procedure_ids']/tree/field[@name='amount']" position="after">
+                <field name="material_cost" optional="hide" groups="dmag_dental_base.group_dmag_manager"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

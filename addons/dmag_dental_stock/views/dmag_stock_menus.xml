@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_stock" name="Vật tư" parent="dmag_dental_clinic.menu_dmag_operation" sequence="60"
+              groups="dmag_dental_base.group_dmag_assistant"/>
+    <menuitem id="menu_dmag_material_usage" name="Vật tư tiêu hao" parent="menu_dmag_stock"
+              action="action_dmag_material_usage" sequence="10"/>
+    <menuitem id="menu_dmag_implant_trace" name="Truy xuất implant" parent="menu_dmag_stock"
+              action="action_dmag_implant_trace" sequence="20"/>
+    <menuitem id="menu_dmag_service_bom" name="Định mức vật tư" parent="menu_dmag_stock"
+              action="action_dmag_service_bom" sequence="30"/>
+    <menuitem id="menu_dmag_replenishment" name="Vật tư sắp hết (bổ sung)" parent="menu_dmag_stock"
+              action="stock.action_orderpoint_replenish" sequence="40" groups="stock.group_stock_user"/>
+    <menuitem id="menu_dmag_orderpoint" name="Tồn tối thiểu" parent="menu_dmag_stock"
+              action="stock.action_orderpoint" sequence="50" groups="stock.group_stock_user"/>
+</odoo>

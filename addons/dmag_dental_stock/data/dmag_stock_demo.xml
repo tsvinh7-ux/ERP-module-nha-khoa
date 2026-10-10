@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="demo_mat_gloves" model="product.product">
+        <field name="name">Găng tay khám (đôi)</field>
+        <field name="detailed_type">consu</field>
+        <field name="standard_price">2500</field>
+        <field name="sale_ok" eval="False"/>
+    </record>
+    <record id="demo_mat_anesthetic" model="product.product">
+        <field name="name">Thuốc tê Lidocain 2% (ống)</field>
+        <field name="detailed_type">product</field>
+        <field name="standard_price">12000</field>
+        <field name="sale_ok" eval="False"/>
+    </record>
+    <record id="demo_mat_composite" model="product.product">
+        <field name="name">Composite trám răng (g)</field>
+        <field name="detailed_type">product</field>
+        <field name="uom_id" ref="uom.product_uom_gram"/>
+        <field name="uom_po_id" ref="uom.product_uom_gram"/>
+        <field name="standard_price">45000</field>
+        <field name="sale_ok" eval="False"/>
+    </record>
+    <record id="demo_mat_implant_fixture" model="product.product">
+        <field name="name">Trụ implant Hàn Quốc Ø4.0 × 10</field>
+        <field name="detailed_type">product</field>
+        <field name="tracking">serial</field>
+        <field name="standard_price">2800000</field>
+        <field name="sale_ok" eval="False"/>
+    </record>
+    <record id="demo_mat_healing_abutment" model="product.product">
+        <field name="name">Trụ lành thương</field>
+        <field name="detailed_type">product</field>
+        <field name="standard_price">350000</field>
+        <field name="sale_ok" eval="False"/>
+    </record>
+    <record id="demo_lot_implant_1" model="stock.lot">
+        <field name="name">KR-FX-240001</field>
+        <field name="product_id" ref="demo_mat_implant_fixture"/>
+    </record>
+    <record id="demo_lot_implant_2" model="stock.lot">
+        <field name="name">KR-FX-240002</field>
+        <field name="product_id" ref="demo_mat_implant_fixture"/>
+    </record>
+
+    <record id="demo_bom_filling" model="dmag.service.bom">
+        <field name="product_tmpl_id" ref="dmag_dental_base.demo_svc_filling_product_template"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="demo_bom_filling_l1" model="dmag.service.bom.line">
+        <field name="bom_id" ref="demo_bom_filling"/>
+        <field name="product_id" ref="demo_mat_composite"/>
+        <field name="quantity">0.5</field>
+        <field name="basis">per_tooth</field>
+    </record>
+    <record id="demo_bom_filling_l2" model="dmag.service.bom.line">
+        <field name="bom_id" ref="demo_bom_filling"/>
+        <field name="product_id" ref="demo_mat_gloves"/>
+        <field name="quantity">2</field>
+        <field name="basis">per_procedure</field>
+    </record>
+    <record id="demo_bom_implant" model="dmag.service.bom">
+        <field name="product_tmpl_id" ref="dmag_dental_base.demo_svc_implant_product_template"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="demo_bom_implant_l1" model="dmag.service.bom.line">
+        <field name="bom_id" ref="demo_bom_implant"/>
+        <field name="product_id" ref="demo_mat_implant_fixture"/>
+        <field name="quantity">1</field>
+        <field name="basis">per_tooth</field>
+    </record>
+    <record id="demo_bom_implant_l2" model="dmag.service.bom.line">
+        <field name="bom_id" ref="demo_bom_implant"/>
+        <field name="product_id" ref="demo_mat_healing_abutment"/>
+        <field name="quantity">1</field>
+        <field name="basis">per_tooth</field>
+    </record>
+    <record id="demo_bom_implant_l3" model="dmag.service.bom.line">
+        <field name="bom_id" ref="demo_bom_implant"/>
+        <field name="product_id" ref="demo_mat_anesthetic"/>
+        <field name="quantity">2</field>
+        <field name="basis">per_procedure</field>
+    </record>
+    <record id="demo_bom_implant_l4" model="dmag.service.bom.line">
+        <field name="bom_id" ref="demo_bom_implant"/>
+        <field name="product_id" ref="demo_mat_gloves"/>
+        <field name="quantity">3</field>
+        <field name="basis">per_procedure</field>
+    </record>
+</odoo>
