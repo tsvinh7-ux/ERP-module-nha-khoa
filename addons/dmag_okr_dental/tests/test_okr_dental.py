@@ -28,6 +28,9 @@ class TestOkrDental(DentalCommon):
         cls.kr_assoc = KR.create({'objective_id': cls.objective.id, 'name': '40% ca do BS phụ',
                                   'progress_method': 'dmag_associate_share', 'start_value': 0, 'target_value': 40})
         cls.doctor2.dmag_is_associate = True
+        # Chỉ đo trên bác sĩ của test để không lẫn dữ liệu demo
+        (cls.kr_wait | cls.kr_accept | cls.kr_assoc).write({
+            'dmag_doctor_ids': [(6, 0, (cls.doctor | cls.doctor2).ids)]})
 
     def _visit_in_chair(self, doctor, start, wait):
         visit = self._visit(doctor_id=doctor.id, scheduled_start=start)
@@ -67,6 +70,7 @@ class TestOkrDental(DentalCommon):
         self.assertAlmostEqual(self.kr_accept.progress, 66.6, places=0)
 
     def test_no_data_keeps_manual_value(self):
+        self.kr_wait.dmag_doctor_ids = self.doctor2
         self.assertIsNone(self.kr_wait._dmag_compute_value())
         self.kr_wait.action_dmag_refresh()
         self.assertEqual(self.kr_wait.progress, 0.0)

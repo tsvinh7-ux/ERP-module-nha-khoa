@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="demo_eq_cbct" model="dmag.equipment">
+        <field name="name">Máy CBCT</field>
+        <field name="category">cbct</field>
+        <field name="brand">Vatech</field>
+        <field name="serial_no">CBCT-2024-0001</field>
+        <field name="location">Phòng X-quang</field>
+        <field name="last_inspection_date" eval="(DateTime.today() - relativedelta(months=11, days=10)).strftime('%Y-%m-%d')"/>
+        <field name="last_maintenance_date" eval="(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_eq_autoclave" model="dmag.equipment">
+        <field name="name">Nồi hấp class B 23L</field>
+        <field name="category">autoclave</field>
+        <field name="serial_no">AC-23B-7788</field>
+        <field name="location">Phòng tiệt khuẩn</field>
+        <field name="last_inspection_date" eval="(DateTime.today() - relativedelta(months=3)).strftime('%Y-%m-%d')"/>
+        <field name="last_maintenance_date" eval="(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_eq_chair_1" model="dmag.equipment">
+        <field name="name">Ghế nha số 1</field>
+        <field name="category">chair</field>
+        <field name="chair_id" ref="dmag_dental_base.demo_chair_1"/>
+        <field name="last_maintenance_date" eval="(DateTime.today() - relativedelta(months=4)).strftime('%Y-%m-%d')"/>
+    </record>
+
+    <record id="demo_doc_facility" model="dmag.compliance.doc">
+        <field name="name">Giấy phép hoạt động phòng khám chuyên khoa RHM</field>
+        <field name="type_id" ref="doc_type_facility_license"/>
+        <field name="number">123/HCM-GPHĐ</field>
+        <field name="issuer">Sở Y tế TP.HCM</field>
+        <field name="issue_date" eval="(DateTime.today() - relativedelta(years=3)).strftime('%Y-%m-%d')"/>
+        <field name="no_expiry" eval="True"/>
+    </record>
+    <record id="demo_doc_radiation" model="dmag.compliance.doc">
+        <field name="name">Giấy phép tiến hành công việc bức xạ – CBCT</field>
+        <field name="type_id" ref="doc_type_radiation_license"/>
+        <field name="number">456/GP-SKHCN</field>
+        <field name="issuer">Sở Khoa học và Công nghệ</field>
+        <field name="equipment_id" ref="demo_eq_cbct"/>
+        <field name="issue_date" eval="(DateTime.today() - relativedelta(years=2)).strftime('%Y-%m-%d')"/>
+        <field name="expiry_date" eval="(DateTime.today() + relativedelta(years=1)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_doc_xray_inspection" model="dmag.compliance.doc">
+        <field name="name">Chứng thư kiểm định CBCT</field>
+        <field name="type_id" ref="doc_type_xray_inspection"/>
+        <field name="equipment_id" ref="demo_eq_cbct"/>
+        <field name="issue_date" eval="(DateTime.today() - relativedelta(months=11, days=10)).strftime('%Y-%m-%d')"/>
+        <field name="expiry_date" eval="(DateTime.today() + relativedelta(days=20)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_doc_waste" model="dmag.compliance.doc">
+        <field name="name">Hợp đồng xử lý chất thải y tế 2026</field>
+        <field name="type_id" ref="doc_type_waste_contract"/>
+        <field name="issue_date" eval="(DateTime.today() - relativedelta(months=12, days=5)).strftime('%Y-%m-%d')"/>
+        <field name="expiry_date" eval="(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d')"/>
+    </record>
+
+    <record id="demo_set_exam" model="dmag.instrument.set">
+        <field name="name">Bộ khám cơ bản (gương, kẹp, thám trâm)</field>
+        <field name="code">KHAM</field>
+        <field name="category">exam</field>
+    </record>
+    <record id="demo_set_surgery" model="dmag.instrument.set">
+        <field name="name">Bộ nhổ răng / tiểu phẫu</field>
+        <field name="code">NHO</field>
+        <field name="category">surgery</field>
+    </record>
+    <record id="demo_batch_1" model="dmag.sterilization.batch">
+        <field name="autoclave_id" ref="demo_eq_autoclave"/>
+        <field name="cycle_number">1520</field>
+        <field name="chemical_result">pass</field>
+        <field name="bowie_dick_result">pass</field>
+        <field name="biological_result">pending</field>
+        <field name="pack_count">12</field>
+        <field name="instrument_set_ids" eval="[(6, 0, [ref('demo_set_exam'), ref('demo_set_surgery')])]"/>
+    </record>
+    <function model="dmag.sterilization.batch" name="action_release" eval="[[ref('demo_batch_1')]]"/>
+</odoo>

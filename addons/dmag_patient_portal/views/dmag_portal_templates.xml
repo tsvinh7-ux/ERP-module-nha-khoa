@@ -71,7 +71,9 @@
                 <div class="dmag-muted">
                     <t t-if="v['doctor']">BS <t t-out="v['doctor']"/> · </t><t t-out="v['branch']"/>
                 </div>
-                <div t-if="patients and len(patients) &gt; 1" class="dmag-muted small"><t t-out="v['patient']"/></div>
+                <div class="dmag-muted small">
+                    <t t-out="v['name']"/><t t-if="patients and len(patients) &gt; 1"> · <t t-out="v['patient']"/></t>
+                </div>
             </div>
             <span t-attf-class="dmag-badge dmag-state-#{v['state']}" t-out="v['state_label']"/>
         </a>

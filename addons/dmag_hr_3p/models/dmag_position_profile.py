@@ -62,7 +62,7 @@ class DmagJobPositionProfile(models.Model):
     _inherit = ['mail.thread']
     _order = 'sequence, id'
 
-    name = fields.Char('Vị trí', related='job_id.name', store=True, readonly=True)
+    name = fields.Char('Vị trí', compute='_compute_name', store=True)
     job_id = fields.Many2one('hr.job', string='Chức danh', required=True, ondelete='cascade', tracking=True)
     sequence = fields.Integer(default=10)
     code = fields.Char('Mã vị trí')
@@ -92,6 +92,11 @@ class DmagJobPositionProfile(models.Model):
 
     _sql_constraints = [('job_company_uniq', 'unique(job_id, company_id)',
                          'Mỗi chức danh chỉ có một hồ sơ vị trí trong một phòng khám.')]
+
+    @api.depends('job_id.name')
+    def _compute_name(self):
+        for profile in self:
+            profile.name = profile.job_id.name
 
     @api.depends('competency_line_ids.weight', 'kpi_ids.weight')
     def _compute_weight_totals(self):

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import fields
@@ -22,8 +23,9 @@ class TestCommission(DentalCommon):
         cls.manager = new_test_user(cls.env, 'ql_comm', groups='dmag_dental_base.group_dmag_manager')
         cls.Line = cls.env['dmag.commission.line']
 
-    def _done_visit(self, doctor, product, teeth=('36',)):
-        visit = self._visit(doctor_id=doctor.id, service_ids=[(6, 0, product.ids)])
+    def _done_visit(self, doctor, product, teeth=('36',), hours=0):
+        visit = self._visit(doctor_id=doctor.id, service_ids=[(6, 0, product.ids)],
+                            scheduled_start=self.start + timedelta(hours=hours))
         visit.action_confirm()
         visit.action_check_in()
         visit.action_start()
@@ -73,7 +75,7 @@ class TestCommission(DentalCommon):
         self.assertEqual(ref_line.partner_id, referrer)
         self.assertEqual(ref_line.amount, 20000)
         statements = self.env['dmag.commission.statement']._generate(
-            self.env.company, fields.Date.context_today(self))
+            self.env.company, fields.Date.context_today(self.env.user))
         st_doctor = statements.filtered(lambda s: s.user_id == self.doctor_user2)
         self.assertEqual(st_doctor.total, 40000)
         st_doctor.action_confirm()
@@ -81,7 +83,7 @@ class TestCommission(DentalCommon):
             st_doctor.with_user(self.manager).write({'date_from': '2020-01-01'})
         # Nguồn P3 cho dmag_hr_3p
         employee = self.env['hr.employee'].create({'name': 'BS Hai', 'user_id': self.doctor_user2.id})
-        today = fields.Date.context_today(self)
+        today = fields.Date.context_today(self.env.user)
         self.assertEqual(self.Line._dmag_amount_for_employee(employee, today.replace(day=1), today), 40000)
 
     def test_own_records_rule(self):
@@ -106,7 +108,7 @@ class TestCommission(DentalCommon):
         self.assertTrue(any('cầu chì y đức' in (m.body or '') for m in visit.message_ids))
 
         # Dòng đã phát sinh bị hủy khi cầu chì kích hoạt (ví dụ có phàn nàn)
-        visit2 = self._done_visit(self.doctor2, self.svc_filling)
+        visit2 = self._done_visit(self.doctor2, self.svc_filling, hours=3)
         visit2.register_payment('cash')
         self.assertTrue(self._lines(visit2, state='valid'))
         Procedure = type(self.env['dmag.dental.procedure'])
