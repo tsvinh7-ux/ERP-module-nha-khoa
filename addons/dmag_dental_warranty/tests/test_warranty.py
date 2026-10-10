@@ -45,8 +45,8 @@ class TestWarranty(DentalCommon):
         self.assertEqual(card.conditions, 'Tái khám 12 tháng/lần.')
         self.assertEqual(card.state, 'active')
         # Dịch vụ không bảo hành → không có thẻ
-        proc2 = self._done_procedure(self.svc_filling)
-        self.assertFalse(proc2.warranty_card_ids)
+        res = self.env['dmag.dental.procedure'].add_from_workspace(proc.visit_id.id, self.svc_filling.id, teeth=['37'])
+        self.assertFalse(self.env['dmag.dental.procedure'].browse(res['id']).warranty_card_ids)
         # In thẻ (HTML)
         html, _fmt = self.env['ir.actions.report']._render_qweb_html(
             'dmag_dental_warranty.action_report_warranty_card', card.ids)

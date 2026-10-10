@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Luật mặc định theo bảng điểm chạm "Hành trình khách hàng" (Đề xuất – mục 5.1). -->
+    <data noupdate="1">
+        <!-- TRƯỚC khi đến -->
+        <record id="rule_booking_confirm" model="dmag.journey.rule">
+            <field name="name">Đặt lịch thành công → ZNS xác nhận lịch</field>
+            <field name="sequence">10</field>
+            <field name="stage">before</field>
+            <field name="trigger">event</field>
+            <field name="event">booked</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_booking_confirm"/>
+            <field name="note">Giờ, bác sĩ, chi nhánh, bản đồ, nút "Đổi lịch" (nút cấu hình trong mẫu ZNS).</field>
+        </record>
+        <record id="rule_reminder_d1" model="dmag.journey.rule">
+            <field name="name">Trước 1 ngày → ZNS nhắc lịch (lượt khám)</field>
+            <field name="sequence">20</field>
+            <field name="stage">before</field>
+            <field name="trigger">before_start</field>
+            <field name="offset_hours">24</field>
+            <field name="service_scope">exam_only</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_reminder_d1"/>
+            <field name="expire_on_start" eval="True"/>
+        </record>
+        <record id="rule_reminder_d1_procedure" model="dmag.journey.rule">
+            <field name="name">Trước 1 ngày → ZNS nhắc lịch + video "quy trình không đau" (ca thủ thuật)</field>
+            <field name="sequence">21</field>
+            <field name="stage">before</field>
+            <field name="trigger">before_start</field>
+            <field name="offset_hours">24</field>
+            <field name="service_scope">procedure</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_reminder_d1_video"/>
+            <field name="expire_on_start" eval="True"/>
+        </record>
+        <record id="rule_reminder_h2" model="dmag.journey.rule">
+            <field name="name">Trước 2 giờ → ZNS nhắc lần cuối + link khai báo sức khỏe</field>
+            <field name="sequence">30</field>
+            <field name="stage">before</field>
+            <field name="trigger">before_start</field>
+            <field name="offset_hours">2</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_reminder_h2"/>
+            <field name="expire_on_start" eval="True"/>
+        </record>
+        <record id="rule_no_show_call" model="dmag.journey.rule">
+            <field name="name">Không đến → việc gọi lại CSKH</field>
+            <field name="sequence">40</field>
+            <field name="stage">before</field>
+            <field name="trigger">event</field>
+            <field name="event">no_show</field>
+            <field name="action">activity</field>
+            <field name="activity_role">cskh</field>
+            <field name="activity_summary">Gọi lại khách không đến – đề xuất giờ trống buổi chiều</field>
+            <field name="activity_note"><![CDATA[<p>Hỏi lý do không đến, xin lỗi nếu phòng khám có sai sót; đề xuất các giờ trống <b>buổi chiều</b> gần nhất và đặt lại lịch.</p>]]></field>
+        </record>
+
+        <!-- TRONG khi ở phòng khám -->
+        <record id="rule_checkin_welcome" model="dmag.journey.rule">
+            <field name="name">Check-in → ZNS "Chào mừng đến với phòng khám"</field>
+            <field name="sequence">10</field>
+            <field name="stage">during</field>
+            <field name="trigger">event</field>
+            <field name="event">arrived</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_welcome_checkin"/>
+        </record>
+
+        <!-- SAU khi về -->
+        <record id="rule_done_thank_you" model="dmag.journey.rule">
+            <field name="name">Ngay sau khi về → ZNS cảm ơn + link "Nội dung khám hôm nay"</field>
+            <field name="sequence">10</field>
+            <field name="stage">after</field>
+            <field name="trigger">event</field>
+            <field name="event">done</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_visit_thank_you"/>
+        </record>
+        <record id="rule_followup_24h" model="dmag.journey.rule">
+            <field name="name">+24 giờ → gọi hỏi thăm, hỏi lại điểm đau (ca xâm lấn)</field>
+            <field name="sequence">20</field>
+            <field name="stage">after</field>
+            <field name="trigger">after_done</field>
+            <field name="offset_hours">24</field>
+            <field name="invasive_only" eval="True"/>
+            <field name="action">activity</field>
+            <field name="activity_role">cskh</field>
+            <field name="activity_summary">Hỏi thăm sau 24h – hỏi điểm đau 0–10</field>
+            <field name="activity_note"><![CDATA[<p>Hỏi thăm tình trạng sau thủ thuật, hỏi <b>điểm đau 0–10</b> và ghi bằng nút "Ghi điểm đau 24h" trên lượt khám. Bất thường (đau ≥ 7, sưng, chảy máu, sốt) → báo bác sĩ ngay.</p>]]></field>
+        </record>
+        <record id="rule_nps_48h" model="dmag.journey.rule">
+            <field name="name">+48 giờ → ZNS khảo sát NPS 1 câu</field>
+            <field name="sequence">30</field>
+            <field name="stage">after</field>
+            <field name="trigger">after_done</field>
+            <field name="offset_hours">48</field>
+            <field name="action">zns</field>
+            <field name="create_nps" eval="True"/>
+            <field name="template_id" ref="zns_tmpl_nps_survey"/>
+            <field name="note">Điểm 9–10: mời đánh giá Google và giới thiệu. Điểm ≤ 6: mở phiếu phàn nàn cho Trưởng CSKH.</field>
+        </record>
+        <record id="rule_recall" model="dmag.journey.rule">
+            <field name="name">Theo chu kỳ dịch vụ → nhắc tái khám (ZNS + bảng việc)</field>
+            <field name="sequence">40</field>
+            <field name="stage">after</field>
+            <field name="trigger">recall</field>
+            <field name="offset_days">7</field>
+            <field name="lookback_days">30</field>
+            <field name="action">both</field>
+            <field name="template_id" ref="zns_tmpl_recall_due"/>
+            <field name="activity_role">cskh</field>
+            <field name="activity_summary">Nhắc tái khám</field>
+            <field name="activity_deadline_days">3</field>
+            <field name="note">Theo "Nhắc tái khám sau (tháng)" của dịch vụ: cạo vôi 6 tháng, chỉnh nha theo tháng, implant 1/3/6/12 tháng…</field>
+        </record>
+        <record id="rule_birthday" model="dmag.journey.rule">
+            <field name="name">Sinh nhật → ZNS lời chúc</field>
+            <field name="sequence">50</field>
+            <field name="stage">after</field>
+            <field name="trigger">birthday</field>
+            <field name="offset_days">0</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_birthday_wish"/>
+            <field name="note">Quà theo hạng thành viên do module loyalty bổ sung.</field>
+        </record>
+        <record id="rule_warranty" model="dmag.journey.rule">
+            <field name="name">Thẻ bảo hành → nhắc trước khi hết hạn</field>
+            <field name="sequence">60</field>
+            <field name="stage">after</field>
+            <field name="trigger">warranty</field>
+            <field name="offset_days">30</field>
+            <field name="action">zns</field>
+            <field name="template_id" ref="zns_tmpl_warranty_expiry"/>
+        </record>
+    </data>
+</odoo>

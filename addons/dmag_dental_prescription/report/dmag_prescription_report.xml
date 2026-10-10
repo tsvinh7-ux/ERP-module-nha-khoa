@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_dmag_prescription_a5" model="report.paperformat">
+        <field name="name">Đơn thuốc A5</field>
+        <field name="format">A5</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_prescription" model="ir.actions.report">
+        <field name="name">Đơn thuốc</field>
+        <field name="model">dmag.prescription</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_dental_prescription.report_prescription</field>
+        <field name="report_file">dmag_dental_prescription.report_prescription</field>
+        <field name="print_report_name">'Don thuoc - %s' % (object.name or object.id)</field>
+        <field name="paperformat_id" ref="paperformat_dmag_prescription_a5"/>
+        <field name="binding_model_id" ref="model_dmag_prescription"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Bố cục theo mẫu đơn thuốc Phụ lục I TT 26/2025/TT-BYT (cần đối chiếu bản gốc). Không viết tắt. -->
+    <template id="report_prescription_document">
+        <t t-call="web.basic_layout">
+            <t t-set="company" t-value="o.company_id"/>
+            <div class="page" style="font-family: 'Times New Roman', serif; font-size: 13px; color: #000;">
+                <table style="width: 100%; border: none;">
+                    <tr>
+                        <td style="width: 62%; vertical-align: top;">
+                            <div t-if="company.dmag_health_department" style="text-transform: uppercase;" t-esc="company.dmag_health_department"/>
+                            <div style="font-weight: bold; text-transform: uppercase;" t-esc="company.name"/>
+                            <div>Địa chỉ: <t t-esc="', '.join(p for p in [company.street, company.street2, company.city, company.state_id.name] if p)"/></div>
+                            <div t-if="company.phone">Điện thoại: <t t-esc="company.phone"/></div>
+                            <div t-if="company.dmag_license_number">Giấy phép hoạt động: <t t-esc="company.dmag_license_number"/></div>
+                        </td>
+                        <td style="width: 38%; text-align: right; vertical-align: top;">
+                            <img t-if="o.name" style="width: 90px; height: 90px;"
+                                 t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=180&amp;height=180' % o.name"/>
+                            <div t-if="o.name" style="font-size: 12px;">Mã đơn thuốc: <b t-esc="o.name"/></div>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 style="text-align: center; font-weight: bold; margin: 10px 0 2px 0;">ĐƠN THUỐC</h3>
+                <div style="text-align: center; font-style: italic; margin-bottom: 8px;" t-if="o.rx_type != 'c'"
+                     t-esc="dict(o._fields['rx_type'].selection).get(o.rx_type)"/>
+
+                <table style="width: 100%; border: none; line-height: 1.5;">
+                    <tr>
+                        <td colspan="2">Họ và tên: <b style="text-transform: uppercase;" t-esc="o.patient_name"/></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 60%;">Ngày sinh: <t t-esc="o.patient_birthdate and o.patient_birthdate.strftime('%d/%m/%Y')"/>
+                            <t t-if="o.patient_birthdate"> (<t t-esc="o._report_age_text()"/>)</t></td>
+                        <td>Giới tính: <t t-esc="o._report_gender_text()"/></td>
+                    </tr>
+                    <tr>
+                        <td>Số định danh cá nhân / Căn cước công dân: <t t-esc="o.patient_identity or ''"/>
+                            <t t-if="not o.patient_identity and o.identity_exemption_reason"> (<t t-esc="o.identity_exemption_reason"/>)</t></td>
+                        <td>Số thẻ bảo hiểm y tế: <t t-esc="o.patient_bhyt or ''"/></td>
+                    </tr>
+                    <tr><td colspan="2">Nơi cư trú: <t t-esc="o.patient_address or ''"/></td></tr>
+                    <tr t-if="o.is_under_72_months">
+                        <td>Số tháng tuổi: <t t-esc="o.patient_age_months"/> tháng – Cân nặng: <t t-esc="('%g' % o.weight).replace('.', ',')"/> ki-lô-gam</td>
+                        <td>Họ tên người đưa trẻ đến khám: <t t-esc="o.companion_name or ''"/></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Chẩn đoán:
+                            <t t-esc="'; '.join('%s (%s)' % (d.name, d.code) for d in o.diagnosis_ids)"/>
+                            <t t-if="o.diagnosis_text"><t t-if="o.diagnosis_ids">; </t><t t-esc="o.diagnosis_text"/></t>
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="font-weight: bold; margin-top: 8px;">Thuốc điều trị:</div>
+                <table style="width: 100%; border: none;">
+                    <t t-foreach="o.line_ids" t-as="line">
+                        <tr>
+                            <td style="width: 6%; vertical-align: top;"><t t-esc="line_index + 1"/>.</td>
+                            <td style="width: 66%; vertical-align: top;"><b t-esc="line.drug_id.name"/></td>
+                            <td style="width: 28%; text-align: right; vertical-align: top;">Số lượng: <b t-esc="line.quantity_display"/></td>
+                        </tr>
+                        <tr>
+                            <td/>
+                            <td colspan="2" style="font-style: italic; padding-bottom: 4px;">
+                                <t t-esc="line.usage"/><t t-if="line.days"> – dùng trong <t t-esc="line.days"/> ngày</t>
+                            </td>
+                        </tr>
+                    </t>
+                </table>
+
+                <div style="margin-top: 8px;" t-if="o.advice"><b>Lời dặn:</b> <span style="white-space: pre-line;" t-esc="o.advice"/></div>
+                <div t-if="o.re_exam_date"><b>Ngày tái khám:</b> <t t-esc="o.re_exam_date.strftime('%d/%m/%Y')"/></div>
+
+                <table style="width: 100%; border: none; margin-top: 10px;">
+                    <tr>
+                        <td style="width: 45%;"/>
+                        <td style="width: 55%; text-align: center;">
+                            <div style="font-style: italic;" t-esc="o._report_date_text()"/>
+                            <div style="font-weight: bold;">Bác sĩ / Y sĩ khám bệnh</div>
+                            <div style="font-style: italic;">(Ký, ghi rõ họ tên)</div>
+                            <div style="height: 55px;"/>
+                            <div style="font-weight: bold;"><t t-esc="o.doctor_id.title or ''"/> <t t-esc="o.doctor_id.name or ''"/></div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="margin-top: 10px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px;">
+                    <div>- Khám lại xin mang theo đơn này.</div>
+                    <div>- Mã đơn thuốc dùng để mua thuốc tại nhà thuốc; đơn thuốc có giá trị mua, lĩnh thuốc trong thời hạn theo quy định.</div>
+                    <div t-if="company.phone">- Số điện thoại liên hệ của phòng khám: <t t-esc="company.phone"/></div>
+                    <div t-if="o.state in ('cancelled', 'replaced')" style="font-weight: bold; color: #b00;">
+                        ĐƠN NÀY <t t-if="o.state == 'cancelled'">ĐÃ HỦY</t><t t-else="">ĐÃ ĐƯỢC THAY THẾ</t> – KHÔNG CÒN GIÁ TRỊ.
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_prescription">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="dmag_dental_prescription.report_prescription_document"/>
+            </t>
+        </t>
+    </template>
+</odoo>

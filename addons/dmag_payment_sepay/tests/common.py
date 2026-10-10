@@ -1,3 +1,4 @@
+import itertools
 from datetime import datetime
 
 import pytz
@@ -5,6 +6,7 @@ import pytz
 from odoo.addons.dmag_dental_clinic.tests.common import DentalCommon
 
 API_KEY = 'test-sepay-key-123'
+_SEQ = itertools.count(1000)
 
 
 class SepayCommon(DentalCommon):
@@ -37,7 +39,6 @@ class SepayCommon(DentalCommon):
             'name': 'Quản lý C', 'login': 'quan_ly_c_sepay', 'email': 'qlc@dmag.test',
             'groups_id': [(6, 0, [ref('dmag_dental_base.group_dmag_manager').id])],
         })
-        cls.seq = 1000
 
     def _billable_visit(self, **kw):
         """Lượt khám đã làm 1 thủ thuật 400.000đ, chưa lập hóa đơn."""
@@ -51,10 +52,10 @@ class SepayCommon(DentalCommon):
         return visit
 
     def _payload(self, amount, content, sepay_id=None, transfer_type='in', code=None):
-        SepayCommon.seq += 1
+        seq = next(_SEQ)
         now = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S')
         return {
-            'id': sepay_id or SepayCommon.seq,
+            'id': sepay_id or seq,
             'gateway': 'MBBank',
             'transactionDate': now,
             'accountNumber': '0123456789',
@@ -64,7 +65,7 @@ class SepayCommon(DentalCommon):
             'transferAmount': amount,
             'accumulated': 99000000,
             'subAccount': None,
-            'referenceCode': 'MBVCB.%s' % SepayCommon.seq,
+            'referenceCode': 'MBVCB.%s' % seq,
             'description': 'BankAPINotify %s' % content,
         }
 

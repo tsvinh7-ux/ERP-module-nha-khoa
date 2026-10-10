@@ -151,4 +151,4 @@ class DmagRecordRequest(models.Model):
             raise UserError(_('Người bệnh chưa có bệnh án đã ký để cung cấp.'))
         xmlid = ('dmag_dental_emr.action_report_record_summary' if self.scope == 'summary'
                  else 'dmag_dental_emr.action_report_dental_record')
-        return self.env.ref(xmlid).report_action(visits)
+        return self.env.ref(xmlid).report_action(visits, config=False)

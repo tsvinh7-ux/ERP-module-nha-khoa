@@ -47,11 +47,11 @@
             <div class="section">2. Thủ thuật dự kiến thực hiện</div>
             <table class="grid">
                 <tr><td style="width: 30%;"><b>Loại cam kết</b></td><td><span t-field="o.consent_type"/></td></tr>
-                <tr><td><b>Chẩn đoán</b></td><td t-esc="o.diagnosis or ''"/></td></tr>
-                <tr><td><b>Thủ thuật / kỹ thuật</b></td><td t-esc="o.procedure_name"/></td></tr>
+                <tr><td><b>Chẩn đoán</b></td><td t-esc="o.diagnosis or ''"/></tr>
+                <tr><td><b>Thủ thuật / kỹ thuật</b></td><td t-esc="o.procedure_name"/></tr>
                 <tr><td><b>Răng thực hiện</b></td><td><t t-esc="', '.join('răng số %s' % c for c in o.tooth_ids.mapped('code')) or 'Không áp dụng'"/></td></tr>
-                <tr><td><b>Nguy cơ, tai biến có thể xảy ra</b></td><td class="val" t-esc="o.risks or ''"/></td></tr>
-                <tr><td><b>Phương pháp điều trị thay thế</b></td><td class="val" t-esc="o.alternatives or 'Không có'"/></td></tr>
+                <tr><td><b>Nguy cơ, tai biến có thể xảy ra</b></td><td class="val" t-esc="o.risks or ''"/></tr>
+                <tr><td><b>Phương pháp điều trị thay thế</b></td><td class="val" t-esc="o.alternatives or 'Không có'"/></tr>
                 <tr><td><b>Chi phí dự kiến</b></td><td><span t-field="o.expected_cost" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/> (có thể thay đổi nếu phát sinh, bác sĩ sẽ giải thích và người bệnh đồng ý trước khi thực hiện)</td></tr>
                 <tr><td><b>Bác sĩ giải thích</b></td><td><t t-esc="o.doctor_id.name or ''"/></td></tr>
             </table>

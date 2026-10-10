@@ -30,8 +30,11 @@ def normalize_phone(phone):
     return digits if len(digits) in (11, 12) else False
 
 
-def get_tz(env, partner=None):
-    name = (partner and partner.tz) or env.user.tz or DEFAULT_TZ
+def get_tz(env, partner=None, company=None):
+    """Múi giờ hiển thị cho khách: của khách → của phòng khám → Asia/Ho_Chi_Minh
+    (không dùng múi giờ người dùng vì cron chạy bằng tài khoản hệ thống)."""
+    company = company or env.company
+    name = (partner and partner.tz) or (company and company.partner_id.tz) or DEFAULT_TZ
     try:
         return pytz.timezone(name)
     except pytz.UnknownTimeZoneError:
@@ -61,7 +64,7 @@ def quiet_until(env, company, now=None):
     end = company.dmag_zns_quiet_end
     if start == end:
         return False
-    tz = get_tz(env)
+    tz = get_tz(env, company=company)
     local = pytz.utc.localize(now).astimezone(tz)
     hour = local.hour + local.minute / 60.0
     if start > end:  # qua nửa đêm: 21h → 7h

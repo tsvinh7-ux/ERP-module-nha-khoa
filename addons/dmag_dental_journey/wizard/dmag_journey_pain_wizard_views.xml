@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_journey_pain_wizard_form" model="ir.ui.view">
+        <field name="name">dmag.journey.pain.wizard.form</field>
+        <field name="model">dmag.journey.pain.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Ghi điểm đau sau 24h">
+                <group>
+                    <field name="visit_id" readonly="1"/>
+                    <field name="patient_id"/>
+                    <field name="score"/>
+                    <field name="note"/>
+                </group>
+                <div class="text-muted">Điểm ≥ 7 sẽ tự giao việc cho bác sĩ phụ trách liên hệ lại.</div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Lưu" class="btn-primary"/>
+                    <button special="cancel" string="Hủy"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

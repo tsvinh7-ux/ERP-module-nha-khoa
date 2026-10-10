@@ -16,6 +16,7 @@ class ZnsCommon(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.env.company
+        cls.company.partner_id.tz = 'Asia/Ho_Chi_Minh'
         cls.company.write({'dmag_zns_mode': 'mock', 'dmag_zns_quiet_start': 0.0, 'dmag_zns_quiet_end': 0.0})
         cls.template = cls.env['dmag.zns.template'].create({
             'name': 'Test xác nhận', 'code': 'test_confirm', 'template_id': '123456',
@@ -29,7 +30,7 @@ class ZnsCommon(TransactionCase):
         cls.partner = cls.env['res.partner'].create({'name': 'Nguyễn Văn A', 'mobile': '0912 345 678'})
 
     def _set_quiet_now(self, transactional=False):
-        tz = pytz.timezone(self.env.user.tz or 'Asia/Ho_Chi_Minh')
+        tz = pytz.timezone(self.company.partner_id.tz or 'Asia/Ho_Chi_Minh')
         hour = pytz.utc.localize(datetime.utcnow()).astimezone(tz).hour
         self.company.write({'dmag_zns_quiet_start': float(hour), 'dmag_zns_quiet_end': float((hour + 2) % 24)})
         self.template.transactional = transactional
@@ -51,7 +52,6 @@ class TestZns(ZnsCommon):
         dt = fields.Datetime.to_datetime('2026-10-10 02:30:00')
         variables = {'partner': self.partner, 'visit': {'start': dt}}
         self.assertEqual(eval_expression(self.env, 'partner.name', variables), 'Nguyễn Văn A')
-        self.env.user.tz = 'Asia/Ho_Chi_Minh'
         self.assertEqual(eval_expression(self.env, 'visit.start|time', variables), '09:30')
         self.assertEqual(eval_expression(self.env, 'visit.start|date', variables), '10/10/2026')
         self.assertEqual(eval_expression(self.env, "partner.ref || 'mặc định'", variables), 'mặc định')

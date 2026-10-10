@@ -267,9 +267,10 @@ class DmagWarrantyClaim(models.Model):
                 'decided_by_id': self.env.user.id,
                 'decided_date': fields.Date.context_today(claim),
             })
+            card = claim.card_id.sudo()
             if decision == 'covered':
-                claim.card_id.with_context(dmag_workflow=True).write({'state': 'claimed'})
-            claim.card_id.message_post(body=_('Yêu cầu bảo hành %(claim)s: %(decision)s.', claim=claim.name,
+                card.with_context(dmag_workflow=True).write({'state': 'claimed'})
+            card.message_post(body=_('Yêu cầu bảo hành %(claim)s: %(decision)s.', claim=claim.name,
                                               decision=dict(self._fields['decision'].selection)[decision]))
         return True
 

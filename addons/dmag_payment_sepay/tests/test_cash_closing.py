@@ -63,6 +63,7 @@ class TestCashClosing(SepayCommon):
         second = Closing.create({'shift': 'evening'})
         self.assertEqual(second.system_cash, 10000)
         # Giám đốc mở lại được
+        closing = closing.with_user(self.env.user)
         closing.action_reopen()
         self.assertEqual(closing.state, 'draft')
         self.assertFalse(closing.receptionist_sign_uid)

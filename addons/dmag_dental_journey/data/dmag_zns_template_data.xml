@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Template ID để trống: phải đăng ký mẫu với Zalo, chờ duyệt rồi nhập Template ID. -->
+    <data noupdate="1">
+        <record id="zns_tmpl_booking_confirm" model="dmag.zns.template">
+            <field name="name">Xác nhận đặt lịch</field>
+            <field name="code">booking_confirm</field>
+            <field name="sequence">10</field>
+            <field name="journey_event">booked</field>
+            <field name="transactional" eval="True"/>
+            <field name="preview_text">Xin chào &lt;customer_name&gt;, &lt;clinic_name&gt; xác nhận lịch hẹn &lt;booking_code&gt; lúc &lt;booking_time&gt; ngày &lt;booking_date&gt; với &lt;doctor_name&gt; tại &lt;clinic_address&gt;. Nhấn "Đổi lịch" nếu cần thay đổi.</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'booking_code', 'expression': 'visit.name', 'max_length': 30}),
+                (0, 0, {'sequence': 3, 'name': 'booking_time', 'expression': 'visit.scheduled_start|time', 'max_length': 30}),
+                (0, 0, {'sequence': 4, 'name': 'booking_date', 'expression': 'visit.scheduled_start|date', 'max_length': 30}),
+                (0, 0, {'sequence': 5, 'name': 'doctor_name', 'expression': &quot;visit.doctor_id.name || 'Bác sĩ phòng khám'&quot;, 'max_length': 50}),
+                (0, 0, {'sequence': 6, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+                (0, 0, {'sequence': 7, 'name': 'clinic_address', 'expression': 'company.street || company.name', 'max_length': 200}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_reminder_d1" model="dmag.zns.template">
+            <field name="name">Nhắc lịch trước 1 ngày</field>
+            <field name="code">reminder_d1</field>
+            <field name="sequence">20</field>
+            <field name="journey_event">reminder</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">Nhắc lịch: &lt;customer_name&gt; có hẹn tại &lt;clinic_name&gt; lúc &lt;booking_time&gt; ngày &lt;booking_date&gt; với &lt;doctor_name&gt;. Mã lịch &lt;booking_code&gt;.</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'booking_code', 'expression': 'visit.name', 'max_length': 30}),
+                (0, 0, {'sequence': 3, 'name': 'booking_time', 'expression': 'visit.scheduled_start|time', 'max_length': 30}),
+                (0, 0, {'sequence': 4, 'name': 'booking_date', 'expression': 'visit.scheduled_start|date', 'max_length': 30}),
+                (0, 0, {'sequence': 5, 'name': 'doctor_name', 'expression': &quot;visit.doctor_id.name || 'Bác sĩ phòng khám'&quot;, 'max_length': 50}),
+                (0, 0, {'sequence': 6, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_reminder_d1_video" model="dmag.zns.template">
+            <field name="name">Nhắc lịch trước 1 ngày – kèm video "quy trình không đau"</field>
+            <field name="code">reminder_d1_video</field>
+            <field name="sequence">30</field>
+            <field name="journey_event">reminder</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">Nhắc lịch: &lt;customer_name&gt; có hẹn làm thủ thuật tại &lt;clinic_name&gt; lúc &lt;booking_time&gt; ngày &lt;booking_date&gt;. Xem video 90 giây "quy trình không đau": &lt;video_url&gt;</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'booking_code', 'expression': 'visit.name', 'max_length': 30}),
+                (0, 0, {'sequence': 3, 'name': 'booking_time', 'expression': 'visit.scheduled_start|time', 'max_length': 30}),
+                (0, 0, {'sequence': 4, 'name': 'booking_date', 'expression': 'visit.scheduled_start|date', 'max_length': 30}),
+                (0, 0, {'sequence': 5, 'name': 'doctor_name', 'expression': &quot;visit.doctor_id.name || 'Bác sĩ phòng khám'&quot;, 'max_length': 50}),
+                (0, 0, {'sequence': 6, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+                (0, 0, {'sequence': 7, 'name': 'video_url', 'expression': 'company.dmag_painless_video_url || company.website', 'max_length': 200}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_reminder_h2" model="dmag.zns.template">
+            <field name="name">Nhắc lịch trước 2 giờ – khai báo sức khỏe</field>
+            <field name="code">reminder_h2</field>
+            <field name="sequence">40</field>
+            <field name="journey_event">reminder</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">&lt;customer_name&gt; ơi, còn 2 giờ nữa là đến lịch hẹn lúc &lt;booking_time&gt; tại &lt;clinic_name&gt;. Khai báo sức khỏe trước để rút ngắn thời gian chờ: &lt;health_form_url&gt;</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'booking_time', 'expression': 'visit.scheduled_start|time', 'max_length': 30}),
+                (0, 0, {'sequence': 3, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+                (0, 0, {'sequence': 4, 'name': 'health_form_url', 'expression': 'company.dmag_health_declaration_url || company.website', 'max_length': 200}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_welcome_checkin" model="dmag.zns.template">
+            <field name="name">Chào mừng khi check-in</field>
+            <field name="code">welcome_checkin</field>
+            <field name="sequence">50</field>
+            <field name="journey_event">arrived</field>
+            <field name="transactional" eval="True"/>
+            <field name="preview_text">Chào mừng &lt;customer_name&gt; đến với &lt;clinic_name&gt;! Bạn đã check-in lúc &lt;checkin_time&gt;, chúng tôi sẽ mời bạn vào ghế trong ít phút.</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+                (0, 0, {'sequence': 3, 'name': 'checkin_time', 'expression': 'visit.checkin_time|time', 'max_length': 30}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_visit_thank_you" model="dmag.zns.template">
+            <field name="name">Cảm ơn sau khám – Nội dung khám hôm nay</field>
+            <field name="code">visit_thank_you</field>
+            <field name="sequence">60</field>
+            <field name="journey_event">done</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">Cảm ơn &lt;customer_name&gt; đã tin tưởng &lt;clinic_name&gt;. Xem "Nội dung khám hôm nay" (chẩn đoán, việc đã làm, đơn thuốc, lời dặn, lịch hẹn tiếp): &lt;visit_url&gt;</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+                (0, 0, {'sequence': 3, 'name': 'booking_code', 'expression': 'visit.name', 'max_length': 30}),
+                (0, 0, {'sequence': 4, 'name': 'visit_date', 'expression': 'visit.done_time|date', 'max_length': 30}),
+                (0, 0, {'sequence': 5, 'name': 'visit_url', 'expression': 'visit.dmag_journey_today_url', 'max_length': 200}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_nps_survey" model="dmag.zns.template">
+            <field name="name">Khảo sát NPS sau 48 giờ</field>
+            <field name="code">nps_survey</field>
+            <field name="sequence">70</field>
+            <field name="journey_event">nps</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">&lt;customer_name&gt; có sẵn lòng giới thiệu &lt;clinic_name&gt; cho người thân, bạn bè? Chấm điểm 0–10 tại: &lt;survey_url&gt;</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+                (0, 0, {'sequence': 3, 'name': 'visit_date', 'expression': 'visit.done_time|date', 'max_length': 30}),
+                (0, 0, {'sequence': 4, 'name': 'survey_url', 'expression': 'nps.url', 'max_length': 200}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_recall_due" model="dmag.zns.template">
+            <field name="name">Nhắc tái khám theo chu kỳ</field>
+            <field name="code">recall_due</field>
+            <field name="sequence">80</field>
+            <field name="journey_event">recall</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">&lt;customer_name&gt; ơi, đã đến hạn &lt;service_name&gt; định kỳ (ngày &lt;due_date&gt;) tại &lt;clinic_name&gt;. Gọi &lt;hotline&gt; hoặc nhấn "Đặt lịch".</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'service_name', 'expression': 'service.name', 'max_length': 100}),
+                (0, 0, {'sequence': 3, 'name': 'due_date', 'expression': 'due_date|date', 'max_length': 30}),
+                (0, 0, {'sequence': 4, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+                (0, 0, {'sequence': 5, 'name': 'hotline', 'expression': &quot;company.phone || ''&quot;, 'max_length': 30}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_birthday_wish" model="dmag.zns.template">
+            <field name="name">Chúc mừng sinh nhật</field>
+            <field name="code">birthday_wish</field>
+            <field name="sequence">90</field>
+            <field name="journey_event">birthday</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">&lt;clinic_name&gt; chúc &lt;customer_name&gt; sinh nhật vui vẻ, luôn khỏe mạnh và rạng rỡ nụ cười!</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+            ]"/>
+        </record>
+        <record id="zns_tmpl_warranty_expiry" model="dmag.zns.template">
+            <field name="name">Nhắc bảo hành sắp hết hạn</field>
+            <field name="code">warranty_expiry</field>
+            <field name="sequence">100</field>
+            <field name="journey_event">warranty</field>
+            <field name="transactional" eval="False"/>
+            <field name="preview_text">Bảo hành &lt;service_name&gt; của &lt;customer_name&gt; tại &lt;clinic_name&gt; sẽ hết hạn ngày &lt;expiry_date&gt;. Đặt lịch kiểm tra miễn phí trước khi hết hạn.</field>
+            <field name="param_ids" eval="[(5, 0, 0),
+                (0, 0, {'sequence': 1, 'name': 'customer_name', 'expression': 'patient.name', 'max_length': 30}),
+                (0, 0, {'sequence': 2, 'name': 'service_name', 'expression': 'service.name', 'max_length': 100}),
+                (0, 0, {'sequence': 3, 'name': 'expiry_date', 'expression': 'expiry_date|date', 'max_length': 30}),
+                (0, 0, {'sequence': 4, 'name': 'clinic_name', 'expression': 'company.name', 'max_length': 100}),
+            ]"/>
+        </record>
+    </data>
+</odoo>

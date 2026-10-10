@@ -124,8 +124,6 @@ class ResPartner(models.Model):
         partners = self.sudo().search([('is_patient', '=', True)])
         for start in range(0, len(partners), batch):
             partners[start:start + batch]._dmag_loyalty_recompute()
-            if not self.env.registry.in_test_mode():
-                self.env.cr.commit()  # pylint: disable=invalid-commit
         return True
 
     def action_dmag_loyalty_recompute(self):

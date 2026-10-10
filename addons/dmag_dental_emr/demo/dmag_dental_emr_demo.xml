@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dmag_dental_base.demo_patient_1" model="res.partner">
+        <field name="citizen_id">001088012345</field>
+        <field name="identity_type">cccd</field>
+        <field name="ethnicity">Kinh</field>
+        <field name="workplace">Công ty Cổ phần Minh Long</field>
+        <field name="occupation">Kỹ sư</field>
+        <field name="street">12 Phố Huế</field>
+        <field name="city">Phường Hai Bà Trưng</field>
+        <field name="patient_category">fee</field>
+        <field name="emergency_contact_name">Hoàng Thị Lan (vợ)</field>
+        <field name="emergency_contact_address">12 Phố Huế, Hà Nội</field>
+        <field name="emergency_contact_phone">0912 000 111</field>
+        <field name="medical_history">Tăng huyết áp, đang điều trị ổn định.</field>
+        <field name="family_history">Bố tăng huyết áp.</field>
+    </record>
+
+    <record id="dmag_dental_clinic.demo_visit_1" model="dmag.dental.visit">
+        <field name="present_illness">Tái khám định kỳ 6 tháng. Chảy máu lợi khi chải răng khoảng 2 tuần nay, không đau.</field>
+        <field name="pulse">78</field>
+        <field name="temperature">36.7</field>
+        <field name="bp_systolic">135</field>
+        <field name="bp_diastolic">85</field>
+        <field name="respiratory_rate">18</field>
+        <field name="weight">68</field>
+        <field name="height">170</field>
+        <field name="general_exam">Tỉnh, tiếp xúc tốt. Da niêm mạc hồng.</field>
+        <field name="organ_exam">Chưa phát hiện bất thường.</field>
+        <field name="exam_extraoral">Mặt cân đối, không sưng nề, hạch dưới hàm không sờ thấy.</field>
+        <field name="exam_intraoral">Cao răng độ 1 hai hàm. Lợi viêm nhẹ vùng răng cửa dưới, chảy máu khi thăm khám.</field>
+        <field name="exam_occlusion">Khớp cắn loại I.</field>
+        <field name="exam_soft_tissue">Niêm mạc má, lưỡi, sàn miệng bình thường.</field>
+        <field name="exam_periodontal">Túi lợi dưới 3 mm, không lung lay răng.</field>
+        <field name="paraclinical_summary">Không chỉ định.</field>
+        <field name="diagnosis_ids" eval="[(6, 0, [ref('dmag_dental_base.diag_k05_1')])]"/>
+        <field name="primary_diagnosis_id" ref="dmag_dental_base.diag_k05_1"/>
+        <field name="final_diagnosis_id" ref="dmag_dental_base.diag_k05_1"/>
+        <field name="treatment_direction">Vệ sinh răng miệng, tái khám sau 6 tháng.</field>
+        <field name="summary_method">Lấy cao răng, đánh bóng hai hàm.</field>
+        <field name="summary_status_end">Ổn định, hết chảy máu lợi.</field>
+        <field name="summary_next_direction">Chải răng 2 lần/ngày, dùng chỉ nha khoa; tái khám sau 6 tháng.</field>
+    </record>
+
+    <record id="demo_consent_1" model="dmag.consent">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_1"/>
+        <field name="visit_id" ref="dmag_dental_clinic.demo_visit_1"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
+        <field name="consent_type">procedure</field>
+        <field name="procedure_name">Lấy cao răng và đánh bóng hai hàm</field>
+        <field name="risks">Ê buốt răng thoáng qua, chảy máu lợi nhẹ sau thủ thuật.</field>
+        <field name="alternatives">Không điều trị (viêm lợi tiến triển thành viêm quanh răng).</field>
+        <field name="expected_cost">300000</field>
+        <field name="signer_name">Hoàng Minh Tuấn</field>
+    </record>
+</odoo>
