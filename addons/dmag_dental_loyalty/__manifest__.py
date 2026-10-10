@@ -1,0 +1,26 @@
+{
+    'name': 'DMAG – Khách hàng thân thiết',
+    'summary': 'Hạng thành viên theo thực thu 12 tháng & mức độ gắn bó, sổ điểm, ví gia đình, '
+               'giới thiệu 2 chiều, voucher đổi điểm, gói chăm sóc định kỳ trả trước',
+    'version': '17.0.1.0.0',
+    'category': 'Healthcare/Dental',
+    'author': 'DMAG – Dental Management & Analytics Group',
+    'website': 'https://dmagroup.vn',
+    'license': 'LGPL-3',
+    'depends': ['dmag_dental_clinic'],
+    'data': [
+        'security/dmag_loyalty_security.xml',
+        'security/ir.model.access.csv',
+        'data/dmag_loyalty_data.xml',
+        'views/dmag_loyalty_tier_views.xml',
+        'views/dmag_loyalty_ledger_views.xml',
+        'views/dmag_loyalty_voucher_views.xml',
+        'views/dmag_care_plan_views.xml',
+        'views/res_partner_views.xml',
+        'views/res_company_views.xml',
+        'wizards/dmag_loyalty_wizard_views.xml',
+        'views/dmag_dental_visit_views.xml',
+        'views/dmag_loyalty_menus.xml',
+    ],
+    'installable': True,
+}

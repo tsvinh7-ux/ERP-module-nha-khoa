@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="demo_lab_partner_1" model="res.partner">
+        <field name="name">Labo Răng Sứ Việt Mỹ</field>
+        <field name="is_company" eval="True"/>
+        <field name="is_dental_lab" eval="True"/>
+        <field name="dmag_lab_lead_days">5</field>
+        <field name="phone">028 3999 0001</field>
+    </record>
+    <record id="demo_lab_partner_2" model="res.partner">
+        <field name="name">Digital Aligner Lab</field>
+        <field name="is_company" eval="True"/>
+        <field name="is_dental_lab" eval="True"/>
+        <field name="dmag_lab_lead_days">14</field>
+    </record>
+    <record id="demo_lab_order_1" model="dmag.lab.order">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
+        <field name="lab_partner_id" ref="demo_lab_partner_1"/>
+        <field name="work_type">crown_bridge</field>
+        <field name="tooth_ids" eval="[(6, 0, [ref('dmag_dental_base.tooth_11'), ref('dmag_dental_base.tooth_21')])]"/>
+        <field name="shade">A2</field>
+        <field name="material">zirconia</field>
+        <field name="impression_type">scan</field>
+        <field name="cost">1600000</field>
+        <field name="due_date" eval="(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d')"/>
+        <field name="instructions">Mão Zirconia nguyên khối 11, 21; viền cổ kín, tiếp xúc bên chặt vừa.</field>
+    </record>
+    <record id="demo_lab_order_2" model="dmag.lab.order">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_5"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_ortho"/>
+        <field name="lab_partner_id" ref="demo_lab_partner_2"/>
+        <field name="work_type">retainer</field>
+        <field name="impression_type">conventional</field>
+        <field name="material">thermoform</field>
+        <field name="cost">800000</field>
+        <field name="due_date" eval="(DateTime.today() + relativedelta(days=14)).strftime('%Y-%m-%d')"/>
+    </record>
+</odoo>

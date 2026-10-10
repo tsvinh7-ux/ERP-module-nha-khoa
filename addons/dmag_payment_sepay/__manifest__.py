@@ -1,0 +1,27 @@
+{
+    'name': 'DMAG – Thu tiền SePay & chốt két',
+    'summary': 'Thu tiền bằng VietQR động qua SePay (webhook tự gạch nợ), hàng chờ đối soát, '
+               'nhật ký thu tiền theo phương thức và biên bản chốt két 4 bước',
+    'version': '17.0.1.0.0',
+    'category': 'Healthcare/Dental',
+    'author': 'DMAG – Dental Management & Analytics Group',
+    'website': 'https://dmagroup.vn',
+    'license': 'LGPL-3',
+    'depends': ['dmag_dental_clinic', 'account', 'bus'],
+    'data': [
+        'security/dmag_payment_sepay_security.xml',
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'data/ir_cron_data.xml',
+        'report/dmag_cash_closing_report.xml',
+        'wizard/dmag_sepay_match_wizard_views.xml',
+        'views/dmag_sepay_config_views.xml',
+        'views/dmag_payment_request_views.xml',
+        'views/dmag_sepay_transaction_views.xml',
+        'views/dmag_payment_log_views.xml',
+        'views/dmag_cash_closing_views.xml',
+        'views/dmag_dental_visit_views.xml',
+        'views/dmag_payment_sepay_menus.xml',
+    ],
+    'installable': True,
+}

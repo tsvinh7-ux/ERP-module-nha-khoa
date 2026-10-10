@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_practitioner_form_esign" model="ir.ui.view">
+        <field name="name">dmag.dental.practitioner.form.esign</field>
+        <field name="model">dmag.dental.practitioner</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_dmag_practitioner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="alert alert-warning" role="alert" invisible="not mysign_cert_warning">
+                    <field name="mysign_cert_warning"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='license_expiry_date']/../.." position="after">
+                <group string="Chữ ký số Viettel MySign" invisible="role != 'doctor'">
+                    <group>
+                        <field name="mysign_user_id" placeholder="Số CCCD / mã người dùng MySign"/>
+                        <field name="mysign_credential_id"/>
+                        <field name="mysign_cert_state" widget="badge"
+                               decoration-success="mysign_cert_state == 'valid'"
+                               decoration-warning="mysign_cert_state == 'expiring'"
+                               decoration-danger="mysign_cert_state == 'expired'"/>
+                    </group>
+                    <group>
+                        <field name="mysign_cert_subject"/>
+                        <field name="mysign_cert_serial"/>
+                        <field name="mysign_cert_valid_to"/>
+                        <button name="action_fetch_mysign_certificate" type="object" string="Lấy thông tin chứng thư"
+                                class="btn-link" icon="fa-refresh" colspan="2"
+                                groups="dmag_dental_base.group_dmag_manager"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

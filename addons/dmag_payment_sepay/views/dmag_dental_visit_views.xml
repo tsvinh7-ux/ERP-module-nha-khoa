@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_sepay" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.sepay</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_create_invoice']" position="after">
+                <button name="action_payment_qr" type="object" string="Mã QR chuyển khoản" icon="fa-qrcode"
+                        invisible="payment_status not in ('to_invoice', 'to_pay')"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Thu tiền" name="sepay_payments">
+                    <field name="payment_request_ids" readonly="1">
+                        <tree>
+                            <field name="create_date" string="Tạo lúc"/>
+                            <field name="name"/>
+                            <field name="amount"/>
+                            <field name="paid_amount"/>
+                            <field name="state" widget="badge"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </tree>
+                    </field>
+                    <field name="payment_log_ids" readonly="1">
+                        <tree>
+                            <field name="date"/>
+                            <field name="method"/>
+                            <field name="amount"/>
+                            <field name="source"/>
+                            <field name="user_id"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_lab_order_form" model="ir.ui.view">
+        <field name="name">dmag.lab.order.form</field>
+        <field name="model">dmag.lab.order</field>
+        <field name="arch" type="xml">
+            <form string="Phiếu labo">
+                <header>
+                    <button name="action_send" type="object" string="Gửi labo" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start" type="object" string="Labo đã nhận làm" invisible="state != 'sent'"/>
+                    <button name="action_try_in" type="object" string="Hẹn thử" invisible="state not in ('sent', 'in_progress')"/>
+                    <button name="action_receive" type="object" string="Đã nhận phục hình" class="btn-primary"
+                            invisible="state not in ('sent', 'in_progress', 'try_in')"/>
+                    <button name="action_fit" type="object" string="Đã gắn cho bệnh nhân" class="btn-primary" invisible="state != 'received'"/>
+                    <button name="action_remake" type="object" string="Làm lại"
+                            invisible="state not in ('sent', 'in_progress', 'try_in', 'received', 'fitted')"
+                            confirm="Đóng phiếu này và tạo phiếu làm lại?"/>
+                    <button name="action_cancel" type="object" string="Hủy" invisible="state in ('fitted', 'cancelled', 'remake')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,sent,in_progress,try_in,received,fitted"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_purchase_order" type="object" class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="not purchase_order_id" groups="purchase.group_purchase_user">
+                            <field name="purchase_order_name" widget="statinfo" string="Đơn mua"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Trễ hạn" bg_color="text-bg-danger" invisible="not is_late"/>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Bệnh nhân">
+                            <field name="patient_id" readonly="state != 'draft'"/>
+                            <field name="visit_id" options="{'no_create': True}"/>
+                            <field name="plan_line_id" options="{'no_create': True}"/>
+                            <field name="doctor_id" options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Labo">
+                            <field name="lab_partner_id" readonly="state != 'draft'"
+                                   context="{'default_is_dental_lab': True, 'default_is_company': True}"/>
+                            <field name="sent_date" readonly="state != 'draft'"/>
+                            <field name="due_date"/>
+                            <field name="is_late" invisible="1"/>
+                            <field name="late_days" invisible="not is_late" decoration-danger="1"/>
+                            <field name="received_date" invisible="not received_date"/>
+                            <field name="fitted_date" invisible="not fitted_date"/>
+                            <field name="fit_visit_id" invisible="state not in ('received', 'fitted')" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Chỉ định phục hình">
+                            <field name="work_type"/>
+                            <field name="tooth_ids" widget="many2many_tags"/>
+                            <field name="unit_count"/>
+                            <field name="shade" placeholder="VD: A2 (cổ A3)"/>
+                            <field name="material"/>
+                            <field name="material_note"/>
+                        </group>
+                        <group string="Lấy dấu &amp; chi phí">
+                            <field name="impression_type" widget="radio"/>
+                            <field name="scan_reference" invisible="impression_type != 'scan'"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="cost" readonly="state != 'draft'"/>
+                            <field name="cost_product_id" readonly="state != 'draft'" groups="dmag_dental_base.group_dmag_manager"/>
+                            <field name="purchase_order_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Chỉ định cho labo" name="instructions">
+                            <field name="instructions" placeholder="Thiết kế, tiếp xúc, khớp cắn, đường hoàn tất…"/>
+                        </page>
+                        <page string="Các bước thử" name="tryin">
+                            <field name="tryin_ids" context="{'default_order_id': id}">
+                                <tree editable="bottom">
+                                    <field name="date"/>
+                                    <field name="step"/>
+                                    <field name="visit_id" options="{'no_create': True}"/>
+                                    <field name="result" widget="badge" decoration-success="result == 'ok'" decoration-warning="result == 'adjust'"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Đính kèm" name="attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Làm lại" name="remake">
+                            <group>
+                                <field name="remake_reason"/>
+                                <field name="remake_responsibility"/>
+                                <field name="remake_of_id" invisible="not remake_of_id"/>
+                            </group>
+                            <field name="remake_ids" readonly="1">
+                                <tree><field name="name"/><field name="state"/><field name="due_date"/></tree>
+                            </field>
+                        </page>
+                        <page string="Ghi chú" name="note"><field name="note"/></page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_lab_order_tree" model="ir.ui.view">
+        <field name="name">dmag.lab.order.tree</field>
+        <field name="model">dmag.lab.order</field>
+        <field name="arch" type="xml">
+            <tree string="Phiếu labo" decoration-danger="is_late" decoration-muted="state in ('cancelled', 'remake')">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="work_type"/>
+                <field name="tooth_ids" widget="many2many_tags" optional="show"/>
+                <field name="shade" optional="show"/>
+                <field name="lab_partner_id"/>
+                <field name="sent_date" optional="show"/>
+                <field name="due_date"/>
+                <field name="is_late" column_invisible="1"/>
+                <field name="late_days" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="cost" sum="Tổng" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state in ('sent', 'in_progress', 'try_in')"
+                       decoration-success="state in ('received', 'fitted')" decoration-warning="state == 'remake'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_lab_order_kanban" model="ir.ui.view">
+        <field name="name">dmag.lab.order.kanban</field>
+        <field name="model">dmag.lab.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="state"/>
+                <field name="is_late"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="d-flex justify-content-between">
+                                <strong><field name="name"/></strong>
+                                <span t-if="record.is_late.raw_value" class="badge text-bg-danger">Trễ hạn</span>
+                            </div>
+                            <div><field name="patient_id"/></div>
+                            <div class="text-muted"><field name="work_type"/> · <field name="lab_partner_id"/></div>
+                            <div>Hẹn trả: <field name="due_date"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_dmag_lab_order_search" model="ir.ui.view">
+        <field name="name">dmag.lab.order.search</field>
+        <field name="model">dmag.lab.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="lab_partner_id"/>
+                <field name="doctor_id"/>
+                <filter name="open" string="Đang ở labo" domain="[('state', 'in', ('sent', 'in_progress', 'try_in'))]"/>
+                <filter name="late" string="Trễ hạn" domain="[('is_late', '=', True)]"/>
+                <filter name="to_fit" string="Chờ gắn" domain="[('state', '=', 'received')]"/>
+                <filter name="remake" string="Làm lại" domain="[('state', '=', 'remake')]"/>
+                <separator/>
+                <filter name="sent_date" string="Ngày gửi" date="sent_date"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_lab" string="Labo" context="{'group_by': 'lab_partner_id'}"/>
+                    <filter name="group_state" string="Trạng thái" context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Loại phục hình" context="{'group_by': 'work_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_dmag_lab_order_pivot" model="ir.ui.view">
+        <field name="name">dmag.lab.order.pivot</field>
+        <field name="model">dmag.lab.order</field>
+        <field name="arch" type="xml">
+            <pivot string="Chi phí labo">
+                <field name="lab_partner_id" type="row"/>
+                <field name="sent_date" interval="month" type="col"/>
+                <field name="cost" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_dmag_lab_order" model="ir.actions.act_window">
+        <field name="name">Phiếu labo</field>
+        <field name="res_model">dmag.lab.order</field>
+        <field name="view_mode">kanban,tree,form,pivot</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo phiếu gửi labo</p>
+            <p>Theo dõi phục hình từ lúc lấy dấu / scan đến khi gắn: hạn trả, thử sườn, thử sứ, làm lại, chi phí.</p>
+        </field>
+    </record>
+
+    <record id="action_dmag_lab_partner" model="ir.actions.act_window">
+        <field name="name">Đối tác labo</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_dental_lab', '=', True)]</field>
+        <field name="context">{'default_is_dental_lab': True, 'default_is_company': True}</field>
+    </record>
+</odoo>

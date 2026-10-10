@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_esign_request" name="Hồ sơ ký số" parent="dmag_dental_base.menu_dmag_patients"
+              action="action_dmag_esign_request" sequence="60" groups="dmag_dental_base.group_dmag_doctor"/>
+    <menuitem id="menu_dmag_esign_provider" name="Ký số (MySign)" parent="dmag_dental_base.menu_dmag_config"
+              action="action_dmag_esign_provider" sequence="60" groups="dmag_dental_base.group_dmag_director"/>
+</odoo>

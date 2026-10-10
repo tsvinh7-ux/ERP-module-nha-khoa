@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_esign_provider_doctor,dmag_esign_provider doctor,model_dmag_esign_provider,dmag_dental_base.group_dmag_doctor,1,0,0,0
+access_dmag_esign_provider_director,dmag_esign_provider director,model_dmag_esign_provider,dmag_dental_base.group_dmag_director,1,1,1,1
+access_dmag_esign_request_doctor,dmag_esign_request doctor,model_dmag_esign_request,dmag_dental_base.group_dmag_doctor,1,0,1,0
+access_dmag_esign_request_director,dmag_esign_request director,model_dmag_esign_request,dmag_dental_base.group_dmag_director,1,1,1,1
+access_dmag_esign_log_doctor,dmag_esign_log doctor,model_dmag_esign_log,dmag_dental_base.group_dmag_doctor,1,0,1,0
+access_dmag_esign_log_director,dmag_esign_log director,model_dmag_esign_log,dmag_dental_base.group_dmag_director,1,1,1,1

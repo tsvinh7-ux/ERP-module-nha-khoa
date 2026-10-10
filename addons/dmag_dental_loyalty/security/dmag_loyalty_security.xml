@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_dmag_loyalty_tier_company" model="ir.rule">
+        <field name="name">Hạng thành viên: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_loyalty_tier"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_loyalty_ledger_company" model="ir.rule">
+        <field name="name">Sổ điểm: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_loyalty_ledger"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_loyalty_voucher_company" model="ir.rule">
+        <field name="name">Voucher: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_loyalty_voucher"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_care_plan_company" model="ir.rule">
+        <field name="name">Gói chăm sóc: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_care_plan"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_care_subscription_company" model="ir.rule">
+        <field name="name">Thuê bao gói chăm sóc: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_care_subscription"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_care_entitlement_company" model="ir.rule">
+        <field name="name">Quyền lợi gói: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_care_entitlement"/>
+        <field name="domain_force">[('subscription_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_care_usage_company" model="ir.rule">
+        <field name="name">Sử dụng quyền lợi gói: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_care_usage"/>
+        <field name="domain_force">[('subscription_id.company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

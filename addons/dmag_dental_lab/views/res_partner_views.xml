@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_dmag_lab" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.lab</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="is_dental_lab" invisible="is_patient"/>
+                <field name="dmag_lab_lead_days" invisible="not is_dental_lab"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

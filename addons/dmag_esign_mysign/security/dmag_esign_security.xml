@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_dmag_esign_provider_company" model="ir.rule">
+        <field name="name">Nhà cung cấp ký số: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_esign_provider"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_esign_request_company" model="ir.rule">
+        <field name="name">Yêu cầu ký số: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_esign_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_esign_log_company" model="ir.rule">
+        <field name="name">Nhật ký ký số: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_esign_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

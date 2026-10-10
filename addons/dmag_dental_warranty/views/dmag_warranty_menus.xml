@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_warranty" name="Bảo hành" parent="dmag_dental_clinic.menu_dmag_operation" sequence="70"/>
+    <menuitem id="menu_dmag_warranty_card" name="Thẻ bảo hành" parent="menu_dmag_warranty"
+              action="action_dmag_warranty_card" sequence="10"/>
+    <menuitem id="menu_dmag_warranty_claim" name="Yêu cầu bảo hành" parent="menu_dmag_warranty"
+              action="action_dmag_warranty_claim" sequence="20"/>
+</odoo>

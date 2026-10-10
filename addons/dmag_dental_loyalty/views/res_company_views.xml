@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_dmag_loyalty" model="ir.ui.view">
+        <field name="name">res.company.form.dmag.loyalty</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Khách hàng thân thiết" name="dmag_loyalty">
+                    <group>
+                        <group string="Tích điểm">
+                            <field name="dmag_loyalty_amount_per_point"/>
+                            <field name="dmag_loyalty_recall_points"/>
+                            <field name="dmag_loyalty_recall_tolerance"/>
+                            <field name="dmag_loyalty_referrer_points"/>
+                            <field name="dmag_loyalty_referee_points"/>
+                            <field name="dmag_loyalty_survey_points"/>
+                        </group>
+                        <group string="Đổi điểm &amp; ví gia đình">
+                            <field name="dmag_loyalty_point_value"/>
+                            <field name="dmag_loyalty_min_redeem"/>
+                            <field name="dmag_loyalty_approval_points"/>
+                            <field name="dmag_loyalty_voucher_days"/>
+                            <field name="dmag_loyalty_family_pool"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

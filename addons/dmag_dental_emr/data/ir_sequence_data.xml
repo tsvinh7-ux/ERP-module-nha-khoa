@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_dmag_outpatient_record" model="ir.sequence">
+        <field name="name">Số ngoại trú (bệnh án Răng Hàm Mặt)</field>
+        <field name="code">dmag.outpatient.record</field>
+        <field name="prefix">NT%(year)s/</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_dmag_consent" model="ir.sequence">
+        <field name="name">Phiếu cam kết người bệnh</field>
+        <field name="code">dmag.consent</field>
+        <field name="prefix">CK%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_dmag_record_request" model="ir.sequence">
+        <field name="name">Yêu cầu cung cấp hồ sơ bệnh án</field>
+        <field name="code">dmag.record.request</field>
+        <field name="prefix">YC%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

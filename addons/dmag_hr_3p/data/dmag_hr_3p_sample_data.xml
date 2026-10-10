@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- DỮ LIỆU MẪU – sẽ thay bằng khung P/M chuẩn của DMAG.
+         Nạp khung chuẩn bằng chức năng Nhập (Import) của Odoo trên từng danh mục, không cần sửa code. -->
+    <record id="grade_p1" model="dmag.job.grade">
+        <field name="code">P1</field>
+        <field name="name">Nhân viên mới / thử việc</field>
+        <field name="track">P</field>
+        <field name="level">1</field>
+        <field name="wage_min">6000000</field>
+        <field name="wage_mid">7000000</field>
+        <field name="wage_max">8000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="grade_p2" model="dmag.job.grade">
+        <field name="code">P2</field>
+        <field name="name">Nhân viên chính thức</field>
+        <field name="track">P</field>
+        <field name="level">2</field>
+        <field name="wage_min">8000000</field>
+        <field name="wage_mid">9500000</field>
+        <field name="wage_max">11000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="grade_p3" model="dmag.job.grade">
+        <field name="code">P3</field>
+        <field name="name">Chuyên viên / bác sĩ vững tay</field>
+        <field name="track">P</field>
+        <field name="level">3</field>
+        <field name="wage_min">11000000</field>
+        <field name="wage_mid">14000000</field>
+        <field name="wage_max">17000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="grade_p4" model="dmag.job.grade">
+        <field name="code">P4</field>
+        <field name="name">Chuyên gia</field>
+        <field name="track">P</field>
+        <field name="level">4</field>
+        <field name="wage_min">17000000</field>
+        <field name="wage_mid">22000000</field>
+        <field name="wage_max">27000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="grade_p5" model="dmag.job.grade">
+        <field name="code">P5</field>
+        <field name="name">Chuyên gia cao cấp / Giám đốc chuyên môn</field>
+        <field name="track">P</field>
+        <field name="level">5</field>
+        <field name="wage_min">27000000</field>
+        <field name="wage_mid">35000000</field>
+        <field name="wage_max">45000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="grade_m1" model="dmag.job.grade">
+        <field name="code">M1</field>
+        <field name="name">Trưởng nhóm / trưởng ca</field>
+        <field name="track">M</field>
+        <field name="level">1</field>
+        <field name="wage_min">12000000</field>
+        <field name="wage_mid">15000000</field>
+        <field name="wage_max">18000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="grade_m2" model="dmag.job.grade">
+        <field name="code">M2</field>
+        <field name="name">Quản lý phòng khám</field>
+        <field name="track">M</field>
+        <field name="level">2</field>
+        <field name="wage_min">18000000</field>
+        <field name="wage_mid">23000000</field>
+        <field name="wage_max">28000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="grade_m3" model="dmag.job.grade">
+        <field name="code">M3</field>
+        <field name="name">Giám đốc vận hành / chi nhánh</field>
+        <field name="track">M</field>
+        <field name="level">3</field>
+        <field name="wage_min">28000000</field>
+        <field name="wage_mid">35000000</field>
+        <field name="wage_max">45000000</field>
+        <field name="description">Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_clin_level" model="dmag.competency">
+        <field name="code">C_CLIN_LEVEL</field>
+        <field name="name">Chuyên môn lâm sàng theo bậc</field>
+        <field name="basis">clinical_level</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_license" model="dmag.competency">
+        <field name="code">C_LICENSE</field>
+        <field name="name">Giấy phép & phạm vi hành nghề</field>
+        <field name="basis">license</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+        <field name="practice_scope_ids" eval="[(6, 0, [ref('dmag_dental_base.scope_general')])]"/>
+    </record>
+    <record id="comp_c_ethic" model="dmag.competency">
+        <field name="code">C_ETHIC</field>
+        <field name="name">Y đức & tư vấn 2 phương án minh bạch</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_steril" model="dmag.competency">
+        <field name="code">C_STERIL</field>
+        <field name="name">Tuân thủ quy trình vô khuẩn</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_fourhand" model="dmag.competency">
+        <field name="code">C_FOURHAND</field>
+        <field name="name">Kỹ thuật bốn tay & chuẩn bị ghế</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_schedule" model="dmag.competency">
+        <field name="code">C_SCHEDULE</field>
+        <field name="name">Điều phối lịch hẹn & ghế</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_service" model="dmag.competency">
+        <field name="code">C_SERVICE</field>
+        <field name="name">Giao tiếp & chăm sóc khách hàng</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_data" model="dmag.competency">
+        <field name="code">C_DATA</field>
+        <field name="name">Chất lượng nhập liệu & sử dụng phần mềm</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_lab" model="dmag.competency">
+        <field name="code">C_LAB</field>
+        <field name="name">Tay nghề labo / chụp phim đúng chuẩn</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_consult" model="dmag.competency">
+        <field name="code">C_CONSULT</field>
+        <field name="name">Kỹ năng tư vấn kế hoạch điều trị</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_lead" model="dmag.competency">
+        <field name="code">C_LEAD</field>
+        <field name="name">Lãnh đạo & phát triển đội ngũ</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="comp_c_ops" model="dmag.competency">
+        <field name="code">C_OPS</field>
+        <field name="name">Quản trị vận hành & tài chính phòng khám</field>
+        <field name="basis">manual</field>
+        <field name="level_1">Chưa đạt yêu cầu tối thiểu</field>
+        <field name="level_3">Đạt chuẩn vị trí, làm độc lập</field>
+        <field name="level_5">Xuất sắc, kèm cặp được người khác</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="job_doctor" model="hr.job">
+        <field name="name">Bác sĩ điều trị</field>
+    </record>
+    <record id="profile_doctor" model="dmag.job.position.profile">
+        <field name="job_id" ref="job_doctor"/>
+        <field name="code">DOCTOR</field>
+        <field name="track">P</field>
+        <field name="grade_ids" eval="[(6, 0, [ref('grade_p2'), ref('grade_p3'), ref('grade_p4'), ref('grade_p5')])]"/>
+        <field name="default_grade_id" ref="grade_p3"/>
+        <field name="is_clinical" eval="True"/>
+        <field name="clinical_role">doctor</field>
+        <field name="p2_base">5000000</field>
+        <field name="p3_base">5000000</field>
+        <field name="okr_bonus_base">3000000</field>
+        <field name="description"><![CDATA[<p><b>Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</b></p>]]></field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="profile_doctor_comp_1" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">10</field>
+        <field name="competency_id" ref="comp_c_clin_level"/>
+        <field name="weight">40</field>
+    </record>
+    <record id="profile_doctor_comp_2" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">20</field>
+        <field name="competency_id" ref="comp_c_license"/>
+        <field name="weight">20</field>
+    </record>
+    <record id="profile_doctor_comp_3" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">30</field>
+        <field name="competency_id" ref="comp_c_ethic"/>
+        <field name="weight">25</field>
+    </record>
+    <record id="profile_doctor_comp_4" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">40</field>
+        <field name="competency_id" ref="comp_c_steril"/>
+        <field name="weight">15</field>
+    </record>
+    <record id="kpi_doctor_1" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">10</field>
+        <field name="code">DOCTOR_K1</field>
+        <field name="name">Doanh thu thủ thuật thực hiện</field>
+        <field name="weight">35</field>
+        <field name="target">150000000</field>
+        <field name="unit">đ</field>
+        <field name="direction">higher</field>
+        <field name="data_source">revenue</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_doctor_2" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">20</field>
+        <field name="code">DOCTOR_K2</field>
+        <field name="name">Tỷ lệ khách quay lại</field>
+        <field name="weight">25</field>
+        <field name="target">60</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">retention</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_doctor_3" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">30</field>
+        <field name="code">DOCTOR_K3</field>
+        <field name="name">NPS bệnh nhân</field>
+        <field name="weight">20</field>
+        <field name="target">70</field>
+        <field name="unit">điểm</field>
+        <field name="direction">higher</field>
+        <field name="data_source">nps</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_doctor_4" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_doctor"/>
+        <field name="sequence">40</field>
+        <field name="code">DOCTOR_K4</field>
+        <field name="name">Điểm OKR cá nhân</field>
+        <field name="weight">20</field>
+        <field name="target">70</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">okr_score</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="job_nurse" model="hr.job">
+        <field name="name">Điều dưỡng / Phụ tá</field>
+    </record>
+    <record id="profile_nurse" model="dmag.job.position.profile">
+        <field name="job_id" ref="job_nurse"/>
+        <field name="code">NURSE</field>
+        <field name="track">P</field>
+        <field name="grade_ids" eval="[(6, 0, [ref('grade_p1'), ref('grade_p2'), ref('grade_p3')])]"/>
+        <field name="default_grade_id" ref="grade_p1"/>
+        <field name="is_clinical" eval="True"/>
+        <field name="clinical_role">assistant</field>
+        <field name="p2_base">2000000</field>
+        <field name="p3_base">2000000</field>
+        <field name="okr_bonus_base">1000000</field>
+        <field name="description"><![CDATA[<p><b>Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</b></p>]]></field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="profile_nurse_comp_1" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_nurse"/>
+        <field name="sequence">10</field>
+        <field name="competency_id" ref="comp_c_fourhand"/>
+        <field name="weight">40</field>
+    </record>
+    <record id="profile_nurse_comp_2" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_nurse"/>
+        <field name="sequence">20</field>
+        <field name="competency_id" ref="comp_c_steril"/>
+        <field name="weight">40</field>
+    </record>
+    <record id="profile_nurse_comp_3" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_nurse"/>
+        <field name="sequence">30</field>
+        <field name="competency_id" ref="comp_c_ethic"/>
+        <field name="weight">20</field>
+    </record>
+    <record id="kpi_nurse_1" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_nurse"/>
+        <field name="sequence">10</field>
+        <field name="code">NURSE_K1</field>
+        <field name="name">Thời gian chờ lên ghế</field>
+        <field name="weight">30</field>
+        <field name="target">15</field>
+        <field name="unit">phút</field>
+        <field name="direction">lower</field>
+        <field name="data_source">wait_time</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_nurse_2" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_nurse"/>
+        <field name="sequence">20</field>
+        <field name="code">NURSE_K2</field>
+        <field name="name">Tuân thủ vô khuẩn (kiểm tra chéo)</field>
+        <field name="weight">40</field>
+        <field name="target">100</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">manual</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_nurse_3" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_nurse"/>
+        <field name="sequence">30</field>
+        <field name="code">NURSE_K3</field>
+        <field name="name">NPS bệnh nhân</field>
+        <field name="weight">30</field>
+        <field name="target">70</field>
+        <field name="unit">điểm</field>
+        <field name="direction">higher</field>
+        <field name="data_source">nps</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="job_reception" model="hr.job">
+        <field name="name">Lễ tân điều phối & CSKH</field>
+    </record>
+    <record id="profile_reception" model="dmag.job.position.profile">
+        <field name="job_id" ref="job_reception"/>
+        <field name="code">RECEPTION</field>
+        <field name="track">P</field>
+        <field name="grade_ids" eval="[(6, 0, [ref('grade_p1'), ref('grade_p2'), ref('grade_p3')])]"/>
+        <field name="default_grade_id" ref="grade_p2"/>
+        <field name="is_clinical" eval="False"/>
+        <field name="p2_base">2000000</field>
+        <field name="p3_base">3000000</field>
+        <field name="okr_bonus_base">1000000</field>
+        <field name="description"><![CDATA[<p><b>Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</b></p>]]></field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="profile_reception_comp_1" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">10</field>
+        <field name="competency_id" ref="comp_c_schedule"/>
+        <field name="weight">40</field>
+    </record>
+    <record id="profile_reception_comp_2" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">20</field>
+        <field name="competency_id" ref="comp_c_service"/>
+        <field name="weight">40</field>
+    </record>
+    <record id="profile_reception_comp_3" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">30</field>
+        <field name="competency_id" ref="comp_c_data"/>
+        <field name="weight">20</field>
+    </record>
+    <record id="kpi_reception_1" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">10</field>
+        <field name="code">RECEPTION_K1</field>
+        <field name="name">Chất lượng dữ liệu</field>
+        <field name="weight">20</field>
+        <field name="target">98</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">manual</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_reception_2" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">20</field>
+        <field name="code">RECEPTION_K2</field>
+        <field name="name">Hiệu quả điều phối &amp; lịch hẹn</field>
+        <field name="weight">20</field>
+        <field name="target">15</field>
+        <field name="unit">phút chờ</field>
+        <field name="direction">lower</field>
+        <field name="data_source">wait_time</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_reception_3" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">30</field>
+        <field name="code">RECEPTION_K3</field>
+        <field name="name">Tỷ lệ khách quay lại</field>
+        <field name="weight">25</field>
+        <field name="target">60</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">retention</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_reception_4" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">40</field>
+        <field name="code">RECEPTION_K4</field>
+        <field name="name">Doanh số bán lẻ &amp; chốt dịch vụ</field>
+        <field name="weight">20</field>
+        <field name="target">20000000</field>
+        <field name="unit">đ</field>
+        <field name="direction">higher</field>
+        <field name="data_source">manual</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_reception_5" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_reception"/>
+        <field name="sequence">50</field>
+        <field name="code">RECEPTION_K5</field>
+        <field name="name">Hài lòng &amp; văn hóa</field>
+        <field name="weight">15</field>
+        <field name="target">70</field>
+        <field name="unit">điểm NPS</field>
+        <field name="direction">higher</field>
+        <field name="data_source">nps</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="job_technician" model="hr.job">
+        <field name="name">Kỹ thuật viên Labo / X-quang</field>
+    </record>
+    <record id="profile_technician" model="dmag.job.position.profile">
+        <field name="job_id" ref="job_technician"/>
+        <field name="code">TECHNICIAN</field>
+        <field name="track">P</field>
+        <field name="grade_ids" eval="[(6, 0, [ref('grade_p1'), ref('grade_p2'), ref('grade_p3'), ref('grade_p4')])]"/>
+        <field name="default_grade_id" ref="grade_p2"/>
+        <field name="is_clinical" eval="True"/>
+        <field name="clinical_role">technician</field>
+        <field name="p2_base">2000000</field>
+        <field name="p3_base">2000000</field>
+        <field name="okr_bonus_base">1000000</field>
+        <field name="description"><![CDATA[<p><b>Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</b></p>]]></field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="profile_technician_comp_1" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_technician"/>
+        <field name="sequence">10</field>
+        <field name="competency_id" ref="comp_c_lab"/>
+        <field name="weight">60</field>
+    </record>
+    <record id="profile_technician_comp_2" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_technician"/>
+        <field name="sequence">20</field>
+        <field name="competency_id" ref="comp_c_steril"/>
+        <field name="weight">20</field>
+    </record>
+    <record id="profile_technician_comp_3" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_technician"/>
+        <field name="sequence">30</field>
+        <field name="competency_id" ref="comp_c_data"/>
+        <field name="weight">20</field>
+    </record>
+    <record id="kpi_technician_1" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_technician"/>
+        <field name="sequence">10</field>
+        <field name="code">TECHNICIAN_K1</field>
+        <field name="name">Tỷ lệ làm lại / chụp lại</field>
+        <field name="weight">50</field>
+        <field name="target">2</field>
+        <field name="unit">%</field>
+        <field name="direction">lower</field>
+        <field name="data_source">manual</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_technician_2" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_technician"/>
+        <field name="sequence">20</field>
+        <field name="code">TECHNICIAN_K2</field>
+        <field name="name">Giao đúng hạn</field>
+        <field name="weight">50</field>
+        <field name="target">95</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">manual</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="job_consultant" model="hr.job">
+        <field name="name">Tư vấn viên</field>
+    </record>
+    <record id="profile_consultant" model="dmag.job.position.profile">
+        <field name="job_id" ref="job_consultant"/>
+        <field name="code">CONSULTANT</field>
+        <field name="track">P</field>
+        <field name="grade_ids" eval="[(6, 0, [ref('grade_p1'), ref('grade_p2'), ref('grade_p3')])]"/>
+        <field name="default_grade_id" ref="grade_p2"/>
+        <field name="is_clinical" eval="False"/>
+        <field name="p2_base">2000000</field>
+        <field name="p3_base">4000000</field>
+        <field name="okr_bonus_base">1000000</field>
+        <field name="description"><![CDATA[<p><b>Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</b></p>]]></field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="profile_consultant_comp_1" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_consultant"/>
+        <field name="sequence">10</field>
+        <field name="competency_id" ref="comp_c_consult"/>
+        <field name="weight">50</field>
+    </record>
+    <record id="profile_consultant_comp_2" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_consultant"/>
+        <field name="sequence">20</field>
+        <field name="competency_id" ref="comp_c_ethic"/>
+        <field name="weight">30</field>
+    </record>
+    <record id="profile_consultant_comp_3" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_consultant"/>
+        <field name="sequence">30</field>
+        <field name="competency_id" ref="comp_c_service"/>
+        <field name="weight">20</field>
+    </record>
+    <record id="kpi_consultant_1" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_consultant"/>
+        <field name="sequence">10</field>
+        <field name="code">CONSULTANT_K1</field>
+        <field name="name">Tỷ lệ chốt kế hoạch điều trị</field>
+        <field name="weight">40</field>
+        <field name="target">50</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">manual</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_consultant_2" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_consultant"/>
+        <field name="sequence">20</field>
+        <field name="code">CONSULTANT_K2</field>
+        <field name="name">Doanh số tư vấn</field>
+        <field name="weight">40</field>
+        <field name="target">300000000</field>
+        <field name="unit">đ</field>
+        <field name="direction">higher</field>
+        <field name="data_source">manual</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_consultant_3" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_consultant"/>
+        <field name="sequence">30</field>
+        <field name="code">CONSULTANT_K3</field>
+        <field name="name">NPS bệnh nhân</field>
+        <field name="weight">20</field>
+        <field name="target">70</field>
+        <field name="unit">điểm</field>
+        <field name="direction">higher</field>
+        <field name="data_source">nps</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="job_manager" model="hr.job">
+        <field name="name">Quản lý phòng khám</field>
+    </record>
+    <record id="profile_manager" model="dmag.job.position.profile">
+        <field name="job_id" ref="job_manager"/>
+        <field name="code">MANAGER</field>
+        <field name="track">M</field>
+        <field name="grade_ids" eval="[(6, 0, [ref('grade_m1'), ref('grade_m2'), ref('grade_m3')])]"/>
+        <field name="default_grade_id" ref="grade_m2"/>
+        <field name="is_clinical" eval="False"/>
+        <field name="p2_base">5000000</field>
+        <field name="p3_base">8000000</field>
+        <field name="okr_bonus_base">5000000</field>
+        <field name="description"><![CDATA[<p><b>Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.</b></p>]]></field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="profile_manager_comp_1" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_manager"/>
+        <field name="sequence">10</field>
+        <field name="competency_id" ref="comp_c_lead"/>
+        <field name="weight">40</field>
+    </record>
+    <record id="profile_manager_comp_2" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_manager"/>
+        <field name="sequence">20</field>
+        <field name="competency_id" ref="comp_c_ops"/>
+        <field name="weight">40</field>
+    </record>
+    <record id="profile_manager_comp_3" model="dmag.position.competency">
+        <field name="profile_id" ref="profile_manager"/>
+        <field name="sequence">30</field>
+        <field name="competency_id" ref="comp_c_ethic"/>
+        <field name="weight">20</field>
+    </record>
+    <record id="kpi_manager_1" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_manager"/>
+        <field name="sequence">10</field>
+        <field name="code">MANAGER_K1</field>
+        <field name="name">Doanh thu phòng khám</field>
+        <field name="weight">30</field>
+        <field name="target">1500000000</field>
+        <field name="unit">đ</field>
+        <field name="direction">higher</field>
+        <field name="data_source">revenue</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_manager_2" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_manager"/>
+        <field name="sequence">20</field>
+        <field name="code">MANAGER_K2</field>
+        <field name="name">Thời gian chờ trung bình</field>
+        <field name="weight">20</field>
+        <field name="target">15</field>
+        <field name="unit">phút</field>
+        <field name="direction">lower</field>
+        <field name="data_source">wait_time</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_manager_3" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_manager"/>
+        <field name="sequence">30</field>
+        <field name="code">MANAGER_K3</field>
+        <field name="name">Tỷ lệ khách quay lại</field>
+        <field name="weight">25</field>
+        <field name="target">60</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">retention</field>
+        <field name="scope">clinic</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+    <record id="kpi_manager_4" model="dmag.kpi.definition">
+        <field name="profile_id" ref="profile_manager"/>
+        <field name="sequence">40</field>
+        <field name="code">MANAGER_K4</field>
+        <field name="name">Điểm OKR</field>
+        <field name="weight">25</field>
+        <field name="target">70</field>
+        <field name="unit">%</field>
+        <field name="direction">higher</field>
+        <field name="data_source">okr_score</field>
+        <field name="scope">personal</field>
+        <field name="is_sample" eval="True"/>
+    </record>
+</odoo>

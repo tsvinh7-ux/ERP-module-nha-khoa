@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Danh mục thuốc nha khoa thường dùng (demo). Số đăng ký / mã thuốc Dược quốc gia để trống:
+         phòng khám tự cập nhật theo sản phẩm thực tế. Vitamin C viên sủi là thực phẩm bảo vệ sức khỏe
+         → bị chặn kê đơn (Luật KCB 2023 Đ63 k2). Không có thuốc N / H trong danh mục mặc định. -->
+    <record id="drug_amoxicillin_500" model="dmag.drug">
+        <field name="inn_name">Amoxicillin</field>
+        <field name="strength">500 mg</field>
+        <field name="dosage_form">Viên nang</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">3</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_amox_clav_625" model="dmag.drug">
+        <field name="inn_name">Amoxicillin + Acid clavulanic</field>
+        <field name="strength">500 mg + 125 mg</field>
+        <field name="dosage_form">Viên nén bao phim</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="brand_name">Augmentin</field>
+        <field name="multi_ingredient" eval="True"/>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">2</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_metronidazole_250" model="dmag.drug">
+        <field name="inn_name">Metronidazol</field>
+        <field name="strength">250 mg</field>
+        <field name="dosage_form">Viên nén</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="default_dose_per_time">2</field>
+        <field name="default_times_per_day">2</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_spiramycin_metro" model="dmag.drug">
+        <field name="inn_name">Spiramycin + Metronidazol</field>
+        <field name="strength">750.000 IU + 125 mg</field>
+        <field name="dosage_form">Viên nén bao phim</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="brand_name">Rodogyl</field>
+        <field name="multi_ingredient" eval="True"/>
+        <field name="default_dose_per_time">2</field>
+        <field name="default_times_per_day">2</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">with_meal</field>
+    </record>
+    <record id="drug_clindamycin_300" model="dmag.drug">
+        <field name="inn_name">Clindamycin</field>
+        <field name="strength">300 mg</field>
+        <field name="dosage_form">Viên nang</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="brand_name">Dalacin C</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">3</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_paracetamol_500" model="dmag.drug">
+        <field name="inn_name">Paracetamol</field>
+        <field name="strength">500 mg</field>
+        <field name="dosage_form">Viên nén</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">3</field>
+        <field name="default_days">3</field>
+        <field name="default_timing">when_pain</field>
+    </record>
+    <record id="drug_ibuprofen_400" model="dmag.drug">
+        <field name="inn_name">Ibuprofen</field>
+        <field name="strength">400 mg</field>
+        <field name="dosage_form">Viên nén bao phim</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">3</field>
+        <field name="default_days">3</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_meloxicam_7_5" model="dmag.drug">
+        <field name="inn_name">Meloxicam</field>
+        <field name="strength">7,5 mg</field>
+        <field name="dosage_form">Viên nén</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="brand_name">Mobic</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">1</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_alpha_chymo" model="dmag.drug">
+        <field name="inn_name">Alphachymotrypsin</field>
+        <field name="strength">4,2 mg (21 microkatal)</field>
+        <field name="dosage_form">Viên nén</field>
+        <field name="unit">Viên</field>
+        <field name="route">buccal</field>
+        <field name="default_dose_per_time">2</field>
+        <field name="default_times_per_day">3</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">none</field>
+    </record>
+    <record id="drug_chlorhexidine_012" model="dmag.drug">
+        <field name="inn_name">Chlorhexidin digluconat</field>
+        <field name="strength">0,12%</field>
+        <field name="dosage_form">Dung dịch súc miệng</field>
+        <field name="unit">Chai</field>
+        <field name="dose_unit">ml</field>
+        <field name="route">mouthwash</field>
+        <field name="default_dose_per_time">10</field>
+        <field name="default_times_per_day">2</field>
+        <field name="default_days">7</field>
+        <field name="default_timing">after_brushing</field>
+    </record>
+    <record id="drug_prednisolone_5" model="dmag.drug">
+        <field name="inn_name">Prednisolon</field>
+        <field name="strength">5 mg</field>
+        <field name="dosage_form">Viên nén</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="default_dose_per_time">2</field>
+        <field name="default_times_per_day">1</field>
+        <field name="default_days">3</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_lidocaine_gel" model="dmag.drug">
+        <field name="inn_name">Lidocain hydroclorid</field>
+        <field name="strength">2%</field>
+        <field name="dosage_form">Gel bôi niêm mạc</field>
+        <field name="unit">Tuýp</field>
+        <field name="dose_unit">lớp mỏng</field>
+        <field name="route">topical</field>
+        <field name="brand_name">Xylocaine Jelly</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">3</field>
+        <field name="default_days">3</field>
+        <field name="default_timing">none</field>
+    </record>
+    <record id="drug_vitamin_c_500" model="dmag.drug">
+        <field name="inn_name">Vitamin C (Acid ascorbic)</field>
+        <field name="strength">500 mg</field>
+        <field name="dosage_form">Viên sủi (thực phẩm bảo vệ sức khỏe)</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="is_supplement" eval="True"/>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">1</field>
+        <field name="default_days">10</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_etoricoxib_90" model="dmag.drug">
+        <field name="inn_name">Etoricoxib</field>
+        <field name="strength">90 mg</field>
+        <field name="dosage_form">Viên nén bao phim</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="brand_name">Arcoxia</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">1</field>
+        <field name="default_days">3</field>
+        <field name="default_timing">after_meal</field>
+    </record>
+    <record id="drug_acyclovir_400" model="dmag.drug">
+        <field name="inn_name">Aciclovir</field>
+        <field name="strength">400 mg</field>
+        <field name="dosage_form">Viên nén</field>
+        <field name="unit">Viên</field>
+        <field name="route">oral</field>
+        <field name="default_dose_per_time">1</field>
+        <field name="default_times_per_day">3</field>
+        <field name="default_days">5</field>
+        <field name="default_timing">none</field>
+    </record>
+</odoo>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_zns_config" name="Zalo ZNS" parent="dmag_dental_base.menu_dmag_config" sequence="40"/>
+    <menuitem id="menu_dmag_zns_template" name="Mẫu ZNS" parent="menu_dmag_zns_config"
+              action="action_dmag_zns_template" sequence="10"/>
+    <menuitem id="menu_dmag_zns_message" name="Nhật ký tin ZNS" parent="menu_dmag_zns_config"
+              action="action_dmag_zns_message" sequence="20"/>
+    <menuitem id="menu_dmag_zns_webhook" name="Webhook Zalo" parent="menu_dmag_zns_config"
+              action="action_dmag_zns_webhook_event" sequence="30"/>
+</odoo>

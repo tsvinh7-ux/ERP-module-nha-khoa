@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_dmag_zns" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.zns</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_partner_form_dmag_patient"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='zalo_phone']" position="after">
+                <field name="zns_opt_out"/>
+                <field name="zns_opt_out_date" invisible="not zns_opt_out"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_zns_messages" type="object" class="oe_stat_button" icon="fa-commenting"
+                        invisible="not is_patient">
+                    <field name="zns_message_count" widget="statinfo" string="Tin ZNS"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

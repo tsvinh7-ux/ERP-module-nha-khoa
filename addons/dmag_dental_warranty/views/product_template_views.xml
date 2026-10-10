@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_dmag_warranty" model="ir.ui.view">
+        <field name="name">product.template.form.dmag.warranty</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="dmag_dental_base.product_template_form_dmag"/>
+        <field name="arch" type="xml">
+            <field name="warranty_months" position="after">
+                <field name="warranty_conditions" invisible="warranty_months &lt;= 0"
+                       placeholder="Điều kiện in trên thẻ bảo hành"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_pay3p_sheet_tree" model="ir.ui.view">
+        <field name="name">dmag.pay3p.sheet.tree</field>
+        <field name="model">dmag.pay3p.sheet</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date_from" widget="date"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="total_p1" sum="Tổng"/>
+                <field name="total_p2" sum="Tổng"/>
+                <field name="total_p3" sum="Tổng"/>
+                <field name="total" sum="Tổng"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge" decoration-info="state == 'reviewed'"
+                       decoration-success="state in ('approved', 'exported')"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_pay3p_sheet_form" model="ir.ui.view">
+        <field name="name">dmag.pay3p.sheet.form</field>
+        <field name="model">dmag.pay3p.sheet</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_lines" type="object" string="Lấy nhân viên &amp; tính" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_compute" type="object" string="Tính lại" invisible="state not in ('draft', 'reviewed')"/>
+                    <button name="action_review" type="object" string="Quản lý soát xong" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Giám đốc duyệt" class="btn-primary"
+                            invisible="state != 'reviewed'" groups="dmag_dental_base.group_dmag_director"/>
+                    <button name="action_export_xlsx" type="object" string="Xuất XLSX cho Payroll" class="btn-primary"
+                            invisible="state not in ('approved', 'exported')"/>
+                    <button name="action_export_csv" type="object" string="Xuất CSV"
+                            invisible="state not in ('approved', 'exported')"/>
+                    <button name="action_reset_draft" type="object" string="Mở lại" invisible="state == 'draft'"
+                            groups="dmag_dental_base.group_dmag_director"
+                            confirm="Mở lại bảng lương 3P đã duyệt / đã xuất?"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="date_from" readonly="state != 'draft'" widget="date"/>
+                            <field name="date_to"/>
+                            <field name="company_id" readonly="state != 'draft'" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_p1"/>
+                            <field name="total_p2"/>
+                            <field name="total_p3"/>
+                            <field name="total"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Bảng 3P" name="lines">
+                            <field name="line_ids" readonly="state in ('approved', 'exported')">
+                                <tree editable="bottom" create="0">
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="employee_code" optional="show"/>
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="job_id" optional="hide"/>
+                                    <field name="grade_id" optional="show"/>
+                                    <field name="p1_amount" sum="Tổng"/>
+                                    <field name="p2_base" optional="hide"/>
+                                    <field name="p2_coefficient"/>
+                                    <field name="p2_amount" sum="Tổng"/>
+                                    <field name="kpi_score"/>
+                                    <field name="p3_base" optional="hide"/>
+                                    <field name="p3_kpi_amount" sum="Tổng"/>
+                                    <field name="commission_amount" sum="Tổng"/>
+                                    <field name="okr_score" optional="show"/>
+                                    <field name="okr_bonus_base" optional="hide"/>
+                                    <field name="okr_bonus" sum="Tổng"/>
+                                    <field name="adjustment" sum="Tổng"/>
+                                    <field name="adjustment_note" optional="show"/>
+                                    <field name="p3_amount" sum="Tổng"/>
+                                    <field name="total" sum="Tổng"/>
+                                    <button name="action_open_kpi" type="object" icon="fa-list" title="KPI"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Kết quả KPI" name="kpi">
+                            <field name="kpi_result_ids" readonly="state in ('approved', 'exported')">
+                                <tree editable="bottom" create="0">
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="kpi_id" readonly="1"/>
+                                    <field name="weight"/>
+                                    <field name="target"/>
+                                    <field name="actual" readonly="is_auto"/>
+                                    <field name="achievement"/>
+                                    <field name="is_auto"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Duyệt" name="approval">
+                            <group>
+                                <field name="reviewed_by_id"/>
+                                <field name="approved_by_id"/>
+                                <field name="approved_date"/>
+                                <field name="exported_date"/>
+                            </group>
+                            <field name="note" placeholder="Ghi chú…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_pay3p_sheet" model="ir.actions.act_window">
+        <field name="name">Bảng lương 3P</field>
+        <field name="res_model">dmag.pay3p.sheet</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo bảng lương 3P tháng</p>
+            <p>P1 vị trí + P2 năng lực + P3 kết quả (KPI, hoa hồng, OKR). Quản lý soát → Giám đốc duyệt → xuất cho Payroll Bizapps.</p>
+        </field>
+    </record>
+</odoo>

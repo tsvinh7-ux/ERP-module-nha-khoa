@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_dmag_loyalty" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.loyalty</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_dmag_ledger" type="object" class="oe_stat_button" icon="fa-star"
+                        invisible="not is_patient" groups="dmag_dental_base.group_dmag_receptionist">
+                    <field name="dmag_points_balance" widget="statinfo" string="Điểm"/>
+                </button>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Khách hàng thân thiết" name="dmag_loyalty" invisible="not is_patient"
+                      groups="dmag_dental_base.group_dmag_receptionist">
+                    <div class="d-flex gap-2 mb-3">
+                        <button name="action_open_dmag_redeem" type="object" string="Đổi điểm lấy voucher" class="btn-primary"/>
+                        <button name="action_dmag_loyalty_recompute" type="object" string="Xét lại hạng" class="btn-secondary"/>
+                        <button name="action_open_dmag_adjust" type="object" string="Điều chỉnh điểm" class="btn-secondary"
+                                groups="dmag_dental_base.group_dmag_director"/>
+                    </div>
+                    <group>
+                        <group string="Hạng">
+                            <field name="dmag_tier_id"/>
+                            <field name="dmag_paid_12m"/>
+                            <field name="dmag_engagement_12m"/>
+                            <field name="dmag_lifetime_paid"/>
+                            <field name="dmag_loyalty_date"/>
+                            <field name="dmag_currency_id" invisible="1"/>
+                        </group>
+                        <group string="Điểm">
+                            <field name="dmag_points_balance"/>
+                            <field name="dmag_own_points"/>
+                        </group>
+                    </group>
+                    <field name="dmag_voucher_ids" readonly="1">
+                        <tree decoration-muted="state in ('used', 'expired', 'cancel')">
+                            <field name="name"/>
+                            <field name="value_type"/>
+                            <field name="value"/>
+                            <field name="valid_to"/>
+                            <field name="state" widget="badge"/>
+                        </tree>
+                    </field>
+                    <field name="dmag_care_subscription_ids" readonly="1">
+                        <tree>
+                            <field name="name"/>
+                            <field name="plan_id"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="state" widget="badge"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_tree_dmag_loyalty" model="ir.ui.view">
+        <field name="name">res.partner.tree.dmag.loyalty</field>
+        <field name="model">res.partner</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <tree string="Thành viên" create="0">
+                <field name="patient_code"/>
+                <field name="name"/>
+                <field name="mobile"/>
+                <field name="dental_family_id"/>
+                <field name="dmag_tier_id"/>
+                <field name="dmag_paid_12m" sum="Tổng"/>
+                <field name="dmag_engagement_12m"/>
+                <field name="dmag_points_balance"/>
+                <field name="dmag_loyalty_date" optional="hide"/>
+                <field name="dmag_currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_partner_search_dmag_loyalty" model="ir.ui.view">
+        <field name="name">res.partner.search.dmag.loyalty</field>
+        <field name="model">res.partner</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('patient_code', 'ilike', self), ('mobile', 'ilike', self)]"/>
+                <field name="dmag_tier_id"/>
+                <field name="dental_family_id"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_tier" string="Hạng" context="{'group_by': 'dmag_tier_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dmag_loyalty_member" model="ir.actions.act_window">
+        <field name="name">Thành viên</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_patient', '=', True)]</field>
+        <field name="search_view_id" ref="view_partner_search_dmag_loyalty"/>
+        <field name="context">{'search_default_group_tier': 1, 'default_is_patient': True}</field>
+    </record>
+    <record id="action_dmag_loyalty_member_tree" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_partner_tree_dmag_loyalty"/>
+        <field name="act_window_id" ref="action_dmag_loyalty_member"/>
+    </record>
+</odoo>

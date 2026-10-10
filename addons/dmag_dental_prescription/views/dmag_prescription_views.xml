@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_prescription_form" model="ir.ui.view">
+        <field name="name">dmag.prescription.form</field>
+        <field name="model">dmag.prescription</field>
+        <field name="arch" type="xml">
+            <form string="Đơn thuốc">
+                <header>
+                    <button name="action_issue" type="object" string="Phát hành đơn" class="btn-primary"
+                            invisible="state != 'draft'" groups="dmag_dental_base.group_dmag_doctor"
+                            confirm="Phát hành đơn thuốc? Sau khi phát hành đơn bị khóa, không sửa được (chỉ kê đơn thay thế)."/>
+                    <button name="action_resend" type="object" string="Gửi lại" class="btn-primary"
+                            invisible="state not in ('issued', 'send_error')" groups="dmag_dental_base.group_dmag_doctor"/>
+                    <button name="%(action_report_prescription)d" type="action" string="In đơn thuốc"
+                            invisible="state in ('draft', 'cancelled', 'replaced')"/>
+                    <button name="action_replace" type="object" string="Kê đơn thay thế"
+                            invisible="state not in ('issued', 'sent', 'send_error')" groups="dmag_dental_base.group_dmag_doctor"/>
+                    <button name="action_cancel" type="object" string="Hủy nháp"
+                            invisible="state != 'draft'" groups="dmag_dental_base.group_dmag_doctor"/>
+                    <button name="action_cancel" type="object" string="Hủy đơn"
+                            invisible="state not in ('issued', 'sent', 'send_error')" groups="dmag_dental_base.group_dmag_director"
+                            confirm="Hủy đơn thuốc đã phát hành? Cần ghi lý do hủy."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,issued,sent"/>
+                </header>
+                <div class="alert alert-danger mb-0" role="alert" invisible="state != 'send_error'">
+                    <b>Lỗi liên thông:</b> <field name="send_error" readonly="1"/>
+                </div>
+                <div class="alert alert-info mb-0" role="alert" invisible="not replaced_by_id">
+                    Đơn này đã được thay thế bởi <field name="replaced_by_id" readonly="1"/>.
+                </div>
+                <sheet>
+                    <widget name="web_ribbon" title="Đã liên thông" bg_color="text-bg-success" invisible="state != 'sent'"/>
+                    <widget name="web_ribbon" title="Đã thay thế" bg_color="text-bg-warning" invisible="state != 'replaced'"/>
+                    <widget name="web_ribbon" title="Đã hủy" bg_color="text-bg-danger" invisible="state != 'cancelled'"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1" placeholder="Cấp khi phát hành"/></h1>
+                    </div>
+                    <group>
+                        <group string="Đơn thuốc">
+                            <field name="visit_id" readonly="state != 'draft'"/>
+                            <field name="patient_id" readonly="state != 'draft' or visit_id"/>
+                            <field name="doctor_id" readonly="state != 'draft'"/>
+                            <field name="rx_type" readonly="state != 'draft'"/>
+                            <field name="template_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="date" readonly="1"/>
+                            <field name="replaced_id" invisible="not replaced_id"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Chẩn đoán">
+                            <field name="diagnosis_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                            <field name="diagnosis_text" readonly="state != 'draft'"/>
+                            <field name="re_exam_date" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Thuốc" name="lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="drug_id" domain="[('is_supplement', '=', False)]" options="{'no_create': True}"/>
+                                    <field name="dose_per_time"/>
+                                    <field name="times_per_day"/>
+                                    <field name="days"/>
+                                    <field name="timing"/>
+                                    <field name="route" optional="hide"/>
+                                    <field name="usage_note" optional="hide"/>
+                                    <field name="quantity"/>
+                                    <field name="unit"/>
+                                    <field name="usage"/>
+                                    <field name="is_chronic" optional="hide"/>
+                                </tree>
+                            </field>
+                            <group string="Lời dặn">
+                                <field name="advice" nolabel="1" colspan="2" readonly="state != 'draft'"/>
+                            </group>
+                        </page>
+                        <page string="Thông tin người bệnh" name="patient">
+                            <p class="text-muted">Thông tin được chụp lại từ hồ sơ bệnh nhân tại thời điểm phát hành đơn.</p>
+                            <group>
+                                <group>
+                                    <field name="patient_name" readonly="1"/>
+                                    <field name="patient_birthdate" readonly="1"/>
+                                    <field name="patient_age" readonly="1"/>
+                                    <field name="patient_gender" readonly="1"/>
+                                    <field name="patient_identity" readonly="1"/>
+                                    <field name="identity_exemption_reason" readonly="state != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="patient_address" readonly="1"/>
+                                    <field name="patient_phone" readonly="1"/>
+                                    <field name="patient_bhyt" readonly="1"/>
+                                </group>
+                                <group string="Trẻ dưới 72 tháng tuổi" invisible="not is_under_72_months">
+                                    <field name="is_under_72_months" invisible="1"/>
+                                    <field name="patient_age_months" readonly="1"/>
+                                    <field name="weight" readonly="state != 'draft'" required="is_under_72_months and state == 'draft'"/>
+                                    <field name="companion_name" readonly="state != 'draft'" required="is_under_72_months and state == 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Liên thông" name="national" groups="dmag_dental_base.group_dmag_doctor">
+                            <group>
+                                <group>
+                                    <field name="sent_at"/>
+                                    <field name="send_attempts"/>
+                                    <field name="issued_uid"/>
+                                </group>
+                                <group>
+                                    <field name="cancel_reason" readonly="state in ('cancelled', 'replaced')"/>
+                                    <field name="internal_note"/>
+                                </group>
+                            </group>
+                            <field name="send_log_ids" readonly="1">
+                                <tree>
+                                    <field name="create_date"/>
+                                    <field name="operation"/>
+                                    <field name="status_code"/>
+                                    <field name="success"/>
+                                    <field name="error_message"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_prescription_tree" model="ir.ui.view">
+        <field name="name">dmag.prescription.tree</field>
+        <field name="model">dmag.prescription</field>
+        <field name="arch" type="xml">
+            <tree string="Đơn thuốc" decoration-danger="state == 'send_error'" decoration-muted="state in ('cancelled', 'replaced')"
+                  decoration-info="state == 'draft'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="rx_type" optional="hide"/>
+                <field name="line_count"/>
+                <field name="visit_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'sent'" decoration-warning="state == 'issued'"
+                       decoration-danger="state == 'send_error'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_prescription_search" model="ir.ui.view">
+        <field name="name">dmag.prescription.search</field>
+        <field name="model">dmag.prescription</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="visit_id"/>
+                <filter name="draft" string="Nháp" domain="[('state', '=', 'draft')]"/>
+                <filter name="pending" string="Chờ liên thông / lỗi" domain="[('state', 'in', ('issued', 'send_error'))]"/>
+                <filter name="sent" string="Đã liên thông" domain="[('state', '=', 'sent')]"/>
+                <separator/>
+                <filter name="today" string="Hôm nay" domain="[('date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_doctor" string="Bác sĩ" context="{'group_by': 'doctor_id'}"/>
+                    <filter name="group_state" string="Trạng thái" context="{'group_by': 'state'}"/>
+                    <filter name="group_date" string="Ngày" context="{'group_by': 'date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_prescription" model="ir.actions.act_window">
+        <field name="name">Đơn thuốc</field>
+        <field name="res_model">dmag.prescription</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Kê đơn thuốc điện tử</p>
+            <p>Đơn được cấp mã 14 ký tự khi phát hành, khóa không sửa và tự gửi lên Hệ thống đơn thuốc quốc gia.</p>
+        </field>
+    </record>
+
+    <!-- Nút trên lượt khám -->
+    <record id="view_dmag_visit_form_prescription" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.prescription</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_prescriptions" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                    <field name="prescription_count" widget="statinfo" string="Đơn thuốc"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

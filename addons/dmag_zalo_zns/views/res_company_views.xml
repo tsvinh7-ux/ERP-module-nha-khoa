@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_dmag_zns" model="ir.ui.view">
+        <field name="name">res.company.form.dmag.zns</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Zalo ZNS" name="dmag_zalo_zns">
+                    <group>
+                        <group string="Chế độ gửi">
+                            <field name="dmag_zns_mode"/>
+                            <field name="dmag_zns_dev_mode" invisible="dmag_zns_mode != 'live'"/>
+                            <field name="dmag_zns_bizapps_method" invisible="dmag_zns_mode != 'bizapps'"/>
+                            <field name="dmag_zns_max_retry"/>
+                            <label for="dmag_zns_quiet_start" string="Giờ yên lặng"/>
+                            <div class="o_row">
+                                <field name="dmag_zns_quiet_start" widget="float_time"/>
+                                <span>đến</span>
+                                <field name="dmag_zns_quiet_end" widget="float_time"/>
+                            </div>
+                        </group>
+                        <group string="Zalo Official Account">
+                            <field name="dmag_zalo_oa_id"/>
+                            <field name="dmag_zalo_app_id" password="True"/>
+                            <field name="dmag_zalo_app_secret" password="True"/>
+                            <field name="dmag_zalo_access_token" password="True"/>
+                            <field name="dmag_zalo_refresh_token" password="True"/>
+                            <field name="dmag_zalo_token_expiry"/>
+                            <field name="dmag_zalo_webhook_secret" password="True"/>
+                            <field name="dmag_zalo_webhook_key"/>
+                            <button name="action_dmag_zalo_refresh_token" type="object" string="Làm mới access token"
+                                    class="btn-secondary" colspan="2"
+                                    groups="base.group_system,dmag_dental_base.group_dmag_director"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

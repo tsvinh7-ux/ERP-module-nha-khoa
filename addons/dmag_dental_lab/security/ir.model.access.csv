@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_lab_order_receptionist,dmag_lab_order receptionist,model_dmag_lab_order,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_lab_order_assistant,dmag_lab_order assistant,model_dmag_lab_order,dmag_dental_base.group_dmag_assistant,1,1,1,0
+access_dmag_lab_order_manager,dmag_lab_order manager,model_dmag_lab_order,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_lab_tryin_receptionist,dmag_lab_tryin receptionist,model_dmag_lab_tryin,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_lab_tryin_assistant,dmag_lab_tryin assistant,model_dmag_lab_tryin,dmag_dental_base.group_dmag_assistant,1,0,1,0
+access_dmag_lab_tryin_manager,dmag_lab_tryin manager,model_dmag_lab_tryin,dmag_dental_base.group_dmag_manager,1,1,1,1

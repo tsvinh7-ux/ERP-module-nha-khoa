@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rx_template_wisdom" model="dmag.prescription.template">
+        <field name="name">Sau nhổ răng khôn</field>
+        <field name="sequence">10</field>
+        <field name="diagnosis_ids" eval="[(6, 0, [ref('dmag_dental_base.diag_k01_1')])]"/>
+        <field name="re_exam_days">7</field>
+        <field name="advice">Cắn chặt gạc 30–60 phút. Chườm lạnh má ngoài trong 24 giờ đầu. Không súc miệng mạnh, không khạc nhổ, không hút thuốc trong 24 giờ. Ăn thức ăn mềm, nguội. Uống thuốc đúng giờ, tái khám cắt chỉ sau 7 ngày. Nếu chảy máu kéo dài, sưng tăng hoặc sốt, liên hệ ngay phòng khám.</field>
+    </record>
+    <record id="rx_template_wisdom_l1" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_wisdom"/>
+        <field name="sequence">10</field>
+        <field name="drug_id" ref="drug_amox_clav_625"/>
+        <field name="dose_per_time">1</field><field name="times_per_day">2</field><field name="days">5</field>
+    </record>
+    <record id="rx_template_wisdom_l2" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_wisdom"/>
+        <field name="sequence">20</field>
+        <field name="drug_id" ref="drug_ibuprofen_400"/>
+        <field name="dose_per_time">1</field><field name="times_per_day">3</field><field name="days">3</field>
+    </record>
+    <record id="rx_template_wisdom_l3" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_wisdom"/>
+        <field name="sequence">30</field>
+        <field name="drug_id" ref="drug_paracetamol_500"/>
+        <field name="dose_per_time">1</field><field name="times_per_day">3</field><field name="days">3</field>
+    </record>
+    <record id="rx_template_wisdom_l4" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_wisdom"/>
+        <field name="sequence">40</field>
+        <field name="drug_id" ref="drug_chlorhexidine_012"/>
+        <field name="dose_per_time">10</field><field name="times_per_day">2</field><field name="days">7</field>
+        <field name="usage_note">bắt đầu từ ngày thứ hai sau nhổ</field>
+    </record>
+
+    <record id="rx_template_pulpitis" model="dmag.prescription.template">
+        <field name="name">Viêm tủy cấp</field>
+        <field name="sequence">20</field>
+        <field name="diagnosis_ids" eval="[(6, 0, [ref('dmag_dental_base.diag_k04_0')])]"/>
+        <field name="re_exam_days">3</field>
+        <field name="advice">Tránh nhai bên răng đau, tránh đồ quá nóng hoặc quá lạnh. Tái khám đúng hẹn để tiếp tục điều trị tủy.</field>
+    </record>
+    <record id="rx_template_pulpitis_l1" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_pulpitis"/>
+        <field name="sequence">10</field>
+        <field name="drug_id" ref="drug_amoxicillin_500"/>
+        <field name="dose_per_time">1</field><field name="times_per_day">3</field><field name="days">5</field>
+    </record>
+    <record id="rx_template_pulpitis_l2" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_pulpitis"/>
+        <field name="sequence">20</field>
+        <field name="drug_id" ref="drug_metronidazole_250"/>
+        <field name="dose_per_time">2</field><field name="times_per_day">2</field><field name="days">5</field>
+    </record>
+    <record id="rx_template_pulpitis_l3" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_pulpitis"/>
+        <field name="sequence">30</field>
+        <field name="drug_id" ref="drug_ibuprofen_400"/>
+        <field name="dose_per_time">1</field><field name="times_per_day">3</field><field name="days">3</field>
+    </record>
+
+    <record id="rx_template_implant" model="dmag.prescription.template">
+        <field name="name">Sau cấy implant</field>
+        <field name="sequence">30</field>
+        <field name="diagnosis_ids" eval="[(6, 0, [ref('dmag_dental_base.diag_k08_1')])]"/>
+        <field name="re_exam_days">10</field>
+        <field name="advice">Chườm lạnh 24 giờ đầu. Không nhai vào vùng cấy ghép. Vệ sinh răng miệng nhẹ nhàng, súc miệng theo hướng dẫn. Không hút thuốc, không uống rượu bia. Tái khám cắt chỉ sau 7–10 ngày.</field>
+    </record>
+    <record id="rx_template_implant_l1" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_implant"/>
+        <field name="sequence">10</field>
+        <field name="drug_id" ref="drug_amox_clav_625"/>
+        <field name="dose_per_time">1</field><field name="times_per_day">2</field><field name="days">7</field>
+    </record>
+    <record id="rx_template_implant_l2" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_implant"/>
+        <field name="sequence">20</field>
+        <field name="drug_id" ref="drug_etoricoxib_90"/>
+        <field name="dose_per_time">1</field><field name="times_per_day">1</field><field name="days">3</field>
+    </record>
+    <record id="rx_template_implant_l3" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_implant"/>
+        <field name="sequence">30</field>
+        <field name="drug_id" ref="drug_alpha_chymo"/>
+        <field name="dose_per_time">2</field><field name="times_per_day">3</field><field name="days">5</field>
+    </record>
+    <record id="rx_template_implant_l4" model="dmag.prescription.template.line">
+        <field name="template_id" ref="rx_template_implant"/>
+        <field name="sequence">40</field>
+        <field name="drug_id" ref="drug_chlorhexidine_012"/>
+        <field name="dose_per_time">10</field><field name="times_per_day">2</field><field name="days">10</field>
+    </record>
+
+    <!-- Cấu hình liên thông ở chế độ giả lập cho phòng khám demo -->
+    <record id="rx_national_config_demo" model="dmag.rx.national.config">
+        <field name="company_id" ref="base.main_company"/>
+        <field name="enabled" eval="True"/>
+        <field name="mode">mock</field>
+        <field name="facility_link_code">DEMO-CSKCB</field>
+        <field name="facility_password">demo</field>
+    </record>
+</odoo>

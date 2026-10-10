@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_dmag_emr" model="ir.ui.view">
+        <field name="name">res.company.form.dmag.emr</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_company_form_dmag"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='dmag_dental']" position="inside">
+                <group string="Hồ sơ bệnh án">
+                    <group>
+                        <field name="dmag_health_authority"/>
+                        <field name="dmag_record_retention_years"/>
+                    </group>
+                    <div class="text-muted">
+                        Thời hạn lưu trữ cần xác minh theo Thông tư 33/2025/TT-BYT. Trước hạn, không ai được xóa bệnh án.
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

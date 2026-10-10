@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_employee_form_dmag_3p" model="ir.ui.view">
+        <field name="name">hr.employee.form.dmag.3p</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Lương 3P" name="dmag_3p" groups="hr.group_hr_user">
+                    <group>
+                        <group string="Ngạch bậc &amp; P1">
+                            <field name="dmag_profile_id"/>
+                            <field name="dmag_track"/>
+                            <field name="dmag_grade_id"/>
+                            <field name="dmag_p1_amount"/>
+                        </group>
+                        <group string="P2">
+                            <field name="dmag_p2_coefficient"/>
+                        </group>
+                    </group>
+                    <separator string="Đánh giá năng lực"/>
+                    <field name="dmag_assessment_ids" readonly="1">
+                        <tree>
+                            <field name="date"/>
+                            <field name="name"/>
+                            <field name="score"/>
+                            <field name="p2_coefficient"/>
+                            <field name="state"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_hr_employee_tree_dmag_3p" model="ir.ui.view">
+        <field name="name">hr.employee.tree.dmag.3p</field>
+        <field name="model">hr.employee</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="job_id"/>
+                <field name="dmag_profile_id"/>
+                <field name="dmag_track"/>
+                <field name="dmag_grade_id"/>
+                <field name="dmag_p1_amount" sum="Tổng P1"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_employee_3p" model="ir.actions.act_window">
+        <field name="name">Nhân viên &amp; ngạch bậc</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_hr_employee_tree_dmag_3p"/>
+    </record>
+</odoo>

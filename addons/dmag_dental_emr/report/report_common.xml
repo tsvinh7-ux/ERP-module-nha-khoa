@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_dmag_emr_a4" model="report.paperformat">
+        <field name="name">DMAG – Bệnh án A4</field>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">12</field>
+        <field name="margin_bottom">14</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">12</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <!-- Kiểu chữ chung: biểu mẫu hành chính (đen trắng in được), điểm nhấn DMAG navy #11346A / xanh #178BEC -->
+    <template id="emr_styles">
+        <style>
+            .dmag-emr { font-family: "Times New Roman", "DejaVu Serif", serif; font-size: 13px; color: #111; line-height: 1.35; }
+            .dmag-emr table { border-collapse: collapse; width: 100%; }
+            .dmag-emr .hdr td { vertical-align: top; padding: 0; }
+            .dmag-emr .hdr .left { width: 38%; text-align: center; font-size: 12px; }
+            .dmag-emr .hdr .mid { width: 40%; text-align: center; }
+            .dmag-emr .hdr .right { width: 22%; font-size: 12px; }
+            .dmag-emr .form-code { border: 1px solid #11346A; color: #11346A; font-weight: bold; padding: 2px 6px; display: inline-block; }
+            .dmag-emr .title { color: #11346A; font-size: 19px; font-weight: bold; text-transform: uppercase; letter-spacing: .3px; }
+            .dmag-emr .subtitle { font-size: 12px; font-style: italic; }
+            .dmag-emr .section { color: #11346A; font-weight: bold; text-transform: uppercase; font-size: 13.5px;
+                                 border-bottom: 1.5px solid #178BEC; margin: 12px 0 5px 0; padding-bottom: 1px; page-break-after: avoid; }
+            .dmag-emr .sub { font-weight: bold; margin-top: 5px; }
+            .dmag-emr .dots { border-bottom: 1px dotted #777; min-height: 17px; }
+            .dmag-emr .val { white-space: pre-line; }
+            .dmag-emr .grid td, .dmag-emr .grid th { border: 1px solid #6b7a90; padding: 3px 5px; vertical-align: top; }
+            .dmag-emr .grid th { background: #EEF4FB; color: #11346A; font-weight: bold; text-align: center; }
+            .dmag-emr .admin td { padding: 2px 4px 2px 0; vertical-align: top; }
+            .dmag-emr .lbl { white-space: nowrap; }
+            .dmag-emr .tooth td { border: 1px solid #6b7a90; text-align: center; width: 6.25%; height: 34px; vertical-align: top; padding: 1px; font-size: 11px; }
+            .dmag-emr .tooth td.mid-gap { border-left: 2.5px solid #11346A; }
+            .dmag-emr .tooth .num { font-weight: bold; color: #11346A; }
+            .dmag-emr .tooth .mk { font-size: 10px; font-weight: bold; }
+            .dmag-emr .tooth .arch-sep td { border-top: 2.5px solid #11346A; }
+            .dmag-emr .legend span.sw { display: inline-block; width: 11px; height: 11px; border: 1px solid #555; vertical-align: middle; margin-right: 3px; }
+            .dmag-emr .sign td { text-align: center; vertical-align: top; padding-top: 6px; }
+            .dmag-emr .sign .role { font-weight: bold; text-transform: uppercase; }
+            .dmag-emr .sign .esig { color: #11346A; font-size: 11.5px; border: 1px dashed #178BEC; display: inline-block; padding: 3px 8px; margin-top: 6px; }
+            .dmag-emr .muted { color: #555; font-size: 11.5px; }
+            .dmag-emr .page-break { page-break-before: always; }
+            .dmag-emr .avoid { page-break-inside: avoid; }
+        </style>
+    </template>
+
+    <!-- Tiêu đề hành chính: cơ quan chủ quản / tên cơ sở – tiêu đề – mã số mẫu (góc phải) -->
+    <template id="emr_header">
+        <table class="hdr">
+            <tr>
+                <td class="left">
+                    <div style="text-transform: uppercase;" t-esc="company.dmag_health_authority or 'SỞ Y TẾ'"/>
+                    <div style="font-weight: bold; text-transform: uppercase;" t-esc="company.name"/>
+                    <div class="muted" t-if="company.dmag_license_number">Giấy phép hoạt động số: <t t-esc="company.dmag_license_number"/></div>
+                    <div style="margin: 2px auto 0 auto; width: 40%; border-top: 1px solid #111;"/>
+                </td>
+                <td class="mid">
+                    <div class="title" t-esc="title"/>
+                    <div class="subtitle" t-if="subtitle" t-esc="subtitle"/>
+                </td>
+                <td class="right">
+                    <div style="text-align: right;" t-if="form_code"><span class="form-code">MS: <t t-esc="form_code"/></span></div>
+                    <t t-out="0"/>
+                </td>
+            </tr>
+        </table>
+    </template>
+</odoo>

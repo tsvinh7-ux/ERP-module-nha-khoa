@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_zns_webhook_event_tree" model="ir.ui.view">
+        <field name="name">dmag.zns.webhook.event.tree</field>
+        <field name="model">dmag.zns.webhook.event</field>
+        <field name="arch" type="xml">
+            <tree string="Webhook Zalo" create="0" edit="0" delete="0"
+                  decoration-danger="verified == 'invalid'">
+                <field name="create_date" string="Nhận lúc"/>
+                <field name="event_name"/>
+                <field name="message_id"/>
+                <field name="verified"/>
+                <field name="processed"/>
+                <field name="note"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_zns_webhook_event_form" model="ir.ui.view">
+        <field name="name">dmag.zns.webhook.event.form</field>
+        <field name="model">dmag.zns.webhook.event</field>
+        <field name="arch" type="xml">
+            <form string="Sự kiện webhook Zalo" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="event_name"/>
+                            <field name="app_id"/>
+                            <field name="timestamp"/>
+                            <field name="company_id"/>
+                        </group>
+                        <group>
+                            <field name="verified"/>
+                            <field name="signature"/>
+                            <field name="message_id"/>
+                            <field name="processed"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                    <group string="Nội dung gốc">
+                        <field name="raw" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_zns_webhook_event" model="ir.actions.act_window">
+        <field name="name">Webhook Zalo</field>
+        <field name="res_model">dmag.zns.webhook.event</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

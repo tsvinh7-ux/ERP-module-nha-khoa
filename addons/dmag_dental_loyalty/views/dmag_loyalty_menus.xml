@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_loyalty_root" name="Khách hàng thân thiết" parent="dmag_dental_base.menu_dmag_dental_root" sequence="45"/>
+    <menuitem id="menu_dmag_loyalty_member" name="Thành viên" parent="menu_dmag_loyalty_root" action="action_dmag_loyalty_member" sequence="10"/>
+    <menuitem id="menu_dmag_loyalty_voucher" name="Voucher" parent="menu_dmag_loyalty_root" action="action_dmag_loyalty_voucher" sequence="20"/>
+    <menuitem id="menu_dmag_care_subscription" name="Thuê bao gói chăm sóc" parent="menu_dmag_loyalty_root" action="action_dmag_care_subscription" sequence="30"/>
+    <menuitem id="menu_dmag_loyalty_ledger" name="Sổ điểm" parent="menu_dmag_loyalty_root" action="action_dmag_loyalty_ledger" sequence="40"/>
+    <menuitem id="menu_dmag_loyalty_config" name="Cấu hình" parent="menu_dmag_loyalty_root" sequence="90" groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_loyalty_tier" name="Hạng thành viên" parent="menu_dmag_loyalty_config" action="action_dmag_loyalty_tier" sequence="10"/>
+    <menuitem id="menu_dmag_care_plan" name="Gói chăm sóc định kỳ" parent="menu_dmag_loyalty_config" action="action_dmag_care_plan" sequence="20"/>
+</odoo>

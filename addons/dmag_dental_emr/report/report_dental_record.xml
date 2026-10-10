@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_dental_record" model="ir.actions.report">
+        <field name="name">Bệnh án ngoại trú Răng Hàm Mặt (16/BV1)</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_dental_emr.report_dental_record</field>
+        <field name="report_file">dmag_dental_emr.report_dental_record</field>
+        <field name="print_report_name">'Benh an RHM - %s - %s' % (object.patient_id.patient_code or object.patient_id.name, object.name)</field>
+        <field name="paperformat_id" ref="paperformat_dmag_emr_a4"/>
+        <field name="binding_model_id" ref="dmag_dental_clinic.model_dmag_dental_visit"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Sơ đồ răng FDI: hàng răng vĩnh viễn 18–28 / 48–38 và răng sữa 55–65 / 85–75 -->
+    <template id="emr_tooth_chart">
+        <t t-set="chart" t-value="o._emr_tooth_chart()"/>
+        <t t-set="tooth_row_defs" t-value="[('upper_permanent', False), ('lower_permanent', True)]"/>
+        <div class="avoid">
+            <div class="sub">Sơ đồ răng (ký hiệu răng theo hệ thống FDI)</div>
+            <table class="tooth" style="margin-top: 3px;">
+                <t t-foreach="tooth_row_defs" t-as="rowdef">
+                    <tr t-att-class="'arch-sep' if rowdef[1] else None">
+                        <t t-foreach="chart['rows'][rowdef[0]]" t-as="code">
+                            <td t-att-class="'mid-gap' if code_index == 8 else None">
+                                <t t-if="not rowdef[1]"><div class="num" t-esc="code"/></t>
+                                <div>
+                                    <t t-foreach="chart['teeth'].get(code, [])" t-as="mk">
+                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="'X' if mk['symbol'] == 'cross' else mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
+                                    </t>
+                                </div>
+                                <t t-if="rowdef[1]"><div class="num" t-esc="code"/></t>
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+            </table>
+            <div class="muted" style="margin-top: 4px;">Răng sữa:</div>
+            <table class="tooth">
+                <t t-foreach="[('upper_primary', False), ('lower_primary', True)]" t-as="rowdef">
+                    <tr t-att-class="'arch-sep' if rowdef[1] else None">
+                        <td style="border: none;"/><td style="border: none;"/><td style="border: none;"/>
+                        <t t-foreach="chart['rows'][rowdef[0]]" t-as="code">
+                            <td t-att-class="'mid-gap' if code_index == 5 else None">
+                                <t t-if="not rowdef[1]"><div class="num" t-esc="code"/></t>
+                                <div>
+                                    <t t-foreach="chart['teeth'].get(code, [])" t-as="mk">
+                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="'X' if mk['symbol'] == 'cross' else mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
+                                    </t>
+                                </div>
+                                <t t-if="rowdef[1]"><div class="num" t-esc="code"/></t>
+                            </td>
+                        </t>
+                        <td style="border: none;"/><td style="border: none;"/><td style="border: none;"/>
+                    </tr>
+                </t>
+            </table>
+            <div class="legend muted" style="margin-top: 4px;">
+                <b>Chú giải:</b>
+                <t t-if="not chart['legend']">Chưa ghi nhận tình trạng răng.</t>
+                <t t-foreach="chart['legend']" t-as="lg">
+                    <span style="margin-right: 10px; white-space: nowrap;"><span class="sw" t-attf-style="background-color: #{lg['color']};"/><b t-esc="'X' if lg['symbol'] == 'cross' else lg['key']"/> = <t t-esc="lg['name']"/></span>
+                </t>
+                <span style="white-space: nowrap;">· dấu * = chỉ định / kế hoạch điều trị · dấu ✓ = đã điều trị</span>
+            </div>
+        </div>
+    </template>
+
+    <template id="emr_signature_doctor">
+        <div class="role">Bác sĩ khám bệnh</div>
+        <div class="muted"><i>(Ký, ghi rõ họ và tên)</i></div>
+        <t t-if="o.record_state == 'signed'">
+            <div class="esig">Đã ký xác nhận điện tử<br/>
+                <t t-esc="o._emr_fmt_dt(o.signed_at)"/></div>
+            <div style="margin-top: 8px; font-weight: bold;"><t t-esc="o.signed_by_id.title"/> <t t-esc="o.signed_by_id.name"/></div>
+            <div class="muted" t-if="o.signed_by_id.license_number">Chứng chỉ hành nghề / giấy phép hành nghề số: <t t-esc="o.signed_by_id.license_number"/></div>
+        </t>
+        <t t-else="">
+            <div style="height: 60px;"/>
+            <div style="font-weight: bold;"><t t-esc="o.doctor_id.title"/> <t t-esc="o.doctor_id.name"/></div>
+            <div class="muted">(Bệnh án chưa ký)</div>
+        </t>
+    </template>
+
+    <template id="report_dental_record_document">
+        <t t-set="p" t-value="o.patient_id"/>
+        <t t-set="company" t-value="o.company_id"/>
+        <t t-set="sign_date" t-value="o.signed_at or o.done_time or o.scheduled_start"/>
+        <div class="page dmag-emr">
+            <t t-call="dmag_dental_emr.emr_styles"/>
+            <!-- ===================== TRANG 1: BỆNH ÁN ===================== -->
+            <t t-call="dmag_dental_emr.emr_header">
+                <t t-set="title" t-value="'BỆNH ÁN NGOẠI TRÚ RĂNG HÀM MẶT'"/>
+                <t t-set="subtitle" t-value="'Khoa / phòng khám: Răng Hàm Mặt'"/>
+                <t t-set="form_code" t-value="'16/BV1'"/>
+                <div style="margin-top: 4px;">Số ngoại trú: <b t-esc="o.outpatient_number or '..........'"/></div>
+                <div>Số lưu trữ: <b t-esc="o.archive_number or '..........'"/></div>
+                <div>Mã người bệnh: <b t-esc="p.patient_code or '..........'"/></div>
+                <div>Mã lượt khám: <t t-esc="o.name"/></div>
+            </t>
+
+            <div class="section">I. Hành chính</div>
+            <table class="admin">
+                <tr>
+                    <td colspan="2">1. Họ và tên (chữ in hoa): <b t-esc="(p.name or '').upper()"/></td>
+                    <td>2. Sinh ngày: <t t-esc="p.birthdate and p.birthdate.strftime('%d/%m/%Y') or '..../..../........'"/>
+                        &#160; Tuổi: <t t-esc="p.age or ''"/></td>
+                </tr>
+                <tr>
+                    <td colspan="3">&#160;&#160;&#160; <t t-esc="p._emr_identity_label()"/>: <b t-esc="p.citizen_id or ''"/>
+                        <t t-if="not p.citizen_id and p.identity_exemption_reason"> (chưa có số định danh – lý do: <t t-esc="p.identity_exemption_reason"/>)</t></td>
+                </tr>
+                <tr>
+                    <td style="width: 34%;">3. Giới: <span t-field="p.gender"/></td>
+                    <td style="width: 33%;">4. Nghề nghiệp: <t t-esc="p.occupation or ''"/></td>
+                    <td>5. Dân tộc: <t t-esc="p.ethnicity or ''"/></td>
+                </tr>
+                <tr>
+                    <td>6. Quốc tịch (ngoại kiều): <t t-esc="p.nationality_id.name or ''"/></td>
+                    <td colspan="2">7. Địa chỉ: <t t-esc="p._emr_address()"/></td>
+                </tr>
+                <tr>
+                    <td colspan="3">8. Nơi làm việc: <t t-esc="p.workplace or ''"/></td>
+                </tr>
+                <tr>
+                    <td colspan="3">9. Đối tượng:
+                        <t t-foreach="[('bhyt', 'Bảo hiểm y tế'), ('fee', 'Thu phí'), ('exempt', 'Miễn'), ('other', 'Khác')]" t-as="cat">
+                            <span style="margin-right: 14px;"><t t-esc="'☒' if p.patient_category == cat[0] else '☐'"/> <t t-esc="cat[1]"/></span>
+                        </t>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">10. Bảo hiểm y tế có giá trị đến ngày: <t t-esc="p.bhyt_valid_to and p.bhyt_valid_to.strftime('%d/%m/%Y') or '..../..../........'"/>
+                        &#160;&#160; Số thẻ bảo hiểm y tế: <b t-esc="p.bhyt_number or ''"/></td>
+                </tr>
+                <tr>
+                    <td colspan="2">11. Họ tên, địa chỉ người nhà khi cần báo tin: <t t-esc="p.emergency_contact_name or ''"/>
+                        <t t-if="p.emergency_contact_address"> – <t t-esc="p.emergency_contact_address"/></t></td>
+                    <td>Điện thoại: <t t-esc="p.emergency_contact_phone or ''"/></td>
+                </tr>
+                <tr>
+                    <td colspan="3">12. Đến khám bệnh lúc: <t t-esc="o._emr_fmt_dt(o.checkin_time or o.scheduled_start)"/></td>
+                </tr>
+                <tr>
+                    <td colspan="3">13. Chẩn đoán của nơi giới thiệu:
+                        <t t-foreach="[('self', 'Tự đến'), ('facility', 'Cơ quan y tế'), ('other', 'Khác')]" t-as="ref">
+                            <span style="margin-right: 10px;"><t t-esc="'☒' if o.referral_source == ref[0] else '☐'"/> <t t-esc="ref[1]"/></span>
+                        </t>
+                        <t t-if="o.referral_facility"> – <t t-esc="o.referral_facility"/></t>
+                        <div class="val" t-if="o.referral_diagnosis" t-esc="o.referral_diagnosis"/>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="section">II. Lý do đến khám</div>
+            <div class="val dots" t-esc="o.chief_complaint or o.reason or ''"/>
+
+            <div class="section">III. Hỏi bệnh</div>
+            <div class="sub">1. Quá trình bệnh lý (bệnh sử):</div>
+            <div class="val dots" t-esc="o.present_illness or ''"/>
+            <div class="sub">2. Tiền sử bệnh:</div>
+            <div>+ Bản thân: <span class="val" t-esc="o.personal_history or 'Chưa ghi nhận'"/></div>
+            <div>+ Gia đình: <span class="val" t-esc="o.family_history or 'Chưa ghi nhận'"/></div>
+
+            <div class="section">IV. Khám bệnh</div>
+            <div class="sub">1. Toàn thân:</div>
+            <table class="grid" style="margin: 3px 0;">
+                <tr><th>Mạch</th><th>Nhiệt độ</th><th>Huyết áp</th><th>Nhịp thở</th><th>Cân nặng</th><th>Chiều cao</th></tr>
+                <tr style="text-align: center;">
+                    <td><t t-esc="o.pulse or '....'"/> lần/phút</td>
+                    <td><t t-esc="o.temperature and ('%.1f' % o.temperature) or '....'"/> °C</td>
+                    <td><t t-esc="o.bp_systolic or '....'"/>/<t t-esc="o.bp_diastolic or '....'"/> mmHg</td>
+                    <td><t t-esc="o.respiratory_rate or '....'"/> lần/phút</td>
+                    <td><t t-esc="o.weight and ('%.1f' % o.weight) or '....'"/> kg</td>
+                    <td><t t-esc="o.height and ('%.0f' % o.height) or '....'"/> cm</td>
+                </tr>
+            </table>
+            <div class="val" t-if="o.general_exam" t-esc="o.general_exam"/>
+            <div class="sub">2. Các bộ phận:</div>
+            <div class="val dots" t-esc="o.organ_exam or ''"/>
+            <div class="sub">3. Khám chuyên khoa Răng Hàm Mặt:</div>
+            <table class="admin">
+                <tr><td class="lbl" style="width: 22%;">a) Ngoài mặt:</td><td class="val" t-esc="o.exam_extraoral or ''"/></tr>
+                <tr><td class="lbl">b) Trong miệng:</td><td class="val" t-esc="o.exam_intraoral or o.examination or ''"/></tr>
+                <tr><td class="lbl">c) Khớp cắn:</td><td class="val" t-esc="o.exam_occlusion or ''"/></tr>
+                <tr><td class="lbl">d) Mô mềm:</td><td class="val" t-esc="o.exam_soft_tissue or ''"/></tr>
+                <tr><td class="lbl">đ) Nha chu:</td><td class="val" t-esc="o.exam_periodontal or ''"/></tr>
+                <tr t-if="o.exam_intraoral and o.examination"><td class="lbl">e) Ghi chú khám:</td><td class="val" t-esc="o.examination"/></tr>
+            </table>
+            <t t-call="dmag_dental_emr.emr_tooth_chart"/>
+
+            <div class="section">V. Cận lâm sàng</div>
+            <div class="val dots" t-esc="o.paraclinical_summary or 'Không chỉ định'"/>
+
+            <div class="section">VI. Chẩn đoán</div>
+            <table class="grid">
+                <tr><th style="width: 22%;"/><th>Tên bệnh</th><th style="width: 16%;">Mã ICD-10</th></tr>
+                <tr>
+                    <td><b>Bệnh chính</b></td>
+                    <td t-esc="o.primary_diagnosis_id.name or ''"/>
+                    <td style="text-align: center;" t-esc="o.primary_diagnosis_id.code or ''"/>
+                </tr>
+                <t t-foreach="o.secondary_diagnosis_ids" t-as="dg">
+                    <tr>
+                        <td><t t-if="dg_first"><b>Bệnh kèm theo</b></t></td>
+                        <td t-esc="dg.name"/>
+                        <td style="text-align: center;" t-esc="dg.code"/>
+                    </tr>
+                </t>
+                <tr t-if="not o.secondary_diagnosis_ids"><td><b>Bệnh kèm theo</b></td><td>Không</td><td/></tr>
+            </table>
+            <div class="val" t-if="o.assessment" style="margin-top: 3px;"><i>Nhận định của bác sĩ:</i> <t t-esc="o.assessment"/></div>
+
+            <div class="section">VII. Đã xử lý</div>
+            <div class="val" t-if="o.treatment_note" t-esc="o.treatment_note"/>
+            <table class="grid" t-if="o.procedure_ids" style="margin-top: 3px;">
+                <tr><th style="width: 5%;">Số thứ tự</th><th>Thủ thuật / dịch vụ</th><th style="width: 14%;">Răng</th><th style="width: 12%;">Mặt răng</th><th style="width: 8%;">Số lượng</th><th style="width: 20%;">Người thực hiện</th></tr>
+                <t t-foreach="o.procedure_ids" t-as="pr">
+                    <tr>
+                        <td style="text-align: center;" t-esc="pr_index + 1"/>
+                        <td><t t-esc="pr.product_id.name"/><t t-if="pr.note"> – <t t-esc="pr.note"/></t></td>
+                        <td style="text-align: center;" t-esc="', '.join(pr.tooth_ids.mapped('code'))"/>
+                        <td style="text-align: center;" t-esc="', '.join(pr.surface_ids.mapped('name'))"/>
+                        <td style="text-align: center;" t-esc="pr.quantity"/>
+                        <td t-esc="pr.doctor_id.name or ''"/>
+                    </tr>
+                </t>
+            </table>
+            <div t-if="not o.treatment_note and not o.procedure_ids" class="dots"/>
+            <div t-if="o.advice" style="margin-top: 3px;"><b>Lời dặn:</b> <span class="val" t-esc="o.advice"/></div>
+
+            <div class="section">VIII. Chẩn đoán khi kết thúc điều trị</div>
+            <div>
+                <t t-if="o.final_diagnosis_id">Bệnh chính: <t t-esc="o.final_diagnosis_id.name"/> (mã ICD-10: <t t-esc="o.final_diagnosis_id.code"/>)</t>
+                <div class="val" t-if="o.final_diagnosis" t-esc="o.final_diagnosis"/>
+                <div class="dots" t-if="not o.final_diagnosis_id and not o.final_diagnosis"/>
+            </div>
+
+            <div class="section">IX. Hướng điều trị</div>
+            <div class="val dots" t-esc="o.treatment_direction or ''"/>
+            <div style="margin-top: 3px;">Điều trị ngoại trú từ ngày: <t t-esc="o.treatment_from and o.treatment_from.strftime('%d/%m/%Y') or '..../..../........'"/>
+                &#160; đến ngày: <t t-esc="o.treatment_to and o.treatment_to.strftime('%d/%m/%Y') or '..../..../........'"/></div>
+
+            <table class="sign avoid" style="margin-top: 14px;">
+                <tr>
+                    <td style="width: 50%;">
+                        <div>&#160;</div>
+                        <div class="role">Thủ trưởng cơ sở</div>
+                        <div class="muted"><i>(Ký, ghi rõ họ và tên, đóng dấu)</i></div>
+                        <div style="height: 70px;"/>
+                    </td>
+                    <td>
+                        <div><i>Ngày <t t-esc="sign_date and o._emr_fmt_dt(sign_date, False)[0:2]"/> tháng <t t-esc="sign_date and o._emr_fmt_dt(sign_date, False)[3:5]"/> năm <t t-esc="sign_date and o._emr_fmt_dt(sign_date, False)[6:10]"/></i></div>
+                        <t t-call="dmag_dental_emr.emr_signature_doctor"/>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- ===================== TRANG 2: TỔNG KẾT BỆNH ÁN ===================== -->
+            <div class="page-break"/>
+            <div style="text-align: center; margin-bottom: 6px;">
+                <div class="title">Tổng kết bệnh án</div>
+                <div class="muted">Người bệnh: <b t-esc="(p.name or '').upper()"/> – Mã người bệnh: <t t-esc="p.patient_code or ''"/> – Số ngoại trú: <t t-esc="o.outpatient_number or ''"/></div>
+            </div>
+            <div class="sub">1. Quá trình bệnh lý và diễn biến lâm sàng:</div>
+            <div class="val dots" t-esc="o.summary_course or o.present_illness or ''"/>
+            <div class="sub">2. Tóm tắt kết quả xét nghiệm cận lâm sàng có giá trị chẩn đoán:</div>
+            <div class="val dots" t-esc="o.paraclinical_summary or ''"/>
+            <div class="sub">3. Chẩn đoán khi kết thúc điều trị:</div>
+            <div class="dots">
+                <t t-set="fd" t-value="o.final_diagnosis_id or o.primary_diagnosis_id"/>
+                <t t-if="fd">Bệnh chính: <t t-esc="fd.name"/> (mã ICD-10: <t t-esc="fd.code"/>)</t>
+                <t t-if="o.secondary_diagnosis_ids">; Bệnh kèm theo: <t t-esc="'; '.join('%s (mã ICD-10: %s)' % (d.name, d.code) for d in o.secondary_diagnosis_ids)"/></t>
+                <div class="val" t-if="o.final_diagnosis" t-esc="o.final_diagnosis"/>
+            </div>
+            <div class="sub">4. Phương pháp điều trị:</div>
+            <div class="val dots" t-esc="o.summary_method or o.treatment_note or ''"/>
+            <div class="sub">5. Tình trạng người bệnh khi kết thúc điều trị:</div>
+            <div class="val dots" t-esc="o.summary_status_end or ''"/>
+            <div class="sub">6. Hướng điều trị và các chế độ tiếp theo:</div>
+            <div class="val dots" t-esc="o.summary_next_direction or o.treatment_direction or ''"/>
+
+            <table class="grid avoid" style="margin-top: 10px; width: 55%;">
+                <tr><th colspan="2">Hồ sơ, phim, ảnh</th></tr>
+                <tr><th>Loại</th><th style="width: 30%;">Số tờ</th></tr>
+                <tr><td>X-quang</td><td/></tr>
+                <tr><td>Chụp cắt lớp vi tính</td><td/></tr>
+                <tr><td>Ảnh chụp trong miệng / ngoài mặt</td><td/></tr>
+                <tr><td>Xét nghiệm</td><td/></tr>
+                <tr><td>Khác</td><td/></tr>
+                <tr><td><b>Toàn bộ hồ sơ</b></td><td/></tr>
+            </table>
+
+            <table class="sign avoid" style="margin-top: 12px;">
+                <tr>
+                    <td style="width: 33%;"><div class="role">Người giao hồ sơ</div><div class="muted"><i>(Ký, ghi rõ họ và tên)</i></div><div style="height: 60px;"/></td>
+                    <td style="width: 33%;"><div class="role">Người nhận hồ sơ</div><div class="muted"><i>(Ký, ghi rõ họ và tên)</i></div><div style="height: 60px;"/></td>
+                    <td>
+                        <div><i>Ngày <t t-esc="sign_date and o._emr_fmt_dt(sign_date, False)[0:2]"/> tháng <t t-esc="sign_date and o._emr_fmt_dt(sign_date, False)[3:5]"/> năm <t t-esc="sign_date and o._emr_fmt_dt(sign_date, False)[6:10]"/></i></div>
+                        <t t-call="dmag_dental_emr.emr_signature_doctor"/>
+                    </td>
+                </tr>
+            </table>
+            <div class="muted" style="margin-top: 8px; border-top: 1px solid #ccd6e3; padding-top: 3px;">
+                Bệnh án lập theo bố cục mẫu Bệnh án ngoại trú Răng Hàm Mặt (mẫu số 16/BV1, Phụ lục XXVIII Thông tư 32/2023/TT-BYT).
+                Lưu trữ đến ngày <t t-esc="o.retention_until and o.retention_until.strftime('%d/%m/%Y') or ''"/>.
+                In lúc <t t-esc="o._emr_fmt_dt(datetime.datetime.utcnow())"/> bởi <t t-esc="user.name"/>.
+            </div>
+        </div>
+    </template>
+
+    <template id="report_dental_record">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <t t-call="dmag_dental_emr.report_dental_record_document"/>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Quản lý phòng khám soát lương 3P → cần đọc / gán hồ sơ nhân viên (Nhân sự – Cán bộ). -->
+    <record id="dmag_dental_base.group_dmag_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('hr.group_hr_user'))]"/>
+    </record>
+
+    <record id="rule_dmag_job_grade_company" model="ir.rule">
+        <field name="name">Ngạch bậc: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_job_grade"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_position_profile_company" model="ir.rule">
+        <field name="name">Hồ sơ vị trí: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_job_position_profile"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_competency_assessment_company" model="ir.rule">
+        <field name="name">Đánh giá năng lực: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_competency_assessment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_kpi_result_company" model="ir.rule">
+        <field name="name">Kết quả KPI: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_kpi_result"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_pay3p_sheet_company" model="ir.rule">
+        <field name="name">Bảng lương 3P: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_pay3p_sheet"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_pay3p_line_company" model="ir.rule">
+        <field name="name">Dòng lương 3P: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_pay3p_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_rx_national_config_form" model="ir.ui.view">
+        <field name="name">dmag.rx.national.config.form</field>
+        <field name="model">dmag.rx.national.config</field>
+        <field name="arch" type="xml">
+            <form string="Liên thông đơn thuốc quốc gia">
+                <header>
+                    <button name="action_test_connection" type="object" string="Kiểm tra đăng nhập cơ sở" class="btn-primary"/>
+                    <button name="action_clear_tokens" type="object" string="Xóa token đã lưu"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="mode != 'mock'">
+                        Đang ở chế độ <b>giả lập</b>: đơn thuốc KHÔNG được gửi thật lên donthuocquocgia.vn.
+                    </div>
+                    <group>
+                        <group string="Kết nối">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="enabled"/>
+                            <field name="mode"/>
+                            <field name="mock_fail" invisible="mode != 'mock'"/>
+                            <field name="base_url"/>
+                            <field name="timeout"/>
+                            <field name="max_attempts"/>
+                            <field name="token_validity_days"/>
+                        </group>
+                        <group string="Tài khoản cơ sở (Sở Y tế cấp)">
+                            <field name="facility_link_code"/>
+                            <field name="facility_password" password="True"/>
+                            <field name="facility_token_expiry" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Đường dẫn API (chỉnh theo tài liệu BYT mới nhất)">
+                        <field name="path_login_facility"/>
+                        <field name="path_login_doctor"/>
+                        <field name="path_send"/>
+                        <field name="path_cancel"/>
+                    </group>
+                    <p class="text-muted">Mã liên thông và mật khẩu của từng bác sĩ khai báo tại hồ sơ Nhân sự lâm sàng, tab "Liên thông đơn thuốc".</p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_rx_national_config_tree" model="ir.ui.view">
+        <field name="name">dmag.rx.national.config.tree</field>
+        <field name="model">dmag.rx.national.config</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="company_id"/>
+                <field name="enabled"/>
+                <field name="mode"/>
+                <field name="base_url"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_rx_national_config" model="ir.actions.act_window">
+        <field name="name">Liên thông đơn thuốc</field>
+        <field name="res_model">dmag.rx.national.config</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_dmag_rx_send_log_tree" model="ir.ui.view">
+        <field name="name">dmag.rx.send.log.tree</field>
+        <field name="model">dmag.rx.send.log</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="not success" decoration-success="success" create="0" edit="0">
+                <field name="create_date"/>
+                <field name="operation"/>
+                <field name="prescription_id"/>
+                <field name="status_code"/>
+                <field name="success"/>
+                <field name="duration_ms" optional="hide"/>
+                <field name="error_message"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_rx_send_log_form" model="ir.ui.view">
+        <field name="name">dmag.rx.send.log.form</field>
+        <field name="model">dmag.rx.send.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="operation"/>
+                            <field name="prescription_id"/>
+                            <field name="url"/>
+                        </group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="status_code"/>
+                            <field name="success"/>
+                            <field name="duration_ms"/>
+                        </group>
+                    </group>
+                    <field name="error_message"/>
+                    <group string="Dữ liệu gửi"><field name="request_body" nolabel="1" colspan="2" widget="ace" options="{'mode': 'js'}"/></group>
+                    <group string="Phản hồi"><field name="response_body" nolabel="1" colspan="2" widget="ace" options="{'mode': 'js'}"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dmag_rx_send_log" model="ir.actions.act_window">
+        <field name="name">Nhật ký liên thông</field>
+        <field name="res_model">dmag.rx.send.log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

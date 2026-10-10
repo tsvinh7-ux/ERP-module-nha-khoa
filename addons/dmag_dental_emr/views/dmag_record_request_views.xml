@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_record_request_form" model="ir.ui.view">
+        <field name="name">dmag.record.request.form</field>
+        <field name="model">dmag.record.request</field>
+        <field name="arch" type="xml">
+            <form string="Yêu cầu cung cấp hồ sơ bệnh án">
+                <header>
+                    <button name="action_approve" type="object" string="Duyệt" class="btn-primary" invisible="state != 'draft'" groups="dmag_dental_base.group_dmag_manager"/>
+                    <button name="action_reject" type="object" string="Từ chối" invisible="state != 'draft'" groups="dmag_dental_base.group_dmag_manager"/>
+                    <button name="action_print" type="object" string="In hồ sơ / tóm tắt" invisible="state not in ('approved', 'provided')"/>
+                    <button name="action_provide" type="object" string="Xác nhận đã cung cấp" class="btn-primary" invisible="state != 'approved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,provided"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Hồ sơ được yêu cầu">
+                            <field name="patient_id" readonly="state != 'draft'" context="{'dmag_patient_search': True}"/>
+                            <field name="scope" readonly="state != 'draft'"/>
+                            <field name="visit_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                            <field name="request_date" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Người yêu cầu">
+                            <field name="requester_type" readonly="state != 'draft'"/>
+                            <field name="requester_name" readonly="state != 'draft'" required="requester_type != 'patient'"/>
+                            <field name="requester_identity" readonly="state != 'draft'"/>
+                            <field name="requester_relation" readonly="state != 'draft'" invisible="requester_type != 'representative'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="legal_basis" readonly="state != 'draft'" required="requester_type != 'patient'"/>
+                        <field name="attachment_ids" widget="many2many_binary" readonly="state != 'draft'"/>
+                        <field name="reject_reason" invisible="state not in ('draft', 'rejected')" readonly="state != 'draft'"/>
+                    </group>
+                    <group>
+                        <group string="Duyệt">
+                            <field name="approved_by_id"/>
+                            <field name="approved_at"/>
+                        </group>
+                        <group string="Cung cấp">
+                            <field name="provided_method" readonly="state not in ('draft', 'approved')"/>
+                            <field name="provided_by_id"/>
+                            <field name="provided_at"/>
+                        </group>
+                    </group>
+                    <group><field name="note"/></group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_record_request_tree" model="ir.ui.view">
+        <field name="name">dmag.record.request.tree</field>
+        <field name="model">dmag.record.request</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="state == 'rejected'" decoration-success="state == 'provided'">
+                <field name="name"/>
+                <field name="request_date"/>
+                <field name="patient_id"/>
+                <field name="requester_type"/>
+                <field name="requester_name"/>
+                <field name="scope"/>
+                <field name="approved_by_id" optional="show"/>
+                <field name="provided_at" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'provided'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_record_request" model="ir.actions.act_window">
+        <field name="name">Yêu cầu sao chụp / tóm tắt hồ sơ</field>
+        <field name="res_model">dmag.record.request</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

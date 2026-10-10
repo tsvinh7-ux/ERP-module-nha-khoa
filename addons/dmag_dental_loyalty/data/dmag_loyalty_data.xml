@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="tier_member" model="dmag.loyalty.tier">
+            <field name="name">Thành viên</field>
+            <field name="code">MEMBER</field>
+            <field name="level">0</field>
+            <field name="color">#6B7A90</field>
+            <field name="benefits">Tích điểm theo thực thu, nhắc tái khám đúng chu kỳ, thẻ bảo hành điện tử.</field>
+            <field name="birthday_gift">Lời chúc sinh nhật</field>
+        </record>
+        <record id="tier_silver" model="dmag.loyalty.tier">
+            <field name="name">Bạc</field>
+            <field name="code">SILVER</field>
+            <field name="level">10</field>
+            <field name="min_paid_12m">5000000</field>
+            <field name="min_engagement_points">150</field>
+            <field name="condition">or</field>
+            <field name="color">#9AA5B1</field>
+            <field name="benefits">Ưu tiên đặt giờ đẹp, quà sinh nhật.</field>
+            <field name="priority_booking" eval="True"/>
+            <field name="birthday_gift">Bộ chăm sóc răng miệng</field>
+        </record>
+        <record id="tier_gold" model="dmag.loyalty.tier">
+            <field name="name">Vàng</field>
+            <field name="code">GOLD</field>
+            <field name="level">20</field>
+            <field name="min_paid_12m">15000000</field>
+            <field name="min_engagement_points">400</field>
+            <field name="condition">or</field>
+            <field name="color">#D4A017</field>
+            <field name="benefits">Ưu tiên giờ đẹp, miễn phí phim kiểm tra, bảo hành mở rộng 6 tháng.</field>
+            <field name="priority_booking" eval="True"/>
+            <field name="free_xray" eval="True"/>
+            <field name="extended_warranty_months">6</field>
+            <field name="birthday_gift">Voucher cạo vôi sinh nhật</field>
+        </record>
+        <record id="tier_diamond" model="dmag.loyalty.tier">
+            <field name="name">Kim cương</field>
+            <field name="code">DIAMOND</field>
+            <field name="level">30</field>
+            <field name="min_paid_12m">40000000</field>
+            <field name="min_engagement_points">800</field>
+            <field name="condition">or</field>
+            <field name="color">#11346A</field>
+            <field name="benefits">Ưu tiên giờ đẹp, miễn phí phim kiểm tra, bảo hành mở rộng 12 tháng, chăm sóc riêng.</field>
+            <field name="priority_booking" eval="True"/>
+            <field name="free_xray" eval="True"/>
+            <field name="extended_warranty_months">12</field>
+            <field name="birthday_gift">Gói chăm sóc sinh nhật</field>
+        </record>
+
+        <record id="seq_dmag_care_subscription" model="ir.sequence">
+            <field name="name">Thuê bao gói chăm sóc</field>
+            <field name="code">dmag.care.subscription</field>
+            <field name="prefix">GCS/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+
+    <record id="product_loyalty_discount" model="product.product">
+        <field name="name">Ưu đãi thành viên (voucher)</field>
+        <field name="detailed_type">service</field>
+        <field name="invoice_policy">order</field>
+        <field name="list_price">0</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="product_care_plan" model="product.product">
+        <field name="name">Gói chăm sóc định kỳ</field>
+        <field name="detailed_type">service</field>
+        <field name="invoice_policy">order</field>
+        <field name="list_price">0</field>
+        <field name="purchase_ok" eval="False"/>
+        <field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="ir_cron_dmag_loyalty_recompute" model="ir.cron">
+        <field name="name">Khách hàng thân thiết: xét hạng hằng đêm</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_dmag_loyalty_recompute()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
+    <record id="ir_cron_dmag_voucher_expire" model="ir.cron">
+        <field name="name">Khách hàng thân thiết: voucher hết hạn</field>
+        <field name="model_id" ref="model_dmag_loyalty_voucher"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
+    <record id="ir_cron_dmag_care_subscription_expire" model="ir.cron">
+        <field name="name">Khách hàng thân thiết: gói chăm sóc hết hạn</field>
+        <field name="model_id" ref="model_dmag_care_subscription"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
+</odoo>

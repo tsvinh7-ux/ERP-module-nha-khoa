@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_emr" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.emr</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_amend_record']" position="after">
+                <button name="%(action_report_dental_record)d" type="action" string="In bệnh án 16/BV1"
+                        invisible="state not in ('in_chair', 'done')" groups="dmag_dental_base.group_dmag_doctor"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_consents" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                    <field name="consent_count" widget="statinfo" string="Cam kết"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='record']" position="after">
+                <page string="Bệnh án RHM (16/BV1)" name="emr_bv1">
+                    <div class="alert alert-info py-1 mb-2" role="status" invisible="record_state == 'signed'">
+                        Ghi theo thứ tự mẫu Bệnh án ngoại trú Răng Hàm Mặt (16/BV1). Mọi thay đổi được ghi vết người ghi và thời điểm;
+                        sau khi ký, bệnh án bị khóa.
+                    </div>
+                    <group string="Số hồ sơ">
+                        <group>
+                            <field name="outpatient_number"/>
+                            <field name="archive_number"/>
+                        </group>
+                        <group>
+                            <field name="patient_citizen_id"/>
+                            <field name="identity_exemption_reason" invisible="patient_citizen_id"/>
+                            <field name="retention_until"/>
+                        </group>
+                    </group>
+                    <group string="I. Hành chính – nơi giới thiệu">
+                        <group>
+                            <field name="referral_source" readonly="record_state == 'signed'"/>
+                            <field name="referral_facility" invisible="referral_source == 'self'" readonly="record_state == 'signed'"/>
+                        </group>
+                        <group>
+                            <field name="referral_diagnosis" invisible="referral_source == 'self'" readonly="record_state == 'signed'"/>
+                        </group>
+                    </group>
+                    <group string="II. Lý do đến khám">
+                        <field name="chief_complaint" string="Lý do đến khám" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="III. Hỏi bệnh">
+                        <field name="present_illness" readonly="record_state == 'signed'"/>
+                        <field name="personal_history" readonly="record_state == 'signed'"/>
+                        <field name="family_history" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="IV. Khám bệnh – toàn thân">
+                        <group>
+                            <field name="pulse" readonly="record_state == 'signed'"/>
+                            <field name="temperature" readonly="record_state == 'signed'"/>
+                            <label for="bp_systolic" string="Huyết áp (mmHg)"/>
+                            <div class="o_row">
+                                <field name="bp_systolic" nolabel="1" readonly="record_state == 'signed'"/>
+                                <span>/</span>
+                                <field name="bp_diastolic" nolabel="1" readonly="record_state == 'signed'"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="respiratory_rate" readonly="record_state == 'signed'"/>
+                            <field name="weight" readonly="record_state == 'signed'"/>
+                            <field name="height" readonly="record_state == 'signed'"/>
+                            <field name="bmi" invisible="not bmi"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="general_exam" readonly="record_state == 'signed'"/>
+                        <field name="organ_exam" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="IV. Khám chuyên khoa Răng Hàm Mặt">
+                        <field name="exam_extraoral" readonly="record_state == 'signed'"/>
+                        <field name="exam_intraoral" readonly="record_state == 'signed'"/>
+                        <field name="exam_occlusion" readonly="record_state == 'signed'"/>
+                        <field name="exam_soft_tissue" readonly="record_state == 'signed'"/>
+                        <field name="exam_periodontal" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="V. Cận lâm sàng">
+                        <field name="paraclinical_summary" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="VI. Chẩn đoán ban đầu">
+                        <field name="primary_diagnosis_id" readonly="record_state == 'signed'" options="{'no_create': True}"/>
+                        <field name="diagnosis_ids" string="Tất cả chẩn đoán (ICD-10)" widget="many2many_tags"
+                               readonly="record_state == 'signed'" options="{'no_create': True}"/>
+                        <field name="secondary_diagnosis_ids" widget="many2many_tags"/>
+                    </group>
+                    <group string="VII. Đã xử lý">
+                        <field name="treatment_note" string="Đã xử lý" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="VIII. Chẩn đoán khi kết thúc">
+                        <field name="final_diagnosis_id" readonly="record_state == 'signed'" options="{'no_create': True}"/>
+                        <field name="final_diagnosis" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="IX. Hướng điều trị">
+                        <field name="treatment_direction" readonly="record_state == 'signed'"/>
+                        <field name="treatment_from" readonly="record_state == 'signed'"/>
+                        <field name="treatment_to" readonly="record_state == 'signed'"/>
+                    </group>
+                    <group string="Tổng kết bệnh án">
+                        <field name="summary_course" readonly="record_state == 'signed'"/>
+                        <field name="summary_method" readonly="record_state == 'signed'"/>
+                        <field name="summary_status_end" readonly="record_state == 'signed'"/>
+                        <field name="summary_next_direction" readonly="record_state == 'signed'"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

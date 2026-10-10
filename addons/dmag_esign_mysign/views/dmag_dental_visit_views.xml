@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_esign" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.esign</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_sign_record']" position="after">
+                <button name="action_esign_check_status" type="object" string="Kiểm tra trạng thái ký"
+                        invisible="esign_state not in ('sent', 'waiting')" groups="dmag_dental_base.group_dmag_doctor"/>
+                <button name="action_esign_resend" type="object" string="Gửi lại ký số"
+                        invisible="record_state != 'signed' or esign_state not in ('rejected', 'expired', 'error')"
+                        groups="dmag_dental_base.group_dmag_doctor"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_esign_requests" type="object" class="oe_stat_button" icon="fa-certificate"
+                        invisible="not esign_request_count" groups="dmag_dental_base.group_dmag_doctor">
+                    <field name="esign_request_count" widget="statinfo" string="Ký số"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='signed_at']" position="after">
+                <field name="esign_state" widget="badge" invisible="record_state != 'signed'"
+                       decoration-success="esign_state == 'signed'"
+                       decoration-info="esign_state in ('sent', 'waiting')"
+                       decoration-danger="esign_state in ('rejected', 'expired', 'error')"/>
+                <field name="esign_request_id" invisible="not esign_request_id" groups="dmag_dental_base.group_dmag_doctor"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_dmag_visit_tree_esign" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.tree.esign</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="esign_state" optional="hide" widget="badge"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_loyalty_tier_tree" model="ir.ui.view">
+        <field name="name">dmag.loyalty.tier.tree</field>
+        <field name="model">dmag.loyalty.tier</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="level" widget="handle"/>
+                <field name="name"/>
+                <field name="min_paid_12m"/>
+                <field name="condition"/>
+                <field name="min_engagement_points"/>
+                <field name="priority_booking"/>
+                <field name="free_xray"/>
+                <field name="extended_warranty_months"/>
+                <field name="color" widget="color"/>
+                <field name="member_count"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_loyalty_tier_form" model="ir.ui.view">
+        <field name="name">dmag.loyalty.tier.form</field>
+        <field name="model">dmag.loyalty.tier</field>
+        <field name="arch" type="xml">
+            <form string="Hạng thành viên">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="Ví dụ: Vàng"/></h1></div>
+                    <group>
+                        <group string="Điều kiện xét hạng (12 tháng gần nhất)">
+                            <field name="level"/>
+                            <field name="min_paid_12m"/>
+                            <field name="condition" widget="radio"/>
+                            <field name="min_engagement_points"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Quyền lợi">
+                            <field name="priority_booking"/>
+                            <field name="free_xray"/>
+                            <field name="extended_warranty_months"/>
+                            <field name="birthday_gift"/>
+                            <field name="color" widget="color"/>
+                            <field name="code"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="benefits" placeholder="Mô tả quyền lợi hiển thị minh bạch trong tài khoản bệnh nhân"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_loyalty_tier" model="ir.actions.act_window">
+        <field name="name">Hạng thành viên</field>
+        <field name="res_model">dmag.loyalty.tier</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

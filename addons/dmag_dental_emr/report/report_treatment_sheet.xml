@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_treatment_sheet" model="ir.actions.report">
+        <field name="name">Phiếu điều trị</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_dental_emr.report_treatment_sheet</field>
+        <field name="report_file">dmag_dental_emr.report_treatment_sheet</field>
+        <field name="print_report_name">'Phieu dieu tri - %s' % (object.patient_id.patient_code or object.patient_id.name)</field>
+        <field name="paperformat_id" ref="paperformat_dmag_emr_a4"/>
+        <field name="binding_model_id" ref="dmag_dental_clinic.model_dmag_dental_visit"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_treatment_sheet_document">
+        <t t-set="p" t-value="o.patient_id"/>
+        <t t-set="company" t-value="o.company_id"/>
+        <t t-set="period" t-value="o._emr_period_visits()"/>
+        <div class="page dmag-emr">
+            <t t-call="dmag_dental_emr.emr_styles"/>
+            <t t-call="dmag_dental_emr.emr_header">
+                <t t-set="title" t-value="'PHIẾU ĐIỀU TRỊ'"/>
+                <t t-set="subtitle" t-value="'Khoa / phòng khám: Răng Hàm Mặt'"/>
+                <t t-set="form_code" t-value="False"/>
+                <div style="margin-top: 4px;">Số ngoại trú: <b t-esc="o.outpatient_number or '..........'"/></div>
+                <div>Mã người bệnh: <b t-esc="p.patient_code or '..........'"/></div>
+            </t>
+            <table class="admin" style="margin-top: 8px;">
+                <tr>
+                    <td style="width: 50%;">Họ và tên người bệnh: <b t-esc="(p.name or '').upper()"/></td>
+                    <td style="width: 20%;">Tuổi: <t t-esc="p.age or ''"/></td>
+                    <td>Giới: <span t-field="p.gender"/></td>
+                </tr>
+                <tr>
+                    <td colspan="3">Chẩn đoán: <t t-esc="'; '.join('%s (mã ICD-10: %s)' % (d.name, d.code) for d in (o.primary_diagnosis_id | o.diagnosis_ids))"/></td>
+                </tr>
+                <tr t-if="o.treatment_plan_id">
+                    <td colspan="3">Kế hoạch điều trị: <t t-esc="o.treatment_plan_id.title or o.treatment_plan_id.name"/></td>
+                </tr>
+            </table>
+            <table class="grid" style="margin-top: 8px;">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Ngày, giờ</th>
+                        <th style="width: 37%;">Diễn biến bệnh</th>
+                        <th style="width: 30%;">Y lệnh / xử trí</th>
+                        <th>Bác sĩ (ký, ghi rõ họ và tên)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="period" t-as="v">
+                        <tr class="avoid">
+                            <td><t t-esc="v._emr_fmt_dt(v.chair_time or v.scheduled_start)"/><div class="muted" t-esc="v.name"/></td>
+                            <td class="val">
+                                <t t-if="v.chief_complaint or v.reason"><b>Lý do:</b> <t t-esc="v.chief_complaint or v.reason"/><br/></t>
+                                <t t-if="v.present_illness"><t t-esc="v.present_illness"/><br/></t>
+                                <t t-if="v.pulse or v.bp_systolic">Mạch <t t-esc="v.pulse or '..'"/> lần/phút, huyết áp <t t-esc="v.bp_systolic or '..'"/>/<t t-esc="v.bp_diastolic or '..'"/> mmHg<br/></t>
+                                <t t-if="v.exam_intraoral or v.examination"><b>Khám:</b> <t t-esc="v.exam_intraoral or v.examination"/><br/></t>
+                                <t t-if="v.diagnosis_ids"><b>Chẩn đoán:</b> <t t-esc="', '.join(v.diagnosis_ids.mapped('name'))"/></t>
+                            </td>
+                            <td class="val">
+                                <t t-foreach="v.procedure_ids" t-as="pr">
+                                    – <t t-esc="pr.product_id.name"/><t t-if="pr.tooth_ids"> (răng <t t-esc="', '.join(pr.tooth_ids.mapped('code'))"/>)</t><br/>
+                                </t>
+                                <t t-if="v.treatment_note"><t t-esc="v.treatment_note"/><br/></t>
+                                <t t-if="v.advice"><b>Dặn:</b> <t t-esc="v.advice"/></t>
+                            </td>
+                            <td style="text-align: center;">
+                                <t t-if="v.record_state == 'signed'">
+                                    <div class="esig" style="color: #11346A; font-size: 11px;">Đã ký điện tử<br/><t t-esc="v._emr_fmt_dt(v.signed_at)"/></div>
+                                    <div style="font-weight: bold;" t-esc="v.signed_by_id.name"/>
+                                </t>
+                                <t t-else="">
+                                    <div style="height: 40px;"/>
+                                    <div t-esc="v.doctor_id.name or ''"/>
+                                </t>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+            <div class="muted" style="margin-top: 6px;">Gồm <t t-esc="len(period)"/> lần khám, điều trị. In lúc <t t-esc="o._emr_fmt_dt(datetime.datetime.utcnow())"/> bởi <t t-esc="user.name"/>.</div>
+        </div>
+    </template>
+
+    <template id="report_treatment_sheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <t t-call="dmag_dental_emr.report_treatment_sheet_document"/>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

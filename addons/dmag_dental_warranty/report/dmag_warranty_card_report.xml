@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cỡ thẻ ngân hàng ISO/IEC 7810 ID-1: 85,6 × 54 mm -->
+    <record id="paperformat_dmag_warranty_card" model="report.paperformat">
+        <field name="name">Thẻ bảo hành DMAG (85,6 × 54 mm)</field>
+        <field name="format">custom</field>
+        <field name="page_width">86</field>
+        <field name="page_height">54</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+        <field name="disable_shrinking" eval="True"/>
+    </record>
+
+    <record id="action_report_warranty_card" model="ir.actions.report">
+        <field name="name">Thẻ bảo hành</field>
+        <field name="model">dmag.warranty.card</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_dental_warranty.report_warranty_card</field>
+        <field name="report_file">dmag_dental_warranty.report_warranty_card</field>
+        <field name="print_report_name">'The bao hanh - %s' % object.name</field>
+        <field name="binding_model_id" ref="model_dmag_warranty_card"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_dmag_warranty_card"/>
+    </record>
+
+    <template id="report_warranty_card">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="card">
+                <div class="article dmag-wcard-page" t-att-data-oe-model="card._name" t-att-data-oe-id="card.id">
+                    <style>
+                        .dmag-wcard-page { page-break-after: always; }
+                        .dmag-wcard { width: 85.6mm; height: 53.9mm; box-sizing: border-box; overflow: hidden;
+                            font-family: 'Be Vietnam Pro', 'Roboto', Arial, sans-serif; color: #11346A;
+                            background: #ffffff; position: relative; }
+                        .dmag-wcard-head { background: #11346A; color: #ffffff; padding: 2.2mm 3mm;
+                            display: table; width: 100%; box-sizing: border-box; }
+                        .dmag-wcard-head .brand { display: table-cell; font-weight: 700; font-size: 8pt; vertical-align: middle; }
+                        .dmag-wcard-head .title { display: table-cell; text-align: right; font-size: 7pt;
+                            letter-spacing: 0.6pt; text-transform: uppercase; vertical-align: middle; }
+                        .dmag-wcard-band { height: 1.2mm; background: #178BEC; }
+                        .dmag-wcard-body { padding: 2mm 3mm 0 3mm; font-size: 6.4pt; line-height: 1.35; }
+                        .dmag-wcard-body .patient { font-size: 9pt; font-weight: 700; margin-bottom: 0.6mm; }
+                        .dmag-wcard-body .service { font-size: 7.2pt; font-weight: 600; color: #178BEC; }
+                        .dmag-wcard-body table { width: 100%; border-collapse: collapse; margin-top: 1mm; }
+                        .dmag-wcard-body td { padding: 0.2mm 0; vertical-align: top; }
+                        .dmag-wcard-body td.k { color: #5b6b82; width: 40%; }
+                        .dmag-wcard-foot { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.2mm 3mm;
+                            background: #EEF5FD; font-size: 5.6pt; color: #11346A; }
+                        .dmag-wcard-foot .code { font-weight: 700; font-size: 7pt; letter-spacing: 0.4pt; }
+                        .dmag-wcard-void { position: absolute; top: 18mm; left: 10mm; font-size: 18pt; color: #d9534f;
+                            border: 1mm solid #d9534f; padding: 0 2mm; transform: rotate(-12deg); opacity: 0.8; }
+                    </style>
+                    <div class="dmag-wcard">
+                        <div class="dmag-wcard-head">
+                            <span class="brand" t-esc="card.company_id.name"/>
+                            <span class="title">Thẻ bảo hành</span>
+                        </div>
+                        <div class="dmag-wcard-band"/>
+                        <div class="dmag-wcard-body">
+                            <div class="patient">
+                                <span t-esc="card.patient_id.name"/>
+                                <span t-if="card.patient_code" style="font-weight:400;font-size:6.4pt;"> · <t t-esc="card.patient_code"/></span>
+                            </div>
+                            <div class="service" t-esc="card.product_id.name"/>
+                            <table>
+                                <tr t-if="card.teeth_label"><td class="k">Răng</td><td t-esc="card.teeth_label"/></tr>
+                                <tr><td class="k">Hiệu lực</td>
+                                    <td><t t-esc="card.start_date.strftime('%d/%m/%Y')"/> – <t t-esc="card.end_date.strftime('%d/%m/%Y')"/>
+                                        (<t t-esc="card.months"/> tháng)</td></tr>
+                                <tr t-if="card.serial_ref"><td class="k">Serial / lô</td><td t-esc="card.serial_ref"/></tr>
+                                <tr t-if="card.lab_order_ref"><td class="k">Phiếu labo</td><td t-esc="card.lab_order_ref"/></tr>
+                                <tr t-if="card.doctor_id"><td class="k">Bác sĩ</td><td t-esc="card.doctor_id.name"/></tr>
+                            </table>
+                        </div>
+                        <div t-if="card.state == 'void'" class="dmag-wcard-void">VÔ HIỆU</div>
+                        <div class="dmag-wcard-foot">
+                            <span class="code" t-esc="card.name"/>
+                            <span t-if="card.company_id.phone"> · Hotline <t t-esc="card.company_id.phone"/></span>
+                            <span> · Mang thẻ khi tái khám</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mặt sau: điều kiện bảo hành -->
+                <div class="article dmag-wcard-page" t-if="card.conditions">
+                    <div class="dmag-wcard">
+                        <div class="dmag-wcard-band"/>
+                        <div class="dmag-wcard-body">
+                            <div class="service">Điều kiện bảo hành</div>
+                            <div style="white-space: pre-line; font-size: 5.8pt;" t-esc="card.conditions"/>
+                        </div>
+                        <div class="dmag-wcard-foot">
+                            <span t-esc="card.company_id.name"/>
+                            <span t-if="card.company_id.street"> · <t t-esc="card.company_id.street"/></span>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

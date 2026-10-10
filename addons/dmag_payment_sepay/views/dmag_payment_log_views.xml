@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_payment_log_tree" model="ir.ui.view">
+        <field name="name">dmag.payment.log.tree</field>
+        <field name="model">dmag.payment.log</field>
+        <field name="arch" type="xml">
+            <tree create="false" edit="false" delete="false">
+                <field name="date"/>
+                <field name="visit_id"/>
+                <field name="patient_id"/>
+                <field name="method"/>
+                <field name="amount" sum="Tổng"/>
+                <field name="source"/>
+                <field name="user_id"/>
+                <field name="reference" optional="show"/>
+                <field name="closing_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_payment_log_search" model="ir.ui.view">
+        <field name="name">dmag.payment.log.search</field>
+        <field name="model">dmag.payment.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/>
+                <field name="visit_id"/>
+                <field name="user_id"/>
+                <filter name="cash" string="Tiền mặt" domain="[('method', '=', 'cash')]"/>
+                <filter name="transfer" string="Chuyển khoản" domain="[('method', '=', 'transfer')]"/>
+                <filter name="card" string="Thẻ" domain="[('method', '=', 'card')]"/>
+                <separator/>
+                <filter name="not_closed" string="Chưa chốt két" domain="[('closing_id', '=', False)]"/>
+                <filter name="local_date" string="Ngày" date="local_date"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_method" string="Phương thức" context="{'group_by': 'method'}"/>
+                    <filter name="group_user" string="Người thu" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_day" string="Ngày" context="{'group_by': 'local_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_payment_log" model="ir.actions.act_window">
+        <field name="name">Nhật ký thu tiền</field>
+        <field name="res_model">dmag.payment.log</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

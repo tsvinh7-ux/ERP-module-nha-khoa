@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_loyalty_ledger_tree" model="ir.ui.view">
+        <field name="name">dmag.loyalty.ledger.tree</field>
+        <field name="model">dmag.loyalty.ledger</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0" delete="0" decoration-danger="points &lt; 0" decoration-success="points &gt; 0">
+                <field name="date"/>
+                <field name="partner_id"/>
+                <field name="family_id" optional="show"/>
+                <field name="reason"/>
+                <field name="points" sum="Tổng điểm"/>
+                <field name="amount" optional="hide"/>
+                <field name="note"/>
+                <field name="source_ref" optional="hide"/>
+                <field name="user_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_loyalty_ledger_form" model="ir.ui.view">
+        <field name="name">dmag.loyalty.ledger.form</field>
+        <field name="model">dmag.loyalty.ledger</field>
+        <field name="arch" type="xml">
+            <form string="Bút toán điểm" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="family_id"/>
+                            <field name="points"/>
+                            <field name="reason"/>
+                            <field name="note"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="user_id"/>
+                            <field name="source_ref"/>
+                            <field name="amount"/>
+                            <field name="source_key" groups="base.group_no_one"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_loyalty_ledger_search" model="ir.ui.view">
+        <field name="name">dmag.loyalty.ledger.search</field>
+        <field name="model">dmag.loyalty.ledger</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="family_id"/>
+                <filter name="earn" string="Cộng điểm" domain="[('points', '&gt;', 0)]"/>
+                <filter name="burn" string="Trừ điểm" domain="[('points', '&lt;', 0)]"/>
+                <separator/>
+                <filter name="date" string="Thời điểm" date="date"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_reason" string="Lý do" context="{'group_by': 'reason'}"/>
+                    <filter name="group_partner" string="Bệnh nhân" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dmag_loyalty_ledger" model="ir.actions.act_window">
+        <field name="name">Sổ điểm</field>
+        <field name="res_model">dmag.loyalty.ledger</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Điểm được ghi tự động theo thanh toán, tái khám đúng hẹn, giới thiệu, khảo sát.</p></field>
+    </record>
+</odoo>

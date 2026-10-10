@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_record_access_log_tree" model="ir.ui.view">
+        <field name="name">dmag.record.access.log.tree</field>
+        <field name="model">dmag.record.access.log</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0" delete="0">
+                <field name="access_time"/>
+                <field name="user_id"/>
+                <field name="action"/>
+                <field name="patient_id"/>
+                <field name="visit_id"/>
+                <field name="document"/>
+                <field name="ip_address" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_record_access_log_search" model="ir.ui.view">
+        <field name="name">dmag.record.access.log.search</field>
+        <field name="model">dmag.record.access.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/>
+                <field name="user_id"/>
+                <field name="visit_id"/>
+                <filter name="print" string="In / xuất" domain="[('action', '=', 'print')]"/>
+                <filter name="provide" string="Cung cấp cho bên ngoài" domain="[('action', '=', 'provide')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_user" string="Người truy cập" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_patient" string="Người bệnh" context="{'group_by': 'patient_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_record_access_log" model="ir.actions.act_window">
+        <field name="name">Nhật ký truy cập hồ sơ bệnh án</field>
+        <field name="res_model">dmag.record.access.log</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

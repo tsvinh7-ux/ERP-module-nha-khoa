@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_esign_provider_form" model="ir.ui.view">
+        <field name="name">dmag.esign.provider.form</field>
+        <field name="model">dmag.esign.provider</field>
+        <field name="arch" type="xml">
+            <form string="Nhà cung cấp ký số">
+                <header>
+                    <button name="action_test_connection" type="object" string="Thử kết nối"
+                            groups="dmag_dental_base.group_dmag_director"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="alert alert-warning" role="alert" invisible="provider_type != 'mock'">
+                        Nhà cung cấp giả lập dùng khóa tự ký – chỉ để demo / kiểm thử, KHÔNG có giá trị pháp lý.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Ví dụ: Viettel MySign"/></h1>
+                    </div>
+                    <group>
+                        <group string="Chung">
+                            <field name="provider_type" widget="radio"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                            <field name="request_ttl"/>
+                            <field name="mock_require_approval" invisible="provider_type != 'mock'"/>
+                        </group>
+                        <group string="Tài khoản tích hợp Viettel-CA" invisible="provider_type != 'mysign'">
+                            <field name="base_url" placeholder="https://..."/>
+                            <field name="client_id" groups="dmag_dental_base.group_dmag_director"/>
+                            <field name="client_secret" password="True" groups="dmag_dental_base.group_dmag_director"/>
+                            <field name="secret_set"/>
+                            <field name="profile_id"/>
+                            <field name="timeout"/>
+                        </group>
+                    </group>
+                    <group string="Endpoint &amp; thuật toán (cần xác nhận với tài liệu API Viettel-CA)"
+                           invisible="provider_type != 'mysign'">
+                        <group>
+                            <field name="token_path"/>
+                            <field name="certificate_path"/>
+                            <field name="sign_path"/>
+                            <field name="status_path"/>
+                        </group>
+                        <group>
+                            <field name="hash_algo"/>
+                            <field name="sign_algo"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_esign_provider_tree" model="ir.ui.view">
+        <field name="name">dmag.esign.provider.tree</field>
+        <field name="model">dmag.esign.provider</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="provider_type"/>
+                <field name="base_url"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_esign_provider" model="ir.actions.act_window">
+        <field name="name">Nhà cung cấp ký số</field>
+        <field name="res_model">dmag.esign.provider</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Khai báo tài khoản tích hợp Viettel MySign</p>
+            <p>Nhập địa chỉ API, Client ID / Client secret do Viettel-CA cấp, sau đó khai báo tài khoản MySign cho từng bác sĩ.</p>
+        </field>
+    </record>
+</odoo>

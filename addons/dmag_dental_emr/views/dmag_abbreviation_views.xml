@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_abbreviation_tree" model="ir.ui.view">
+        <field name="name">dmag.abbreviation.tree</field>
+        <field name="model">dmag.abbreviation</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="note" optional="show"/>
+                <field name="decision_ref" optional="show"/>
+                <field name="issued_date" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_abbreviation" model="ir.actions.act_window">
+        <field name="name">Danh sách ký hiệu viết tắt</field>
+        <field name="res_model">dmag.abbreviation</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p>Danh sách ký hiệu, chữ viết tắt cơ sở ban hành để dùng trong hồ sơ bệnh án (Thông tư 32/2023/TT-BYT Điều 52).
+               Tài liệu giao cho người bệnh không được viết tắt.</p>
+        </field>
+    </record>
+</odoo>

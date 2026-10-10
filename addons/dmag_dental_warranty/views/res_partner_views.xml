@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_dmag_warranty" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.warranty</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_warranty_cards" type="object" class="oe_stat_button" icon="fa-shield"
+                        invisible="not is_patient" groups="dmag_dental_base.group_dmag_receptionist">
+                    <field name="warranty_card_count" widget="statinfo" string="Bảo hành"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

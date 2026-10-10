@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dmag_dental_base.demo_svc_implant" model="product.product">
+        <field name="warranty_conditions">Bảo hành trụ implant theo chính sách hãng. Tái khám định kỳ 6 tháng/lần; không áp dụng khi chấn thương, hút thuốc nhiều, tự ý điều trị tại cơ sở khác hoặc không vệ sinh theo hướng dẫn.</field>
+    </record>
+    <record id="dmag_dental_base.demo_svc_crown_zirconia" model="product.product">
+        <field name="warranty_conditions">Bảo hành nứt, vỡ sứ do lỗi vật liệu. Tái khám 12 tháng/lần; không áp dụng khi cắn vật cứng, chấn thương, nghiến răng không đeo máng.</field>
+    </record>
+    <record id="demo_warranty_card_1" model="dmag.warranty.card">
+        <field name="patient_id" ref="dmag_dental_base.demo_patient_1"/>
+        <field name="product_id" ref="dmag_dental_base.demo_svc_crown_zirconia"/>
+        <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
+        <field name="tooth_ids" eval="[(6, 0, [ref('dmag_dental_base.tooth_11')])]"/>
+        <field name="months">120</field>
+        <field name="start_date" eval="(DateTime.today() - relativedelta(months=6)).strftime('%Y-%m-%d')"/>
+        <field name="end_date" eval="(DateTime.today() + relativedelta(months=114)).strftime('%Y-%m-%d')"/>
+        <field name="lab_order_ref">LAB-DEMO-001</field>
+        <field name="conditions">Bảo hành nứt, vỡ sứ do lỗi vật liệu. Tái khám 12 tháng/lần.</field>
+    </record>
+</odoo>

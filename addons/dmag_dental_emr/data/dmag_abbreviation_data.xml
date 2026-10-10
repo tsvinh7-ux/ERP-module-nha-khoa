@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Danh sách mẫu – cơ sở rà soát và ban hành bằng quyết định (TT 32/2023 Điều 52 khoản 2 điểm c) -->
+    <record id="abbr_r" model="dmag.abbreviation"><field name="code">R</field><field name="name">Răng (kèm số răng theo hệ thống FDI, ví dụ R36 = răng 36)</field></record>
+    <record id="abbr_hst" model="dmag.abbreviation"><field name="code">HT</field><field name="name">Hàm trên</field></record>
+    <record id="abbr_hd" model="dmag.abbreviation"><field name="code">HD</field><field name="name">Hàm dưới</field></record>
+    <record id="abbr_o" model="dmag.abbreviation"><field name="code">O</field><field name="name">Mặt nhai (occlusal)</field></record>
+    <record id="abbr_m" model="dmag.abbreviation"><field name="code">M</field><field name="name">Mặt gần (mesial)</field></record>
+    <record id="abbr_d" model="dmag.abbreviation"><field name="code">D</field><field name="name">Mặt xa (distal)</field></record>
+    <record id="abbr_b" model="dmag.abbreviation"><field name="code">B</field><field name="name">Mặt ngoài / má (buccal)</field></record>
+    <record id="abbr_l" model="dmag.abbreviation"><field name="code">L</field><field name="name">Mặt trong / lưỡi (lingual)</field></record>
+    <record id="abbr_ttn" model="dmag.abbreviation"><field name="code">ĐTT</field><field name="name">Điều trị tủy</field></record>
+    <record id="abbr_xq" model="dmag.abbreviation"><field name="code">XQ</field><field name="name">X-quang</field></record>
+    <record id="abbr_cbct" model="dmag.abbreviation"><field name="code">CBCT</field><field name="name">Chụp cắt lớp vi tính chùm tia hình nón</field></record>
+    <record id="abbr_bhyt" model="dmag.abbreviation"><field name="code">BHYT</field><field name="name">Bảo hiểm y tế</field></record>
+    <record id="abbr_icd" model="dmag.abbreviation"><field name="code">ICD-10</field><field name="name">Bảng phân loại quốc tế bệnh tật lần thứ 10</field></record>
+</odoo>

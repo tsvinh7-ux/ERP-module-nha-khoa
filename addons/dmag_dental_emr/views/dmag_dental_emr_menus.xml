@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_emr" name="Hồ sơ bệnh án" parent="dmag_dental_base.menu_dmag_dental_root" sequence="45"/>
+    <menuitem id="menu_dmag_consent" name="Cam kết / đồng ý thủ thuật" parent="menu_dmag_emr"
+              action="action_dmag_consent" sequence="10"/>
+    <menuitem id="menu_dmag_record_request" name="Yêu cầu sao chụp / tóm tắt" parent="menu_dmag_emr"
+              action="action_dmag_record_request" sequence="20"/>
+    <menuitem id="menu_dmag_record_access_log" name="Nhật ký truy cập hồ sơ" parent="menu_dmag_emr"
+              action="action_dmag_record_access_log" sequence="30" groups="dmag_dental_base.group_dmag_director"/>
+    <menuitem id="menu_dmag_abbreviation" name="Ký hiệu viết tắt" parent="dmag_dental_base.menu_dmag_config_catalog"
+              action="action_dmag_abbreviation" sequence="90"/>
+</odoo>

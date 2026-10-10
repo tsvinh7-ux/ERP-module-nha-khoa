@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_dmag_rx" model="ir.ui.view">
+        <field name="name">res.company.form.dmag.rx</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_company_form_dmag"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='dmag_dental']/group" position="after">
+                <group string="Đơn thuốc">
+                    <group>
+                        <field name="dmag_health_department" placeholder="SỞ Y TẾ …"/>
+                        <field name="dmag_rx_allow_90_days"/>
+                    </group>
+                    <group>
+                        <field name="dmag_rx_allow_controlled"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_form_dmag_rx" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.rx</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_partner_form_dmag_patient"/>
+        <field name="arch" type="xml">
+            <field name="citizen_id" position="after">
+                <field name="dmag_bhyt_number" invisible="not is_patient"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_dmag_practitioner_form_rx" model="ir.ui.view">
+        <field name="name">dmag.dental.practitioner.form.rx</field>
+        <field name="model">dmag.dental.practitioner</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_dmag_practitioner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Liên thông đơn thuốc quốc gia" invisible="role != 'doctor'">
+                    <group>
+                        <field name="rx_link_code"/>
+                        <field name="rx_link_password" password="True"/>
+                    </group>
+                    <group>
+                        <field name="rx_controlled_allowed"/>
+                        <field name="rx_token_expiry" readonly="1"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

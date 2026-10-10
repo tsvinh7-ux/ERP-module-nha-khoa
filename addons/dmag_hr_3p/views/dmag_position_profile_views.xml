@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_competency_tree" model="ir.ui.view">
+        <field name="name">dmag.competency.tree</field>
+        <field name="model">dmag.competency</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="basis"/>
+                <field name="clinical_level_id" optional="show"/>
+                <field name="practice_scope_ids" widget="many2many_tags" optional="show"/>
+                <field name="is_sample" optional="show"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_competency_form" model="ir.ui.view">
+        <field name="name">dmag.competency.form</field>
+        <field name="model">dmag.competency</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Dữ liệu mẫu" bg_color="text-bg-warning" invisible="not is_sample"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="basis"/>
+                            <field name="is_sample"/>
+                        </group>
+                        <group>
+                            <field name="clinical_level_id"/>
+                            <field name="practice_scope_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group string="Thang mức 1–5">
+                        <field name="level_1"/>
+                        <field name="level_2"/>
+                        <field name="level_3"/>
+                        <field name="level_4"/>
+                        <field name="level_5"/>
+                    </group>
+                    <field name="description" placeholder="Mô tả tiêu chí…"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_competency" model="ir.actions.act_window">
+        <field name="name">Tiêu chí năng lực (P2)</field>
+        <field name="res_model">dmag.competency</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_dmag_kpi_definition_tree" model="ir.ui.view">
+        <field name="name">dmag.kpi.definition.tree</field>
+        <field name="model">dmag.kpi.definition</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="profile_id"/>
+                <field name="sequence" widget="handle"/>
+                <field name="code" optional="hide"/>
+                <field name="name"/>
+                <field name="weight" sum="Tổng"/>
+                <field name="target"/>
+                <field name="unit"/>
+                <field name="direction"/>
+                <field name="data_source"/>
+                <field name="scope"/>
+                <field name="is_sample" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_kpi_definition" model="ir.actions.act_window">
+        <field name="name">Bộ chỉ tiêu KPI (P3)</field>
+        <field name="res_model">dmag.kpi.definition</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'group_by': 'profile_id'}</field>
+    </record>
+
+    <record id="view_dmag_position_profile_tree" model="ir.ui.view">
+        <field name="name">dmag.job.position.profile.tree</field>
+        <field name="model">dmag.job.position.profile</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="job_id"/>
+                <field name="track"/>
+                <field name="grade_ids" widget="many2many_tags"/>
+                <field name="default_grade_id"/>
+                <field name="p2_base"/>
+                <field name="p3_base"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="is_sample" optional="show"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_position_profile_form" model="ir.ui.view">
+        <field name="name">dmag.job.position.profile.form</field>
+        <field name="model">dmag.job.position.profile</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Dữ liệu mẫu" bg_color="text-bg-warning" invisible="not is_sample"/>
+                    <div class="alert alert-warning" role="alert" invisible="not is_sample">
+                        Dữ liệu mẫu – sẽ thay bằng khung P/M chuẩn của DMAG.
+                    </div>
+                    <div class="oe_title"><h1><field name="job_id" placeholder="Chức danh"/></h1></div>
+                    <group>
+                        <group string="Ngạch &amp; P1">
+                            <field name="code"/>
+                            <field name="track"/>
+                            <field name="grade_ids" widget="many2many_tags" domain="[('track', '=', track)]"/>
+                            <field name="default_grade_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="is_sample"/>
+                        </group>
+                        <group string="Mức chuẩn P2 / P3">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="p2_base"/>
+                            <field name="p3_base"/>
+                            <field name="okr_bonus_base"/>
+                            <field name="is_clinical"/>
+                            <field name="clinical_role" invisible="not is_clinical"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Năng lực (P2)" name="p2">
+                            <field name="competency_line_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="competency_id"/>
+                                    <field name="weight" sum="Tổng"/>
+                                    <field name="required_level"/>
+                                </tree>
+                            </field>
+                            <div class="text-muted">Tổng trọng số: <field name="competency_weight_total" class="oe_inline"/> %</div>
+                        </page>
+                        <page string="KPI (P3)" name="p3">
+                            <field name="kpi_ids" context="{'default_profile_id': id}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="weight" sum="Tổng"/>
+                                    <field name="target"/>
+                                    <field name="unit"/>
+                                    <field name="direction"/>
+                                    <field name="data_source"/>
+                                    <field name="scope"/>
+                                </tree>
+                            </field>
+                            <div class="text-muted">Tổng trọng số: <field name="kpi_weight_total" class="oe_inline"/> %</div>
+                        </page>
+                        <page string="Mô tả công việc" name="jd">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_position_profile" model="ir.actions.act_window">
+        <field name="name">Hồ sơ vị trí 3P</field>
+        <field name="res_model">dmag.job.position.profile</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

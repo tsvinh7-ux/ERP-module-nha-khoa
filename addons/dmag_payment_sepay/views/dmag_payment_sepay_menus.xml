@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_cashier" name="Thu ngân" parent="dmag_dental_base.menu_dmag_dental_root" sequence="30"/>
+    <menuitem id="menu_dmag_payment_request" name="Yêu cầu thanh toán" parent="menu_dmag_cashier"
+              action="action_dmag_payment_request" sequence="10"/>
+    <menuitem id="menu_dmag_sepay_queue" name="Hàng chờ xử lý" parent="menu_dmag_cashier"
+              action="action_dmag_sepay_transaction_queue" sequence="20"
+              groups="dmag_dental_base.group_dmag_manager,account.group_account_invoice"/>
+    <menuitem id="menu_dmag_sepay_transaction" name="Giao dịch SePay" parent="menu_dmag_cashier"
+              action="action_dmag_sepay_transaction" sequence="30"/>
+    <menuitem id="menu_dmag_payment_log" name="Nhật ký thu tiền" parent="menu_dmag_cashier"
+              action="action_dmag_payment_log" sequence="40"/>
+    <menuitem id="menu_dmag_cash_closing" name="Chốt két" parent="menu_dmag_cashier"
+              action="action_dmag_cash_closing" sequence="50"/>
+    <menuitem id="menu_dmag_sepay_config" name="SePay (chuyển khoản QR)" parent="dmag_dental_base.menu_dmag_config"
+              action="action_dmag_sepay_config" sequence="40" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>

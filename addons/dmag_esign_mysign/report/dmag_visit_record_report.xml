@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Mẫu dự phòng để ký số khi chưa cài dmag_dental_emr (mẫu 16/BV1 đầy đủ nằm ở module EMR). -->
+    <record id="action_report_visit_record_esign" model="ir.actions.report">
+        <field name="name">Bệnh án lượt khám (bản ký số)</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_esign_mysign.report_visit_record_esign</field>
+        <field name="report_file">dmag_esign_mysign.report_visit_record_esign</field>
+        <field name="print_report_name">'Benh an - %s' % (object.name)</field>
+    </record>
+
+    <template id="report_visit_record_esign_document">
+        <t t-call="web.external_layout">
+            <div class="page" style="font-size: 13px;">
+                <h4 class="text-center" style="font-weight: 700;">BỆNH ÁN NGOẠI TRÚ RĂNG HÀM MẶT – LƯỢT KHÁM</h4>
+                <p class="text-center text-muted">Mã lượt khám: <span t-field="o.name"/></p>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td><b>Họ tên người bệnh:</b> <span t-field="o.patient_id.name"/></td>
+                        <td><b>Mã bệnh nhân:</b> <span t-esc="o.patient_id.patient_code or ''"/></td>
+                    </tr>
+                    <tr>
+                        <td><b>Số định danh / CCCD:</b> <span t-esc="o.patient_id.citizen_id or ''"/></td>
+                        <td><b>Ngày sinh:</b> <span t-field="o.patient_id.birthdate"/> – <b>Giới:</b> <span t-field="o.patient_id.gender"/></td>
+                    </tr>
+                    <tr>
+                        <td><b>Ngày khám:</b> <span t-field="o.scheduled_start"/></td>
+                        <td><b>Bác sĩ:</b> <span t-esc="o.doctor_id.title or ''"/> <span t-esc="o.doctor_id.name or ''"/></td>
+                    </tr>
+                </table>
+                <h6 style="font-weight: 700;">1. Lý do khám / triệu chứng (S)</h6>
+                <p t-esc="o.chief_complaint or ''" style="white-space: pre-line;"/>
+                <h6 style="font-weight: 700;">2. Khám lâm sàng (O)</h6>
+                <p t-esc="o.examination or ''" style="white-space: pre-line;"/>
+                <h6 style="font-weight: 700;">3. Chẩn đoán (A)</h6>
+                <ul t-if="o.diagnosis_ids">
+                    <li t-foreach="o.diagnosis_ids" t-as="d"><span t-esc="d.display_name"/></li>
+                </ul>
+                <p t-esc="o.assessment or ''" style="white-space: pre-line;"/>
+                <h6 style="font-weight: 700;">4. Xử trí / thủ thuật (P)</h6>
+                <p t-esc="o.treatment_note or ''" style="white-space: pre-line;"/>
+                <ul t-if="o.procedure_ids">
+                    <li t-foreach="o.procedure_ids" t-as="p"><span t-esc="p.display_name"/></li>
+                </ul>
+                <h6 style="font-weight: 700;">5. Lời dặn</h6>
+                <p t-esc="o.advice or ''" style="white-space: pre-line;"/>
+                <div style="margin-top: 24px; text-align: right;">
+                    <div><b>Bác sĩ điều trị (ký số)</b></div>
+                    <div><span t-esc="o.signed_by_id.title or ''"/> <span t-esc="o.signed_by_id.name or ''"/></div>
+                    <div class="text-muted">Ký lúc: <span t-field="o.signed_at"/></div>
+                    <div class="text-muted" t-if="o.signed_by_id.license_number">Số GPHN: <span t-esc="o.signed_by_id.license_number"/></div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_visit_record_esign">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="dmag_esign_mysign.report_visit_record_esign_document"/>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_loyalty_redeem_wizard" model="ir.ui.view">
+        <field name="name">dmag.loyalty.redeem.wizard.form</field>
+        <field name="model">dmag.loyalty.redeem.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Đổi điểm lấy voucher">
+                <group>
+                    <field name="partner_id" readonly="1"/>
+                    <field name="points_balance"/>
+                    <field name="points"/>
+                    <field name="point_value"/>
+                    <field name="voucher_value"/>
+                    <field name="note"/>
+                </group>
+                <div class="alert alert-info" role="alert" invisible="not approval_needed">
+                    Số điểm vượt ngưỡng – voucher sẽ chờ Quản lý phòng khám duyệt. Điểm được giữ chỗ và hoàn lại nếu không duyệt.
+                </div>
+                <field name="approval_needed" invisible="1"/>
+                <footer>
+                    <button name="action_redeem" type="object" string="Đổi điểm" class="btn-primary"/>
+                    <button special="cancel" string="Đóng"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_loyalty_adjust_wizard" model="ir.ui.view">
+        <field name="name">dmag.loyalty.adjust.wizard.form</field>
+        <field name="model">dmag.loyalty.adjust.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Điều chỉnh điểm">
+                <group>
+                    <field name="partner_id" readonly="1"/>
+                    <field name="points"/>
+                    <field name="note"/>
+                </group>
+                <footer>
+                    <button name="action_adjust" type="object" string="Ghi sổ" class="btn-primary"/>
+                    <button special="cancel" string="Đóng"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_loyalty_visit_wizard" model="ir.ui.view">
+        <field name="name">dmag.loyalty.visit.wizard.form</field>
+        <field name="model">dmag.loyalty.visit.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Ưu đãi thành viên">
+                <group>
+                    <field name="visit_id" readonly="1"/>
+                    <field name="patient_id"/>
+                    <field name="tier_id"/>
+                    <field name="mode" widget="radio"/>
+                    <field name="voucher_code" invisible="mode != 'voucher'"/>
+                    <field name="procedure_id" invisible="mode != 'care'" options="{'no_create': True}"/>
+                </group>
+                <field name="available_voucher_ids" invisible="mode != 'voucher'" readonly="1">
+                    <tree>
+                        <field name="name"/>
+                        <field name="partner_id"/>
+                        <field name="value_type"/>
+                        <field name="value"/>
+                        <field name="valid_to"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button name="action_apply" type="object" string="Áp dụng" class="btn-primary"/>
+                    <button special="cancel" string="Đóng"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_dmag_zns_send" model="ir.cron">
+        <field name="name">Zalo ZNS: gửi tin trong hàng đợi</field>
+        <field name="model_id" ref="model_dmag_zns_message"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_queue()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+    </record>
+    <record id="ir_cron_dmag_zalo_token" model="ir.cron">
+        <field name="name">Zalo OA: làm mới access token</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_dmag_zalo_refresh_tokens()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+    </record>
+</odoo>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_cash_closing_tree" model="ir.ui.view">
+        <field name="name">dmag.cash.closing.tree</field>
+        <field name="model">dmag.cash.closing</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="has_difference" decoration-muted="state == 'locked'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="shift"/>
+                <field name="system_cash" sum="TM"/>
+                <field name="system_transfer" sum="CK"/>
+                <field name="system_card" sum="Thẻ"/>
+                <field name="cash_diff"/>
+                <field name="card_diff" optional="show"/>
+                <field name="bank_diff" optional="show"/>
+                <field name="has_difference" column_invisible="1"/>
+                <field name="state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_cash_closing_form" model="ir.ui.view">
+        <field name="name">dmag.cash.closing.form</field>
+        <field name="model">dmag.cash.closing</field>
+        <field name="arch" type="xml">
+            <form string="Chốt két">
+                <header>
+                    <button name="action_refresh" type="object" string="Cập nhật số liệu" invisible="state != 'draft'"/>
+                    <button name="action_sign_receptionist" type="object" string="Lễ tân ký bàn giao" class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="Xác nhận số tiền đã kiểm đếm và ký bàn giao? Sau khi ký không sửa được số đếm."/>
+                    <button name="action_sign_cashier" type="object" string="Thu ngân ký nhận" class="btn-primary"
+                            invisible="state != 'counted' or cashier_sign_uid"/>
+                    <button name="action_confirm" type="object" string="Quản lý xác nhận" class="btn-primary"
+                            invisible="state != 'counted' or not cashier_sign_uid"
+                            groups="dmag_dental_base.group_dmag_manager"/>
+                    <button name="action_lock" type="object" string="Khóa sổ" class="btn-primary"
+                            invisible="state != 'confirmed'" groups="dmag_dental_base.group_dmag_manager"/>
+                    <button name="action_print" type="object" string="In biên bản"/>
+                    <button name="action_reopen" type="object" string="Mở lại" invisible="state == 'draft'"
+                            groups="dmag_dental_base.group_dmag_director"
+                            confirm="Mở lại biên bản? Các chữ ký bàn giao sẽ bị hủy."/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="shift" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="has_difference" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Bước 1 – Số liệu hệ thống">
+                            <field name="system_cash"/>
+                            <field name="system_transfer"/>
+                            <field name="system_card"/>
+                            <field name="system_total"/>
+                            <field name="bank_sepay_total"/>
+                        </group>
+                        <group string="Bước 2 – Kiểm đếm thực tế">
+                            <field name="cash_opening" readonly="state != 'draft'"/>
+                            <field name="cash_counted" readonly="state != 'draft'"/>
+                            <field name="card_slip_total" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Chênh lệch">
+                            <field name="cash_expected"/>
+                            <field name="cash_diff" decoration-danger="cash_diff != 0"/>
+                            <field name="card_diff" decoration-danger="card_diff != 0"/>
+                            <field name="bank_diff" decoration-danger="bank_diff != 0"/>
+                            <field name="diff_reason" readonly="state not in ('draft', 'counted')"
+                                   required="has_difference and state == 'counted'"/>
+                        </group>
+                        <group string="Bước 3, 4 – Ký bàn giao &amp; xác nhận">
+                            <field name="receptionist_sign_uid"/>
+                            <field name="receptionist_sign_date"/>
+                            <field name="cashier_sign_uid"/>
+                            <field name="cashier_sign_date"/>
+                            <field name="confirm_uid"/>
+                            <field name="confirm_date"/>
+                            <field name="lock_uid"/>
+                            <field name="lock_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Khoản thu" name="logs">
+                            <field name="log_ids"/>
+                        </page>
+                        <page string="Giao dịch SePay" name="bank">
+                            <field name="transaction_ids"/>
+                        </page>
+                        <page string="Ghi chú" name="note">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_cash_closing_search" model="ir.ui.view">
+        <field name="name">dmag.cash.closing.search</field>
+        <field name="model">dmag.cash.closing</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="open" string="Chưa khóa" domain="[('state', '!=', 'locked')]"/>
+                <filter name="diff" string="Có chênh lệch" domain="[('has_difference', '=', True)]"/>
+                <filter name="date" string="Ngày" date="date"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_cash_closing" model="ir.actions.act_window">
+        <field name="name">Chốt két</field>
+        <field name="res_model">dmag.cash.closing</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo biên bản chốt két cuối ca</p>
+            <p>4 bước: số liệu hệ thống → lễ tân kiểm đếm &amp; ký → thu ngân ký nhận, quản lý xác nhận → khóa sổ.</p>
+        </field>
+    </record>
+</odoo>

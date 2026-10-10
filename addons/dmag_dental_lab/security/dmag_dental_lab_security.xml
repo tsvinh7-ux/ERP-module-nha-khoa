@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Giám đốc xem / duyệt đơn mua labo. Nhân viên lâm sàng không có quyền Mua hàng:
+         đơn mua được sinh bằng quyền hệ thống khi gửi phiếu labo. -->
+    <record id="dmag_dental_base.group_dmag_director" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+    <record id="rule_dmag_lab_order_company" model="ir.rule">
+        <field name="name">Phiếu labo: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_lab_order"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_lab_tryin_company" model="ir.rule">
+        <field name="name">Thử labo: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_lab_tryin"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

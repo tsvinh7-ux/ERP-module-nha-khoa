@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_consent" model="ir.actions.report">
+        <field name="name">Giấy cam kết đồng ý thực hiện thủ thuật</field>
+        <field name="model">dmag.consent</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_dental_emr.report_consent</field>
+        <field name="report_file">dmag_dental_emr.report_consent</field>
+        <field name="print_report_name">'Cam ket thu thuat - %s' % (object.name)</field>
+        <field name="paperformat_id" ref="paperformat_dmag_emr_a4"/>
+        <field name="binding_model_id" ref="model_dmag_consent"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Tài liệu giao người bệnh: không viết tắt -->
+    <template id="report_consent_document">
+        <t t-set="p" t-value="o.patient_id"/>
+        <t t-set="company" t-value="o.company_id"/>
+        <div class="page dmag-emr">
+            <t t-call="dmag_dental_emr.emr_styles"/>
+            <t t-call="dmag_dental_emr.emr_header">
+                <t t-set="title" t-value="'GIẤY CAM KẾT / ĐỒNG Ý THỰC HIỆN THỦ THUẬT'"/>
+                <t t-set="subtitle" t-value="False"/>
+                <t t-set="form_code" t-value="False"/>
+                <div style="margin-top: 4px;">Số phiếu: <b t-esc="o.name"/></div>
+                <div>Mã người bệnh: <b t-esc="p.patient_code or ''"/></div>
+            </t>
+            <div style="text-align: center; font-weight: bold; margin: 6px 0;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br/>Độc lập – Tự do – Hạnh phúc</div>
+
+            <div class="section">1. Người bệnh</div>
+            <table class="admin">
+                <tr>
+                    <td style="width: 55%;">Họ và tên: <b t-esc="(p.name or '').upper()"/></td>
+                    <td>Ngày sinh: <t t-esc="p.birthdate and p.birthdate.strftime('%d/%m/%Y') or ''"/> – Giới tính: <span t-field="p.gender"/></td>
+                </tr>
+                <tr>
+                    <td><t t-esc="p._emr_identity_label()"/>: <t t-esc="p.citizen_id or ''"/></td>
+                    <td>Điện thoại: <t t-esc="p.mobile or p.phone or ''"/></td>
+                </tr>
+                <tr><td colspan="2">Địa chỉ: <t t-esc="p._emr_address()"/></td></tr>
+                <tr t-if="o.guardian_name">
+                    <td>Người đại diện hợp pháp: <b t-esc="o.guardian_name"/> (<t t-esc="o.guardian_relation or ''"/>)</td>
+                    <td>Số định danh: <t t-esc="o.guardian_identity or ''"/></td>
+                </tr>
+            </table>
+
+            <div class="section">2. Thủ thuật dự kiến thực hiện</div>
+            <table class="grid">
+                <tr><td style="width: 30%;"><b>Loại cam kết</b></td><td><span t-field="o.consent_type"/></td></tr>
+                <tr><td><b>Chẩn đoán</b></td><td t-esc="o.diagnosis or ''"/></td></tr>
+                <tr><td><b>Thủ thuật / kỹ thuật</b></td><td t-esc="o.procedure_name"/></td></tr>
+                <tr><td><b>Răng thực hiện</b></td><td><t t-esc="', '.join('răng số %s' % c for c in o.tooth_ids.mapped('code')) or 'Không áp dụng'"/></td></tr>
+                <tr><td><b>Nguy cơ, tai biến có thể xảy ra</b></td><td class="val" t-esc="o.risks or ''"/></td></tr>
+                <tr><td><b>Phương pháp điều trị thay thế</b></td><td class="val" t-esc="o.alternatives or 'Không có'"/></td></tr>
+                <tr><td><b>Chi phí dự kiến</b></td><td><span t-field="o.expected_cost" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/> (có thể thay đổi nếu phát sinh, bác sĩ sẽ giải thích và người bệnh đồng ý trước khi thực hiện)</td></tr>
+                <tr><td><b>Bác sĩ giải thích</b></td><td><t t-esc="o.doctor_id.name or ''"/></td></tr>
+            </table>
+
+            <div class="section">3. Cam kết của người bệnh / người đại diện hợp pháp</div>
+            <div class="val" style="text-align: justify;" t-esc="o.consent_text"/>
+
+            <table class="sign avoid" style="margin-top: 16px;">
+                <tr>
+                    <td style="width: 50%;">
+                        <div>&#160;</div>
+                        <div class="role">Bác sĩ giải thích</div>
+                        <div class="muted"><i>(Ký, ghi rõ họ và tên)</i></div>
+                        <div style="height: 70px;"/>
+                        <div style="font-weight: bold;" t-esc="o.doctor_id.name or ''"/>
+                    </td>
+                    <td>
+                        <div><i>Ngày <t t-esc="o.signed_at and o.env['dmag.dental.visit']._emr_fmt_dt(o.signed_at) or '...... tháng ...... năm ........'"/></i></div>
+                        <div class="role">Người bệnh / người đại diện hợp pháp</div>
+                        <div class="muted"><i>(Ký, ghi rõ họ và tên)</i></div>
+                        <t t-if="o.state == 'signed' and o.sign_method == 'tablet' and o.signature">
+                            <img t-att-src="image_data_uri(o.signature)" style="max-height: 70px; max-width: 220px;"/>
+                        </t>
+                        <t t-elif="o.state == 'signed'">
+                            <div class="esig">Đã xác nhận: <span t-field="o.sign_method"/><t t-if="o.otp_reference"> – mã giao dịch <t t-esc="o.otp_reference"/></t></div>
+                        </t>
+                        <t t-else=""><div style="height: 70px;"/></t>
+                        <div style="font-weight: bold;" t-esc="o.signer_name or ''"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <template id="report_consent">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <t t-call="dmag_dental_emr.report_consent_document"/>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_warranty_card_receptionist,dmag_warranty_card receptionist,model_dmag_warranty_card,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_warranty_card_director,dmag_warranty_card director,model_dmag_warranty_card,dmag_dental_base.group_dmag_director,1,1,1,1
+access_dmag_warranty_claim_receptionist,dmag_warranty_claim receptionist,model_dmag_warranty_claim,dmag_dental_base.group_dmag_receptionist,1,1,1,0
+access_dmag_warranty_claim_manager,dmag_warranty_claim manager,model_dmag_warranty_claim,dmag_dental_base.group_dmag_manager,1,1,1,1

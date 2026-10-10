@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_prescription" name="Đơn thuốc" parent="dmag_dental_base.menu_dmag_dental_root"
+              action="action_dmag_prescription" sequence="25"/>
+    <menuitem id="menu_dmag_config_rx" name="Đơn thuốc" parent="dmag_dental_base.menu_dmag_config" sequence="25"/>
+    <menuitem id="menu_dmag_drug" name="Danh mục thuốc" parent="menu_dmag_config_rx" action="action_dmag_drug" sequence="10"/>
+    <menuitem id="menu_dmag_rx_template" name="Đơn thuốc mẫu" parent="menu_dmag_config_rx" action="action_dmag_rx_template" sequence="20"/>
+    <menuitem id="menu_dmag_rx_national_config" name="Liên thông đơn thuốc" parent="menu_dmag_config_rx"
+              action="action_dmag_rx_national_config" sequence="30" groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_rx_send_log" name="Nhật ký liên thông" parent="menu_dmag_config_rx"
+              action="action_dmag_rx_send_log" sequence="40" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>

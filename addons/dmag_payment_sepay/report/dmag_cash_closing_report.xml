@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_dmag_cash_closing" model="ir.actions.report">
+        <field name="name">Biên bản chốt két</field>
+        <field name="model">dmag.cash.closing</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_payment_sepay.report_dmag_cash_closing</field>
+        <field name="report_file">dmag_payment_sepay.report_dmag_cash_closing</field>
+        <field name="print_report_name">'Bien ban chot ket - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_dmag_cash_closing"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_dmag_cash_closing">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="cur" t-value="o.currency_id"/>
+                    <div class="page">
+                        <h3 class="text-center">BIÊN BẢN CHỐT KÉT</h3>
+                        <p class="text-center">
+                            Số: <span t-field="o.name"/> – Ngày <span t-field="o.date"/> – <span t-field="o.shift"/>
+                        </p>
+                        <p>Phòng khám: <span t-field="o.company_id.name"/></p>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Khoản mục</th>
+                                    <th class="text-end">Hệ thống</th>
+                                    <th class="text-end">Thực tế</th>
+                                    <th class="text-end">Chênh lệch</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Tiền mặt (gồm tiền đầu ca <span t-field="o.cash_opening"/>)</td>
+                                    <td class="text-end"><span t-field="o.cash_expected"/></td>
+                                    <td class="text-end"><span t-field="o.cash_counted"/></td>
+                                    <td class="text-end"><span t-field="o.cash_diff"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Quẹt thẻ (POS)</td>
+                                    <td class="text-end"><span t-field="o.system_card"/></td>
+                                    <td class="text-end"><span t-field="o.card_slip_total"/></td>
+                                    <td class="text-end"><span t-field="o.card_diff"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Chuyển khoản (ngân hàng / SePay báo có)</td>
+                                    <td class="text-end"><span t-field="o.system_transfer"/></td>
+                                    <td class="text-end"><span t-field="o.bank_sepay_total"/></td>
+                                    <td class="text-end"><span t-field="o.bank_diff"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tổng thu trên hệ thống</strong></td>
+                                    <td class="text-end"><strong><span t-field="o.system_total"/></strong></td>
+                                    <td/><td/>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-if="o.diff_reason"><strong>Giải trình chênh lệch: </strong><span t-field="o.diff_reason"/></p>
+                        <h5>Chi tiết khoản thu</h5>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>Thời điểm</th><th>Lượt khám</th><th>Bệnh nhân</th><th>Phương thức</th><th>Người thu</th><th class="text-end">Số tiền</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.log_ids" t-as="l">
+                                    <td><span t-field="l.date"/></td>
+                                    <td><span t-field="l.visit_id.name"/></td>
+                                    <td><span t-field="l.patient_id.name"/></td>
+                                    <td><span t-field="l.method"/></td>
+                                    <td><span t-field="l.user_id.name"/></td>
+                                    <td class="text-end"><span t-field="l.amount"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-borderless mt-4">
+                            <tr class="text-center">
+                                <td><strong>Lễ tân bàn giao</strong><br/>
+                                    <span t-field="o.receptionist_sign_uid.name"/><br/>
+                                    <small t-field="o.receptionist_sign_date"/></td>
+                                <td><strong>Thu ngân / thủ quỹ nhận</strong><br/>
+                                    <span t-field="o.cashier_sign_uid.name"/><br/>
+                                    <small t-field="o.cashier_sign_date"/></td>
+                                <td><strong>Quản lý xác nhận</strong><br/>
+                                    <span t-field="o.confirm_uid.name"/><br/>
+                                    <small t-field="o.confirm_date"/></td>
+                            </tr>
+                        </table>
+                        <p class="text-muted small">Trạng thái: <span t-field="o.state"/>. Xác nhận điện tử trên hệ thống
+                            (người dùng + thời điểm) thay cho chữ ký tay.</p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

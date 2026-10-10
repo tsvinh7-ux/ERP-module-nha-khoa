@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_hr_3p" name="Nhân sự 3P" parent="dmag_dental_base.menu_dmag_dental_root"
+              sequence="70" groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_pay3p_sheet" name="Bảng lương 3P" parent="menu_dmag_hr_3p"
+              action="action_dmag_pay3p_sheet" sequence="10"/>
+    <menuitem id="menu_dmag_employee_3p" name="Nhân viên &amp; ngạch bậc" parent="menu_dmag_hr_3p"
+              action="action_dmag_employee_3p" sequence="20"/>
+    <menuitem id="menu_dmag_competency_assessment" name="Đánh giá năng lực (P2)" parent="menu_dmag_hr_3p"
+              action="action_dmag_competency_assessment" sequence="30"/>
+    <menuitem id="menu_dmag_kpi_result" name="Kết quả KPI (P3)" parent="menu_dmag_hr_3p"
+              action="action_dmag_kpi_result" sequence="40"/>
+    <menuitem id="menu_dmag_hr_3p_config" name="Khung P/M" parent="menu_dmag_hr_3p" sequence="90"/>
+    <menuitem id="menu_dmag_job_grade" name="Ngạch bậc &amp; khung P1" parent="menu_dmag_hr_3p_config"
+              action="action_dmag_job_grade" sequence="10"/>
+    <menuitem id="menu_dmag_position_profile" name="Hồ sơ vị trí" parent="menu_dmag_hr_3p_config"
+              action="action_dmag_position_profile" sequence="20"/>
+    <menuitem id="menu_dmag_competency" name="Tiêu chí năng lực" parent="menu_dmag_hr_3p_config"
+              action="action_dmag_competency" sequence="30"/>
+    <menuitem id="menu_dmag_kpi_definition" name="Bộ chỉ tiêu KPI" parent="menu_dmag_hr_3p_config"
+              action="action_dmag_kpi_definition" sequence="40"/>
+</odoo>

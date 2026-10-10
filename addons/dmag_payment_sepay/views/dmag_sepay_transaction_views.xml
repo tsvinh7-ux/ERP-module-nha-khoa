@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_sepay_transaction_tree" model="ir.ui.view">
+        <field name="name">dmag.sepay.transaction.tree</field>
+        <field name="model">dmag.sepay.transaction</field>
+        <field name="arch" type="xml">
+            <tree create="false" delete="false" decoration-danger="needs_review"
+                  decoration-muted="state in ('duplicate', 'ignored')">
+                <field name="transaction_date"/>
+                <field name="sepay_id"/>
+                <field name="gateway" optional="show"/>
+                <field name="transfer_type" optional="hide"/>
+                <field name="amount" sum="Tổng"/>
+                <field name="unapplied_amount" sum="Chưa gạch" optional="show"/>
+                <field name="content"/>
+                <field name="parsed_code"/>
+                <field name="visit_id" optional="show"/>
+                <field name="state" widget="badge"/>
+                <field name="needs_review" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_sepay_transaction_form" model="ir.ui.view">
+        <field name="name">dmag.sepay.transaction.form</field>
+        <field name="model">dmag.sepay.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Giao dịch SePay" create="false" delete="false" edit="false">
+                <header>
+                    <button name="action_open_match_wizard" type="object" string="Đối soát thủ công" class="btn-primary"
+                            invisible="state in ('duplicate', 'ignored') or unapplied_amount == 0"
+                            groups="dmag_dental_base.group_dmag_manager,account.group_account_invoice"/>
+                    <button name="action_ignore" type="object" string="Đã xử lý / bỏ qua"
+                            invisible="not needs_review"
+                            groups="dmag_dental_base.group_dmag_manager,account.group_account_invoice"
+                            confirm="Đánh dấu giao dịch đã được xử lý ngoài hệ thống (hoàn tiền, thu khác…)?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,matched,unmatched"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="display_label"/></h1></div>
+                    <group>
+                        <group string="Giao dịch">
+                            <field name="sepay_id"/>
+                            <field name="transaction_date"/>
+                            <field name="gateway"/>
+                            <field name="account_number"/>
+                            <field name="sub_account"/>
+                            <field name="transfer_type"/>
+                            <field name="amount"/>
+                            <field name="accumulated"/>
+                            <field name="reference_code"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Đối soát">
+                            <field name="code"/>
+                            <field name="parsed_code"/>
+                            <field name="request_id"/>
+                            <field name="visit_id"/>
+                            <field name="patient_id"/>
+                            <field name="applied_amount"/>
+                            <field name="unapplied_amount"/>
+                            <field name="needs_review"/>
+                            <field name="matched_by_id"/>
+                            <field name="matched_date"/>
+                            <field name="closing_id"/>
+                            <field name="payment_ids" widget="many2many_tags" groups="account.group_account_invoice"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="content"/>
+                        <field name="description"/>
+                        <field name="message"/>
+                    </group>
+                    <notebook>
+                        <page string="Payload gốc" name="raw" groups="dmag_dental_base.group_dmag_manager,account.group_account_invoice">
+                            <field name="raw_payload" widget="ace" options="{'mode': 'js'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_sepay_transaction_search" model="ir.ui.view">
+        <field name="name">dmag.sepay.transaction.search</field>
+        <field name="model">dmag.sepay.transaction</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="content"/>
+                <field name="sepay_id"/>
+                <field name="parsed_code"/>
+                <field name="reference_code"/>
+                <field name="visit_id"/>
+                <filter name="queue" string="Hàng chờ xử lý" domain="[('needs_review', '=', True)]"/>
+                <filter name="unmatched" string="Chưa khớp" domain="[('state', '=', 'unmatched')]"/>
+                <filter name="matched" string="Đã gạch nợ" domain="[('state', '=', 'matched')]"/>
+                <filter name="duplicate" string="Trùng / bỏ qua" domain="[('state', 'in', ('duplicate', 'ignored'))]"/>
+                <separator/>
+                <filter name="date" string="Ngày giao dịch" date="transaction_date"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_state" string="Trạng thái" context="{'group_by': 'state'}"/>
+                    <filter name="group_day" string="Ngày" context="{'group_by': 'local_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_sepay_transaction_queue" model="ir.actions.act_window">
+        <field name="name">Hàng chờ xử lý</field>
+        <field name="res_model">dmag.sepay.transaction</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_queue': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Không có giao dịch cần xử lý</p>
+            <p>Giao dịch SePay không đọc được mã thanh toán, trả thừa / thiếu hoặc lỗi gạch nợ sẽ nằm ở đây.</p>
+        </field>
+    </record>
+
+    <record id="action_dmag_sepay_transaction" model="ir.actions.act_window">
+        <field name="name">Giao dịch SePay</field>
+        <field name="res_model">dmag.sepay.transaction</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

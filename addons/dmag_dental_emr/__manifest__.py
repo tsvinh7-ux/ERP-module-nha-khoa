@@ -1,0 +1,35 @@
+{
+    'name': 'DMAG – Hồ sơ bệnh án RHM chuẩn Bộ Y tế',
+    'summary': 'Bệnh án ngoại trú Răng Hàm Mặt (mẫu 16/BV1, TT 32/2023, TT 13/2025): hành chính, '
+               'hỏi bệnh, khám, chẩn đoán ICD-10, tổng kết, phiếu điều trị, cam kết thủ thuật, '
+               'yêu cầu sao chụp hồ sơ, nhật ký truy cập, thời hạn lưu trữ',
+    'version': '17.0.1.0.0',
+    'category': 'Healthcare/Dental',
+    'author': 'DMAG – Dental Management & Analytics Group',
+    'website': 'https://dmagroup.vn',
+    'license': 'LGPL-3',
+    'depends': ['dmag_dental_clinic'],
+    'data': [
+        'security/dmag_dental_emr_security.xml',
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'data/dmag_abbreviation_data.xml',
+        'report/report_common.xml',
+        'report/report_dental_record.xml',
+        'report/report_treatment_sheet.xml',
+        'report/report_record_summary.xml',
+        'report/report_consent.xml',
+        'views/dmag_dental_visit_views.xml',
+        'views/res_partner_views.xml',
+        'views/res_company_views.xml',
+        'views/dmag_consent_views.xml',
+        'views/dmag_record_request_views.xml',
+        'views/dmag_record_access_log_views.xml',
+        'views/dmag_abbreviation_views.xml',
+        'views/dmag_dental_emr_menus.xml',
+    ],
+    'demo': [
+        'demo/dmag_dental_emr_demo.xml',
+    ],
+    'installable': True,
+}

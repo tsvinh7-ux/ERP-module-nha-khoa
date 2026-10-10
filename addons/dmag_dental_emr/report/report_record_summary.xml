@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_record_summary" model="ir.actions.report">
+        <field name="name">Tóm tắt hồ sơ bệnh án</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dmag_dental_emr.report_record_summary</field>
+        <field name="report_file">dmag_dental_emr.report_record_summary</field>
+        <field name="print_report_name">'Tom tat ho so benh an - %s' % (object.patient_id.patient_code or object.patient_id.name)</field>
+        <field name="paperformat_id" ref="paperformat_dmag_emr_a4"/>
+        <field name="binding_model_id" ref="dmag_dental_clinic.model_dmag_dental_visit"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Tài liệu giao người bệnh: viết đầy đủ, KHÔNG dùng ký hiệu viết tắt (TT 32/2023 Điều 52 khoản 2 điểm c) -->
+    <template id="report_record_summary_document">
+        <t t-set="p" t-value="o.patient_id"/>
+        <t t-set="company" t-value="o.company_id"/>
+        <div class="page dmag-emr">
+            <t t-call="dmag_dental_emr.emr_styles"/>
+            <t t-call="dmag_dental_emr.emr_header">
+                <t t-set="title" t-value="'TÓM TẮT HỒ SƠ BỆNH ÁN'"/>
+                <t t-set="subtitle" t-value="'(Cung cấp cho người bệnh / người đại diện hợp pháp theo yêu cầu)'"/>
+                <t t-set="form_code" t-value="False"/>
+                <div style="margin-top: 4px;">Số ngoại trú: <b t-esc="o.outpatient_number or ''"/></div>
+                <div>Mã người bệnh: <b t-esc="p.patient_code or ''"/></div>
+            </t>
+
+            <div class="section">1. Thông tin người bệnh</div>
+            <table class="admin">
+                <tr>
+                    <td style="width: 55%;">Họ và tên: <b t-esc="(p.name or '').upper()"/></td>
+                    <td>Ngày sinh: <t t-esc="p.birthdate and p.birthdate.strftime('%d/%m/%Y') or ''"/> – Giới tính: <span t-field="p.gender"/></td>
+                </tr>
+                <tr>
+                    <td><t t-esc="p._emr_identity_label()"/>: <t t-esc="p.citizen_id or ''"/></td>
+                    <td>Số thẻ bảo hiểm y tế: <t t-esc="p.bhyt_number or 'Không có'"/></td>
+                </tr>
+                <tr><td colspan="2">Địa chỉ: <t t-esc="p._emr_address()"/></td></tr>
+                <tr>
+                    <td colspan="2">Thời gian khám, điều trị: từ ngày <t t-esc="(o.treatment_from or o.scheduled_start) and o._emr_fmt_dt(o.treatment_from or o.scheduled_start, False)"/>
+                        <t t-if="o.treatment_to"> đến ngày <t t-esc="o.treatment_to.strftime('%d/%m/%Y')"/></t></td>
+                </tr>
+            </table>
+
+            <div class="section">2. Lý do đến khám</div>
+            <div class="val" t-esc="o.chief_complaint or o.reason or ''"/>
+
+            <div class="section">3. Quá trình bệnh lý và diễn biến lâm sàng</div>
+            <div class="val" t-esc="o.summary_course or o.present_illness or 'Không ghi nhận'"/>
+
+            <div class="section">4. Kết quả khám và cận lâm sàng có giá trị chẩn đoán</div>
+            <div class="val" t-esc="o.exam_intraoral or o.examination or ''"/>
+            <div class="val" t-if="o.paraclinical_summary" t-esc="o.paraclinical_summary"/>
+
+            <div class="section">5. Chẩn đoán</div>
+            <t t-set="fd" t-value="o.final_diagnosis_id or o.primary_diagnosis_id"/>
+            <div t-if="fd">Bệnh chính: <t t-esc="fd.name"/> (mã bệnh theo Bảng phân loại quốc tế bệnh tật lần thứ 10: <t t-esc="fd.code"/>)</div>
+            <div t-foreach="o.secondary_diagnosis_ids" t-as="dg">Bệnh kèm theo: <t t-esc="dg.name"/> (mã bệnh: <t t-esc="dg.code"/>)</div>
+            <div class="val" t-if="o.final_diagnosis" t-esc="o.final_diagnosis"/>
+
+            <div class="section">6. Phương pháp điều trị và các thủ thuật đã thực hiện</div>
+            <div class="val" t-esc="o.summary_method or o.treatment_note or ''"/>
+            <ul t-if="o.procedure_ids" style="margin: 2px 0 0 0;">
+                <li t-foreach="o.procedure_ids" t-as="pr"><t t-esc="pr.product_id.name"/><t t-if="pr.tooth_ids"> – răng số <t t-esc="', '.join(pr.tooth_ids.mapped('code'))"/></t></li>
+            </ul>
+
+            <div class="section">7. Tình trạng người bệnh khi kết thúc điều trị</div>
+            <div class="val" t-esc="o.summary_status_end or ''"/>
+
+            <div class="section">8. Hướng điều trị và lời dặn tiếp theo</div>
+            <div class="val" t-esc="o.summary_next_direction or o.treatment_direction or ''"/>
+            <div class="val" t-if="o.advice" t-esc="o.advice"/>
+
+            <table class="sign avoid" style="margin-top: 16px;">
+                <tr>
+                    <td style="width: 50%;">
+                        <div>&#160;</div>
+                        <div class="role">Thủ trưởng cơ sở</div>
+                        <div class="muted"><i>(Ký, ghi rõ họ và tên, đóng dấu)</i></div>
+                        <div style="height: 70px;"/>
+                    </td>
+                    <td>
+                        <div><i>Ngày <t t-esc="o._emr_fmt_dt(datetime.datetime.utcnow(), False)"/></i></div>
+                        <div class="role">Bác sĩ điều trị</div>
+                        <div class="muted"><i>(Ký, ghi rõ họ và tên)</i></div>
+                        <t t-if="o.record_state == 'signed'">
+                            <div class="esig">Bệnh án đã được ký xác nhận điện tử<br/><t t-esc="o._emr_fmt_dt(o.signed_at)"/></div>
+                            <div style="margin-top: 8px; font-weight: bold;" t-esc="o.signed_by_id.name"/>
+                        </t>
+                        <t t-else=""><div style="height: 60px;"/><div style="font-weight: bold;" t-esc="o.doctor_id.name or ''"/></t>
+                    </td>
+                </tr>
+            </table>
+            <div class="muted" style="margin-top: 8px;">
+                Bản tóm tắt được cung cấp theo yêu cầu bằng văn bản của người bệnh hoặc người đại diện hợp pháp
+                (Luật Khám bệnh, chữa bệnh năm 2023, Điều 12 và Điều 69). Thông tin trong tài liệu thuộc bí mật của người bệnh.
+            </div>
+        </div>
+    </template>
+
+    <template id="report_record_summary">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <t t-call="dmag_dental_emr.report_record_summary_document"/>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

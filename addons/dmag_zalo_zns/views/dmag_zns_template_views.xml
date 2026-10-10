@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_zns_template_tree" model="ir.ui.view">
+        <field name="name">dmag.zns.template.tree</field>
+        <field name="model">dmag.zns.template</field>
+        <field name="arch" type="xml">
+            <tree string="Mẫu ZNS">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="template_id"/>
+                <field name="journey_event"/>
+                <field name="transactional"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_zns_template_form" model="ir.ui.view">
+        <field name="name">dmag.zns.template.form</field>
+        <field name="model">dmag.zns.template</field>
+        <field name="arch" type="xml">
+            <form string="Mẫu ZNS">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_messages" type="object" class="oe_stat_button" icon="fa-comments">
+                            <field name="message_count" widget="statinfo" string="Tin đã gửi"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="alert alert-warning" role="alert" invisible="template_id">
+                        Chưa có Template ID: mẫu phải được đăng ký và Zalo duyệt trước khi gửi thật.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Ví dụ: Xác nhận đặt lịch"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="template_id"/>
+                            <field name="journey_event"/>
+                        </group>
+                        <group>
+                            <field name="transactional"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tham số" name="params">
+                            <field name="param_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="expression"/>
+                                    <field name="default_value"/>
+                                    <field name="max_length"/>
+                                </tree>
+                            </field>
+                            <div class="text-muted small">
+                                Biến: <code>patient</code>/<code>partner</code>, <code>visit</code>, <code>record</code>,
+                                <code>company</code>, <code>today</code>, <code>now</code> (và biến bổ sung như <code>nps</code>).
+                                Bộ lọc: <code>|time</code>, <code>|date</code>, <code>|datetime</code>, <code>|money</code>,
+                                <code>|upper</code>, <code>|join</code>… Dự phòng: <code>a || b || 'chuỗi'</code>.
+                            </div>
+                        </page>
+                        <page string="Nội dung mẫu" name="preview">
+                            <field name="preview_text" placeholder="Xin chào &lt;customer_name&gt;, lịch hẹn của bạn lúc &lt;booking_time&gt;…"/>
+                        </page>
+                        <page string="Ghi chú" name="note">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_zns_template_search" model="ir.ui.view">
+        <field name="name">dmag.zns.template.search</field>
+        <field name="model">dmag.zns.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="template_id"/>
+                <filter name="no_template_id" string="Chưa có Template ID" domain="[('template_id', '=', False)]"/>
+                <filter name="inactive" string="Đã lưu trữ" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_event" string="Điểm chạm" context="{'group_by': 'journey_event'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_zns_template" model="ir.actions.act_window">
+        <field name="name">Mẫu Zalo ZNS</field>
+        <field name="res_model">dmag.zns.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Khai báo mẫu ZNS đã được Zalo duyệt</p>
+            <p>Mỗi mẫu gồm Template ID do Zalo cấp và bảng ánh xạ tham số sang dữ liệu bệnh nhân / lượt khám.</p>
+        </field>
+    </record>
+</odoo>

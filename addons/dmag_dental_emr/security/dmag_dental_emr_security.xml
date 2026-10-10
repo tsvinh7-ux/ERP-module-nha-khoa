@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_dmag_consent_company" model="ir.rule">
+        <field name="name">Cam kết người bệnh: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_consent"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_record_request_company" model="ir.rule">
+        <field name="name">Yêu cầu sao chụp hồ sơ: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_record_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_record_access_log_company" model="ir.rule">
+        <field name="name">Nhật ký truy cập hồ sơ: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_record_access_log"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_abbreviation_company" model="ir.rule">
+        <field name="name">Danh sách viết tắt: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_abbreviation"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

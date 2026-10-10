@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_esign_request_form" model="ir.ui.view">
+        <field name="name">dmag.esign.request.form</field>
+        <field name="model">dmag.esign.request</field>
+        <field name="arch" type="xml">
+            <form string="Hồ sơ ký số" create="false">
+                <header>
+                    <button name="action_check_status" type="object" string="Kiểm tra trạng thái ký" class="btn-primary"
+                            invisible="state not in ('sent', 'waiting')"/>
+                    <button name="action_resend" type="object" string="Gửi lại"
+                            invisible="state not in ('rejected', 'expired', 'error')"/>
+                    <button name="action_open_document" type="object" string="Mở tài liệu gốc"/>
+                    <field name="state" widget="statusbar" statusbar_visible="sent,waiting,signed"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Đã ký số" bg_color="text-bg-success" invisible="state != 'signed'"/>
+                    <widget name="web_ribbon" title="Lỗi" bg_color="text-bg-danger" invisible="state not in ('error', 'rejected', 'expired')"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                        <field name="document_name"/>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="not error_message">
+                        <field name="error_message"/>
+                    </div>
+                    <group>
+                        <group string="Tài liệu">
+                            <field name="res_name"/>
+                            <field name="res_model" groups="base.group_no_one"/>
+                            <field name="document_format"/>
+                            <field name="document_hash"/>
+                            <field name="unsigned_attachment_id"/>
+                            <field name="signature_attachment_id"/>
+                            <field name="signed_attachment_id" invisible="not signed_attachment_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Người ký &amp; chứng thư">
+                            <field name="signer_id"/>
+                            <field name="provider_id"/>
+                            <field name="transaction_id"/>
+                            <field name="credential_id"/>
+                            <field name="certificate_subject"/>
+                            <field name="certificate_serial"/>
+                            <field name="certificate_valid_to"/>
+                            <field name="signature_format"/>
+                            <field name="sent_at"/>
+                            <field name="expire_at"/>
+                            <field name="signed_at"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Nhật ký" name="log">
+                            <field name="log_ids">
+                                <tree>
+                                    <field name="date"/>
+                                    <field name="user_id"/>
+                                    <field name="event"/>
+                                    <field name="message"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_esign_request_tree" model="ir.ui.view">
+        <field name="name">dmag.esign.request.tree</field>
+        <field name="model">dmag.esign.request</field>
+        <field name="arch" type="xml">
+            <tree create="false" decoration-success="state == 'signed'" decoration-danger="state in ('error', 'rejected', 'expired')"
+                  decoration-info="state in ('sent', 'waiting')">
+                <field name="name"/>
+                <field name="document_name"/>
+                <field name="res_name"/>
+                <field name="signer_id"/>
+                <field name="provider_id"/>
+                <field name="sent_at"/>
+                <field name="signed_at"/>
+                <field name="state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_esign_request_search" model="ir.ui.view">
+        <field name="name">dmag.esign.request.search</field>
+        <field name="model">dmag.esign.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="document_name"/>
+                <field name="signer_id"/>
+                <field name="transaction_id"/>
+                <filter string="Đang chờ ký" name="filter_pending" domain="[('state', 'in', ('sent', 'waiting'))]"/>
+                <filter string="Đã ký" name="filter_signed" domain="[('state', '=', 'signed')]"/>
+                <filter string="Lỗi / từ chối / hết hạn" name="filter_failed" domain="[('state', 'in', ('error', 'rejected', 'expired'))]"/>
+                <filter string="Của tôi" name="filter_mine" domain="[('signer_user_id', '=', uid)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Bác sĩ" name="group_signer" context="{'group_by': 'signer_id'}"/>
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_esign_request" model="ir.actions.act_window">
+        <field name="name">Hồ sơ ký số</field>
+        <field name="res_model">dmag.esign.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_filter_mine': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có hồ sơ ký số</p>
+            <p>Yêu cầu ký số được tạo khi bác sĩ bấm "Ký bệnh án" (hoặc ký đơn thuốc, phiếu đồng ý…).</p>
+        </field>
+    </record>
+</odoo>

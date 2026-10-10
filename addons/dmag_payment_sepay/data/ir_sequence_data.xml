@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_dmag_cash_closing" model="ir.sequence">
+        <field name="name">Biên bản chốt két</field>
+        <field name="code">dmag.cash.closing</field>
+        <field name="prefix">CK/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

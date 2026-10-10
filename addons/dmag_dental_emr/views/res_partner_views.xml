@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_dmag_emr" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.emr</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_partner_form_dmag_patient"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='dmag_patient']//field[@name='citizen_id']" position="before">
+                <field name="identity_type"/>
+            </xpath>
+            <xpath expr="//page[@name='dmag_patient']//field[@name='citizen_id']" position="after">
+                <field name="identity_exemption_reason" invisible="citizen_id"/>
+            </xpath>
+            <xpath expr="//page[@name='dmag_patient']" position="after">
+                <page string="Hành chính bệnh án (16/BV1)" name="dmag_emr_admin" invisible="not is_patient">
+                    <group>
+                        <group string="Nhân thân">
+                            <field name="ethnicity"/>
+                            <field name="nationality_id" options="{'no_create': True}"/>
+                            <field name="workplace"/>
+                        </group>
+                        <group string="Đối tượng">
+                            <field name="patient_category"/>
+                            <field name="bhyt_number" invisible="patient_category != 'bhyt'" required="patient_category == 'bhyt'"/>
+                            <field name="bhyt_valid_to" invisible="patient_category != 'bhyt'"/>
+                        </group>
+                        <group string="Người nhà khi cần báo tin">
+                            <field name="emergency_contact_name"/>
+                            <field name="emergency_contact_address"/>
+                            <field name="emergency_contact_phone" widget="phone"/>
+                        </group>
+                        <group string="Tiền sử">
+                            <field name="family_history"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

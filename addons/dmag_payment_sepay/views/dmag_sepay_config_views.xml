@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_sepay_config_tree" model="ir.ui.view">
+        <field name="name">dmag.sepay.config.tree</field>
+        <field name="model">dmag.sepay.config</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="bank_code"/>
+                <field name="account_number"/>
+                <field name="account_name"/>
+                <field name="code_prefix"/>
+                <field name="enabled" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_sepay_config_form" model="ir.ui.view">
+        <field name="name">dmag.sepay.config.form</field>
+        <field name="model">dmag.sepay.config</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình SePay">
+                <sheet>
+                    <group>
+                        <group string="Tài khoản nhận tiền">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="enabled"/>
+                            <field name="bank_code" placeholder="MBBank"/>
+                            <field name="account_number"/>
+                            <field name="account_name"/>
+                        </group>
+                        <group string="Mã thanh toán &amp; QR">
+                            <field name="code_prefix"/>
+                            <field name="amount_tolerance"/>
+                            <field name="request_validity"/>
+                            <field name="qr_base_url"/>
+                            <field name="qr_template"/>
+                            <field name="timezone"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Webhook SePay">
+                        <field name="webhook_url" readonly="1" widget="CopyClipboardChar"/>
+                        <field name="api_key" password="True" groups="dmag_dental_base.group_dmag_director,base.group_system"/>
+                    </group>
+                    <div class="text-muted">
+                        Tại my.sepay.vn → Webhooks: gọi đến URL trên, sự kiện "Có tiền vào", kiểu chứng thực
+                        "API Key" (SePay gửi header <code>Authorization: Apikey &lt;khóa&gt;</code>).
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dmag_sepay_config" model="ir.actions.act_window">
+        <field name="name">Cấu hình SePay</field>
+        <field name="res_model">dmag.sepay.config</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_warranty_card_form" model="ir.ui.view">
+        <field name="name">dmag.warranty.card.form</field>
+        <field name="model">dmag.warranty.card</field>
+        <field name="arch" type="xml">
+            <form string="Thẻ bảo hành" create="0">
+                <header>
+                    <button name="action_print_card" type="object" string="In thẻ" class="btn-primary" icon="fa-print"/>
+                    <button name="action_void" type="object" string="Vô hiệu" invisible="state == 'void'"
+                            groups="dmag_dental_base.group_dmag_director"
+                            confirm="Vô hiệu thẻ bảo hành này? Cần nhập lý do trước."/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,claimed,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_claims" type="object" class="oe_stat_button" icon="fa-life-ring">
+                            <field name="claim_count" widget="statinfo" string="Yêu cầu BH"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Vô hiệu" bg_color="text-bg-danger" invisible="state != 'void'"/>
+                    <widget name="web_ribbon" title="Hết hạn" bg_color="text-bg-secondary" invisible="state != 'expired'"/>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Bệnh nhân &amp; dịch vụ">
+                            <field name="patient_id" readonly="1"/>
+                            <field name="patient_code"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="tooth_ids" widget="many2many_tags" readonly="1"/>
+                            <field name="doctor_id" readonly="1"/>
+                            <field name="procedure_id" readonly="1"/>
+                            <field name="visit_id" readonly="1"/>
+                        </group>
+                        <group string="Hiệu lực">
+                            <field name="months" readonly="1"/>
+                            <field name="start_date" readonly="1"/>
+                            <field name="end_date" readonly="1"/>
+                            <field name="days_left" invisible="state != 'active'"/>
+                            <field name="serial_ref" readonly="1"/>
+                            <field name="lab_order_ref" readonly="1"/>
+                            <field name="void_reason" groups="dmag_dental_base.group_dmag_director"
+                                   readonly="state == 'void'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Điều kiện bảo hành" name="conditions">
+                            <field name="conditions" readonly="1"/>
+                        </page>
+                        <page string="Yêu cầu bảo hành" name="claims">
+                            <field name="claim_ids" readonly="1">
+                                <tree>
+                                    <field name="name"/><field name="date"/><field name="issue"/>
+                                    <field name="decision" widget="badge" decoration-success="decision == 'covered'"
+                                           decoration-danger="decision == 'not_covered'"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_warranty_card_tree" model="ir.ui.view">
+        <field name="name">dmag.warranty.card.tree</field>
+        <field name="model">dmag.warranty.card</field>
+        <field name="arch" type="xml">
+            <tree string="Thẻ bảo hành" create="0" decoration-muted="state in ('expired', 'void')">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="product_id"/>
+                <field name="teeth_label"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="serial_ref" optional="hide"/>
+                <field name="lab_order_ref" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'active'" decoration-info="state == 'claimed'"
+                       decoration-danger="state == 'void'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_warranty_card_search" model="ir.ui.view">
+        <field name="name">dmag.warranty.card.search</field>
+        <field name="model">dmag.warranty.card</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="product_id"/>
+                <field name="serial_ref"/>
+                <filter name="active_cards" string="Còn hiệu lực" domain="[('state', 'in', ('active', 'claimed'))]"/>
+                <filter name="expiring" string="Hết hạn trong 30 ngày"
+                        domain="[('state', '=', 'active'), ('end_date', '&lt;=', (context_today() + relativedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <filter name="expired" string="Hết hạn" domain="[('state', '=', 'expired')]"/>
+                <filter name="void" string="Vô hiệu" domain="[('state', '=', 'void')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_product" string="Dịch vụ" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_state" string="Trạng thái" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_warranty_card" model="ir.actions.act_window">
+        <field name="name">Thẻ bảo hành</field>
+        <field name="res_model">dmag.warranty.card</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_active_cards': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có thẻ bảo hành</p>
+            <p>Thẻ tự sinh khi hoàn tất thủ thuật có "Bảo hành (tháng)" &gt; 0 (implant, răng sứ, chỉnh nha…).</p>
+        </field>
+    </record>
+
+    <record id="view_dmag_warranty_claim_form" model="ir.ui.view">
+        <field name="name">dmag.warranty.claim.form</field>
+        <field name="model">dmag.warranty.claim</field>
+        <field name="arch" type="xml">
+            <form string="Yêu cầu bảo hành">
+                <header>
+                    <button name="action_cover" type="object" string="Được bảo hành" class="btn-primary"
+                            invisible="decision != 'pending'" groups="dmag_dental_base.group_dmag_doctor"/>
+                    <button name="action_reject" type="object" string="Không thuộc bảo hành"
+                            invisible="decision != 'pending'" groups="dmag_dental_base.group_dmag_doctor"/>
+                    <button name="action_create_visit" type="object" string="Tạo lượt khám bảo hành"
+                            invisible="visit_id or decision == 'not_covered'"/>
+                    <field name="decision" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="card_id" readonly="decision != 'pending'" options="{'no_create': True}"/>
+                            <field name="patient_id"/>
+                            <field name="product_id"/>
+                            <field name="date" readonly="decision != 'pending'"/>
+                        </group>
+                        <group>
+                            <field name="visit_id" options="{'no_create': True}"/>
+                            <field name="decided_by_id" invisible="decision == 'pending'"/>
+                            <field name="decided_date" invisible="decision == 'pending'"/>
+                        </group>
+                    </group>
+                    <group string="Tình trạng"><field name="issue" nolabel="1" colspan="2" readonly="decision != 'pending'"/></group>
+                    <group string="Kết luận"><field name="decision_note" nolabel="1" colspan="2" readonly="decision != 'pending'"/></group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_warranty_claim_tree" model="ir.ui.view">
+        <field name="name">dmag.warranty.claim.tree</field>
+        <field name="model">dmag.warranty.claim</field>
+        <field name="arch" type="xml">
+            <tree string="Yêu cầu bảo hành">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="card_id"/>
+                <field name="patient_id"/>
+                <field name="issue"/>
+                <field name="decision" widget="badge" decoration-success="decision == 'covered'"
+                       decoration-danger="decision == 'not_covered'" decoration-warning="decision == 'pending'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_warranty_claim" model="ir.actions.act_window">
+        <field name="name">Yêu cầu bảo hành</field>
+        <field name="res_model">dmag.warranty.claim</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_job_grade_tree" model="ir.ui.view">
+        <field name="name">dmag.job.grade.tree</field>
+        <field name="model">dmag.job.grade</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom" decoration-muted="is_sample">
+                <field name="track"/>
+                <field name="code"/>
+                <field name="level"/>
+                <field name="name"/>
+                <field name="wage_min"/>
+                <field name="wage_mid"/>
+                <field name="wage_max"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+                <field name="description" optional="hide"/>
+                <field name="is_sample" optional="show"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_job_grade_search" model="ir.ui.view">
+        <field name="name">dmag.job.grade.search</field>
+        <field name="model">dmag.job.grade</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="name"/>
+                <filter name="track_p" string="Ngạch P" domain="[('track', '=', 'P')]"/>
+                <filter name="track_m" string="Ngạch M" domain="[('track', '=', 'M')]"/>
+                <filter name="sample" string="Dữ liệu mẫu" domain="[('is_sample', '=', True)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_track" string="Ngạch" context="{'group_by': 'track'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dmag_job_grade" model="ir.actions.act_window">
+        <field name="name">Khung ngạch bậc P/M</field>
+        <field name="res_model">dmag.job.grade</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Khai báo bậc P1…P6 (chuyên môn) và M1…M4 (quản lý)</p>
+            <p>Bản demo dùng dữ liệu mẫu – nạp khung P/M chuẩn của DMAG bằng chức năng Nhập (cột: code, name, track, level, wage_min, wage_mid, wage_max).</p>
+        </field>
+    </record>
+</odoo>

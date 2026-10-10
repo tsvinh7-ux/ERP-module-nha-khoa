@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_lab" name="Labo" parent="dmag_dental_clinic.menu_dmag_operation" sequence="50"/>
+    <menuitem id="menu_dmag_lab_order" name="Phiếu labo" parent="menu_dmag_lab"
+              action="action_dmag_lab_order" sequence="10"/>
+    <menuitem id="menu_dmag_lab_partner" name="Đối tác labo" parent="menu_dmag_lab"
+              action="action_dmag_lab_partner" sequence="20" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>
