@@ -26,6 +26,10 @@ class TestVisitFlow(DentalCommon):
         entry_ids = Entry.add_from_chart(self.patient.id, ['36'], self.env.ref('dmag_dental_base.condition_caries').id,
                                          surfaces=['O'], visit_id=visit.id)
         self.assertEqual(len(entry_ids), 1)
+        # Chạm lại cùng tình trạng trên cùng mặt răng không tạo bản ghi trùng
+        again = Entry.add_from_chart(self.patient.id, ['36'], self.env.ref('dmag_dental_base.condition_caries').id,
+                                     surfaces=['O'], visit_id=visit.id)
+        self.assertEqual(again, [])
 
         proc = self.env['dmag.dental.procedure'].add_from_workspace(
             visit.id, self.svc_filling.id, teeth=['36'], surfaces=['O'])

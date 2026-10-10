@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.FrontDesk">
+        <div class="dmag-ws dmag-frontdesk">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <h1>Bảng điều phối</h1>
+                        <span class="dmag-ws-sub">Hành trình khách hàng hôm nay · cập nhật tự động</span>
+                    </div>
+                </div>
+                <div class="dmag-ws-actions">
+                    <div class="dmag-search">
+                        <i class="fa fa-search" title="Tìm"/>
+                        <input type="search" placeholder="Tìm tên, mã BN, số điện thoại…"
+                               t-model="state.search"/>
+                    </div>
+                    <select class="dmag-select" t-on-change="(ev) => this.state.doctorId = Number(ev.target.value) || false">
+                        <option value="">Tất cả bác sĩ</option>
+                        <t t-foreach="state.board.doctors" t-as="doc" t-key="doc.id">
+                            <option t-att-value="doc.id" t-att-selected="doc.id === state.doctorId" t-esc="doc.name"/>
+                        </t>
+                    </select>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openCalendar"><i class="fa fa-calendar me-1" title="Lịch"/>Lịch</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="newPatient"><i class="fa fa-user-plus me-1" title="Bệnh nhân mới"/>Bệnh nhân mới</button>
+                    <button class="dmag-btn dmag-btn-primary" t-on-click="newBooking"><i class="fa fa-plus me-1" title="Đặt lịch"/>Đặt lịch</button>
+                </div>
+            </header>
+
+            <section class="dmag-kpis">
+                <div t-foreach="kpis" t-as="kpi" t-key="kpi.label" t-att-class="'dmag-kpi' + (kpi.alert ? ' is-alert' : '')">
+                    <span class="dmag-kpi-value" t-esc="kpi.value"/>
+                    <span class="dmag-kpi-label" t-esc="kpi.label"/>
+                </div>
+            </section>
+
+            <section class="dmag-chairs">
+                <div t-foreach="state.board.chairs" t-as="chair" t-key="chair.id"
+                     t-att-class="'dmag-chair' + (chair.visit ? ' is-busy' : ' is-free')">
+                    <div class="dmag-chair-head">
+                        <span class="dmag-chair-name"><i class="fa fa-wheelchair-alt me-1" title="Ghế"/><t t-esc="chair.name"/></span>
+                        <span class="dmag-chair-status" t-esc="chair.visit ? 'Đang điều trị' : 'Trống'"/>
+                    </div>
+                    <t t-if="chair.visit">
+                        <div class="dmag-chair-patient" t-esc="chair.visit.patient"/>
+                        <div class="dmag-chair-meta">
+                            <t t-esc="chair.visit.doctor"/> · <t t-esc="formatDuration(elapsedOf(chair.visit))"/>
+                        </div>
+                    </t>
+                    <div t-else="" class="dmag-chair-meta" t-esc="chair.room or 'Sẵn sàng đón khách'"/>
+                </div>
+            </section>
+
+            <div t-if="state.loading" class="dmag-empty">Đang tải…</div>
+            <section t-else="" class="dmag-lanes">
+                <div t-foreach="lanes" t-as="lane" t-key="lane.key" t-att-class="'dmag-lane dmag-lane-' + lane.key">
+                    <div class="dmag-lane-head">
+                        <span class="dmag-lane-title" t-esc="lane.title"/>
+                        <span class="dmag-lane-count" t-esc="lane.visits.length"/>
+                    </div>
+                    <div class="dmag-lane-hint" t-esc="lane.hint"/>
+                    <div class="dmag-lane-body">
+                        <div t-if="!lane.visits.length" class="dmag-lane-empty">Không có khách</div>
+                        <t t-foreach="lane.visits" t-as="visit" t-key="visit.id">
+                            <t t-set="wait" t-value="waitOf(visit)"/>
+                            <article t-att-class="'dmag-card' + (visit.state === 'arrived' and wait > WAIT_ALERT_MINUTES ? ' is-late' : '')">
+                                <div class="dmag-card-top">
+                                    <div class="dmag-avatar" t-esc="initials(visit.patient)"/>
+                                    <div class="dmag-card-who">
+                                        <a class="dmag-card-name" t-on-click.prevent="() => this.openPatient(visit)" href="#" t-esc="visit.patient"/>
+                                        <div class="dmag-card-sub">
+                                            <t t-esc="visit.patient_code"/>
+                                            <t t-if="visit.age"> · <t t-esc="visit.age"/> tuổi</t>
+                                            <t t-if="visit.phone"> · <t t-esc="visit.phone"/></t>
+                                        </div>
+                                    </div>
+                                    <div class="dmag-card-time">
+                                        <t t-if="visit.state === 'arrived'">
+                                            <span class="dmag-timer"><i class="fa fa-hourglass-half me-1" title="Đang chờ"/><t t-esc="formatDuration(wait)"/></span>
+                                        </t>
+                                        <t t-elif="visit.state === 'in_chair'">
+                                            <span class="dmag-timer is-chair"><i class="fa fa-clock-o me-1" title="Trên ghế"/><t t-esc="formatDuration(elapsedOf(visit))"/></span>
+                                        </t>
+                                        <t t-else=""><t t-esc="formatTime(visit.start)"/></t>
+                                    </div>
+                                </div>
+                                <div class="dmag-chips">
+                                    <span t-if="visit.is_new" class="dmag-chip is-new">Khách mới</span>
+                                    <span t-foreach="visit.alerts" t-as="alert" t-key="alert.name"
+                                          t-att-class="'dmag-chip is-' + alert.severity" t-esc="alert.name"/>
+                                </div>
+                                <div class="dmag-card-body">
+                                    <div t-if="visit.services.length" class="dmag-card-line"><i class="fa fa-medkit me-1" title="Dịch vụ"/><t t-esc="visit.services.join(', ')"/></div>
+                                    <div t-if="visit.reason" class="dmag-card-line text-muted" t-esc="visit.reason"/>
+                                    <div class="dmag-card-line">
+                                        <i class="fa fa-user-md me-1" title="Bác sĩ"/><t t-esc="visit.doctor or 'Chưa phân bác sĩ'"/>
+                                        <t t-if="visit.chair"> · <t t-esc="visit.chair"/></t>
+                                    </div>
+                                    <div t-if="visit.state === 'done'" class="dmag-card-line">
+                                        <i class="fa fa-money me-1" title="Thanh toán"/><t t-esc="PAYMENT_STATES[visit.payment_status]"/>
+                                        <t t-if="visit.amount_due"> · <b t-esc="formatMoney(visit.amount_due)"/></t>
+                                    </div>
+                                    <div t-if="visit.warning" class="dmag-card-warn"><i class="fa fa-exclamation-circle me-1" title="Cảnh báo"/><t t-esc="visit.warning"/></div>
+                                </div>
+                                <div t-if="state.chairPicker === visit.id" class="dmag-chair-picker">
+                                    <span>Chọn ghế trống:</span>
+                                    <button t-foreach="freeChairs" t-as="chair" t-key="chair.id" class="dmag-btn dmag-btn-sm"
+                                            t-on-click="() => this.seat(visit, chair.id)" t-esc="chair.name"/>
+                                    <span t-if="!freeChairs.length" class="text-danger">Hết ghế trống</span>
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.state.chairPicker = null">Đóng</button>
+                                </div>
+                                <div class="dmag-card-actions">
+                                    <t t-if="visit.state === 'draft'">
+                                        <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.confirm(visit)">Xác nhận</button>
+                                    </t>
+                                    <t t-if="['draft', 'confirmed'].includes(visit.state)">
+                                        <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.checkIn(visit)">Check-in</button>
+                                        <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.noShow(visit)">Không đến</button>
+                                    </t>
+                                    <t t-if="visit.state === 'arrived'">
+                                        <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.openChairPicker(visit)">Mời lên ghế</button>
+                                    </t>
+                                    <t t-if="visit.state === 'in_chair'">
+                                        <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.openDoctorDesk(visit)">Hồ sơ khám</button>
+                                        <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.finish(visit)">Hoàn tất</button>
+                                    </t>
+                                    <t t-if="visit.state === 'done' and ['to_invoice', 'to_pay'].includes(visit.payment_status)">
+                                        <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.collect(visit)">Thu tiền</button>
+                                    </t>
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-icon" title="Mở lượt khám" t-on-click="() => this.openVisit(visit)"><i class="fa fa-ellipsis-h" title="Chi tiết"/></button>
+                                </div>
+                            </article>
+                        </t>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </t>
+</templates>

@@ -31,14 +31,14 @@
     <record id="demo_visit_1" model="dmag.dental.visit">
         <field name="patient_id" ref="dmag_dental_base.demo_patient_1"/>
         <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
-        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=1, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="scheduled_start" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=1, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
         <field name="reason">Cạo vôi định kỳ 6 tháng</field>
         <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_scaling')])]"/>
         <field name="state">done</field>
         <field name="chair_id" ref="dmag_dental_base.demo_chair_1"/>
-        <field name="checkin_time" eval="(DateTime.today() + relativedelta(hours=1, minutes=18)).strftime('%Y-%m-%d %H:%M:%S')"/>
-        <field name="chair_time" eval="(DateTime.today() + relativedelta(hours=1, minutes=33)).strftime('%Y-%m-%d %H:%M:%S')"/>
-        <field name="done_time" eval="(DateTime.today() + relativedelta(hours=1, minutes=65)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="checkin_time" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=1, minutes=18)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="chair_time" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=1, minutes=33)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="done_time" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=1, minutes=65)).strftime('%Y-%m-%d %H:%M:%S')"/>
         <field name="chief_complaint">Tái khám định kỳ, không đau.</field>
         <field name="examination">Cao răng độ 1 hai hàm, lợi viêm nhẹ vùng răng cửa dưới.</field>
         <field name="assessment">Viêm lợi mạn do cao răng.</field>
@@ -49,27 +49,27 @@
     <record id="demo_visit_2" model="dmag.dental.visit">
         <field name="patient_id" ref="dmag_dental_base.demo_patient_2"/>
         <field name="doctor_id" ref="dmag_dental_base.demo_doctor_junior"/>
-        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=2, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="scheduled_start" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=2, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')"/>
         <field name="reason">Ê buốt răng hàm dưới khi ăn lạnh</field>
         <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_exam')])]"/>
         <field name="state">in_chair</field>
         <field name="chair_id" ref="dmag_dental_base.demo_chair_2"/>
-        <field name="checkin_time" eval="(DateTime.today() + relativedelta(hours=2, minutes=18)).strftime('%Y-%m-%d %H:%M:%S')"/>
-        <field name="chair_time" eval="(DateTime.today() + relativedelta(hours=2, minutes=33)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="checkin_time" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=2, minutes=18)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="chair_time" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=2, minutes=33)).strftime('%Y-%m-%d %H:%M:%S')"/>
     </record>
     <record id="demo_visit_3" model="dmag.dental.visit">
         <field name="patient_id" ref="dmag_dental_base.demo_patient_4"/>
         <field name="doctor_id" ref="dmag_dental_base.demo_doctor_director"/>
-        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=3, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="scheduled_start" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=3, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
         <field name="reason">Tư vấn làm răng sứ</field>
         <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_exam')])]"/>
         <field name="state">arrived</field>
-        <field name="checkin_time" eval="(DateTime.today() + relativedelta(hours=3, minutes=-12)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="checkin_time" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=3, minutes=-12)).strftime('%Y-%m-%d %H:%M:%S')"/>
     </record>
     <record id="demo_visit_4" model="dmag.dental.visit">
         <field name="patient_id" ref="dmag_dental_base.demo_patient_5"/>
         <field name="doctor_id" ref="dmag_dental_base.demo_doctor_ortho"/>
-        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=7, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="scheduled_start" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=7, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
         <field name="reason">Tư vấn niềng răng</field>
         <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_ortho')])]"/>
         <field name="state">confirmed</field>
@@ -78,7 +78,7 @@
     <record id="demo_visit_5" model="dmag.dental.visit">
         <field name="patient_id" ref="dmag_dental_base.demo_patient_3"/>
         <field name="doctor_id" ref="dmag_dental_base.demo_doctor_ortho"/>
-        <field name="scheduled_start" eval="(DateTime.today() + relativedelta(hours=8, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="scheduled_start" eval="(DateTime.today().replace(hour=0, minute=0, second=0, microsecond=0) + relativedelta(hours=8, minutes=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
         <field name="reason">Khám răng sữa cho bé</field>
         <field name="service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_exam')])]"/>
         <field name="state">draft</field>
@@ -194,5 +194,29 @@ Có thể đen viền lợi sau vài năm, bảo hành 3 năm.</field>
         <field name="quantity">2</field>
         <field name="price_unit">2000000</field>
         <field name="phase">1</field>
+    </record>
+    <record id="dmag_dental_base.condition_caries" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_filling')])]"/>
+    </record>
+    <record id="dmag_dental_base.condition_pulpitis" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_endo')])]"/>
+    </record>
+    <record id="dmag_dental_base.condition_periapical" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_endo')])]"/>
+    </record>
+    <record id="dmag_dental_base.condition_impacted" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_extract_wisdom')])]"/>
+    </record>
+    <record id="dmag_dental_base.condition_fracture" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_crown_zirconia'), ref('dmag_dental_base.demo_svc_crown_metal')])]"/>
+    </record>
+    <record id="dmag_dental_base.condition_missing" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_implant')])]"/>
+    </record>
+    <record id="dmag_dental_base.condition_calculus" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_scaling')])]"/>
+    </record>
+    <record id="dmag_dental_base.condition_residual_root" model="dmag.dental.condition">
+        <field name="suggested_service_ids" eval="[(6, 0, [ref('dmag_dental_base.demo_svc_extract_wisdom')])]"/>
     </record>
 </odoo>

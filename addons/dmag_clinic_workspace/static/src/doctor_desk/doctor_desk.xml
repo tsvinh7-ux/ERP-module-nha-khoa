@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.DoctorDesk">
+        <div class="dmag-ws dmag-doctor">
+            <!-- Cột trái: bệnh nhân hôm nay -->
+            <aside class="dmag-doctor-list">
+                <div class="dmag-doctor-me">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <div class="dmag-doctor-me-name">
+                            <t t-if="state.desk.practitioner"><t t-esc="state.desk.practitioner.title"/> <t t-esc="state.desk.practitioner.name"/></t>
+                            <t t-else="">Bàn làm việc</t>
+                        </div>
+                        <div class="dmag-ws-sub">Bệnh nhân hôm nay</div>
+                    </div>
+                </div>
+                <div class="dmag-seg">
+                    <button t-att-class="!state.showAll ? 'is-on' : ''" t-on-click="() => this.state.showAll = false">Của tôi</button>
+                    <button t-att-class="state.showAll ? 'is-on' : ''" t-on-click="() => this.state.showAll = true">Cả phòng khám</button>
+                </div>
+                <div class="dmag-doctor-items">
+                    <div t-if="!myVisits.length" class="dmag-lane-empty">Chưa có bệnh nhân</div>
+                    <button t-foreach="myVisits" t-as="v" t-key="v.id"
+                            t-att-class="'dmag-doctor-item' + (v.id === state.visitId ? ' is-active' : '')"
+                            t-on-click="() => this.openVisit(v.id)">
+                        <span t-att-class="'dmag-dot is-' + v.state"/>
+                        <span class="dmag-doctor-item-main">
+                            <span class="dmag-doctor-item-name" t-esc="v.patient"/>
+                            <span class="dmag-doctor-item-sub"><t t-esc="formatTime(v.start)"/> · <t t-esc="VISIT_STATES[v.state].label"/></span>
+                        </span>
+                        <i t-if="v.alerts.some((a) => a.severity === 'danger')" class="fa fa-exclamation-triangle text-danger" title="Cảnh báo y khoa"/>
+                    </button>
+                </div>
+                <button class="dmag-btn dmag-btn-ghost w-100 mt-2" t-on-click="goFrontDesk"><i class="fa fa-th-large me-1" title="Điều phối"/>Bảng điều phối</button>
+            </aside>
+
+            <!-- Vùng chính -->
+            <main class="dmag-doctor-main">
+                <div t-if="state.loading or !state.ws" class="dmag-empty">
+                    <i class="fa fa-user-md fa-3x mb-3" title="Bác sĩ"/>
+                    <div>Chọn bệnh nhân bên trái để bắt đầu khám</div>
+                </div>
+                <t t-else="">
+                    <!-- Thẻ bệnh nhân -->
+                    <section class="dmag-patient-head">
+                        <div class="dmag-avatar dmag-avatar-lg" t-esc="patient.name.split(' ').slice(-1)[0][0]"/>
+                        <div class="dmag-patient-id">
+                            <div class="dmag-patient-name">
+                                <a href="#" t-on-click.prevent="openPatientForm" t-esc="patient.name"/>
+                                <span class="dmag-patient-code" t-esc="patient.code"/>
+                            </div>
+                            <div class="dmag-patient-meta">
+                                <t t-if="patient.age"><t t-esc="patient.age"/> tuổi · </t>
+                                <t t-esc="patient.gender === 'male' ? 'Nam' : patient.gender === 'female' ? 'Nữ' : ''"/>
+                                <t t-if="patient.phone"> · <t t-esc="patient.phone"/></t>
+                                · <t t-esc="visit.reason or 'Chưa ghi lý do khám'"/>
+                            </div>
+                            <div class="dmag-chips">
+                                <span t-foreach="patient.alerts" t-as="alert" t-key="alert.name" t-att-class="'dmag-chip is-' + alert.severity" t-esc="alert.name"/>
+                                <span t-if="patient.allergy" class="dmag-chip is-danger"><i class="fa fa-ban me-1" title="Dị ứng"/>Dị ứng: <t t-esc="patient.allergy"/></span>
+                                <span t-if="visit.is_new" class="dmag-chip is-new">Khách mới</span>
+                            </div>
+                        </div>
+                        <div class="dmag-patient-actions">
+                            <span t-att-class="'dmag-state is-' + visit.state" t-esc="VISIT_STATES[visit.state].label"/>
+                            <button t-if="['confirmed', 'arrived'].includes(visit.state)" class="dmag-btn dmag-btn-primary" t-on-click="() => this.visitAction('action_start')">Bắt đầu khám</button>
+                            <button t-if="visit.state === 'in_chair'" class="dmag-btn dmag-btn-primary" t-on-click="() => this.visitAction('action_done')">Hoàn tất lượt khám</button>
+                            <button t-if="!locked and ['in_chair', 'done'].includes(visit.state)" class="dmag-btn dmag-btn-ghost" t-on-click="() => this.visitAction('action_sign_record')"><i class="fa fa-pencil-square-o me-1" title="Ký"/>Ký bệnh án</button>
+                            <span t-if="locked" class="dmag-signed"><i class="fa fa-lock me-1" title="Đã ký"/>Đã ký · <t t-esc="visit.signed_by"/></span>
+                        </div>
+                    </section>
+
+                    <nav class="dmag-tabs">
+                        <button t-att-class="state.tab === 'chart' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'chart'"><i class="fa fa-th me-1" title="Sơ đồ"/>Sơ đồ răng</button>
+                        <button t-att-class="state.tab === 'record' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'record'"><i class="fa fa-file-text-o me-1" title="Bệnh án"/>Bệnh án</button>
+                        <button t-att-class="state.tab === 'plan' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'plan'"><i class="fa fa-list-ol me-1" title="Kế hoạch"/>Kế hoạch điều trị <span t-if="state.ws.plans.length" class="dmag-badge" t-esc="state.ws.plans.length"/></button>
+                        <button t-att-class="state.tab === 'proc' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'proc'"><i class="fa fa-medkit me-1" title="Thủ thuật"/>Thủ thuật hôm nay <span t-if="state.ws.procedures.length" class="dmag-badge" t-esc="state.ws.procedures.length"/></button>
+                        <button t-att-class="state.tab === 'history' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'history'"><i class="fa fa-history me-1" title="Lịch sử"/>Lịch sử</button>
+                    </nav>
+
+                    <!-- TAB: Sơ đồ răng -->
+                    <section t-if="state.tab === 'chart'" class="dmag-chart-tab">
+                        <div class="dmag-chart-board">
+                            <div class="dmag-chart-toolbar">
+                                <div class="dmag-seg">
+                                    <button t-att-class="state.dentition === 'permanent' ? 'is-on' : ''" t-on-click="() => this.state.dentition = 'permanent'">Vĩnh viễn</button>
+                                    <button t-att-class="state.dentition === 'mixed' ? 'is-on' : ''" t-on-click="() => this.state.dentition = 'mixed'">Hỗn hợp</button>
+                                    <button t-att-class="state.dentition === 'primary' ? 'is-on' : ''" t-on-click="() => this.state.dentition = 'primary'">Răng sữa</button>
+                                </div>
+                                <label class="dmag-toggle"><input type="checkbox" t-model="state.showPlanned"/> Hiện lớp kế hoạch</label>
+                                <span class="dmag-hint">Chạm số răng để chọn cả răng · chạm từng mặt để chọn mặt răng</span>
+                            </div>
+                            <Odontogram entries="state.ws.chart" dentition="state.dentition" selection="state.selection"
+                                        showPlanned="state.showPlanned"
+                                        onToggleTooth.bind="toggleTooth" onToggleSurface.bind="toggleSurface"/>
+                            <div class="dmag-legend">
+                                <span><i class="dmag-swatch" style="background:#E5484D"/>Bệnh lý</span>
+                                <span><i class="dmag-swatch" style="background:#178BEC"/>Đã điều trị</span>
+                                <span><i class="dmag-swatch dmag-swatch-hatch"/>Kế hoạch</span>
+                                <span><i class="dmag-swatch" style="background:#8B8D98"/>Mất răng</span>
+                            </div>
+                            <div class="dmag-chart-summary">
+                                <div t-if="!chartSummary.length" class="text-muted small">Chưa có ghi nhận nào trên sơ đồ răng.</div>
+                                <div t-foreach="chartSummary" t-as="group" t-key="group.key" class="dmag-summary-group">
+                                    <div class="dmag-summary-title"><t t-esc="group.title"/> <span class="dmag-lane-count" t-esc="group.items.length"/></div>
+                                    <button t-foreach="group.items" t-as="entry" t-key="entry.id" class="dmag-summary-item" t-on-click="() => this.selectEntryTooth(entry)">
+                                        <i class="dmag-swatch" t-att-style="'background:' + entry.color"/>
+                                        <b>R<t t-esc="entry.tooth"/></b><t t-if="entry.surfaces.length"> (<t t-esc="entry.surfaces.join('')"/>)</t>
+                                        <span t-esc="entry.condition"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <aside class="dmag-chart-side">
+                            <div class="dmag-panel">
+                                <div class="dmag-panel-title">
+                                    Đang chọn
+                                    <button t-if="selectedTeeth.length" class="dmag-link" t-on-click="clearSelection">Bỏ chọn</button>
+                                </div>
+                                <div t-if="!selectedTeeth.length" class="text-muted small">Chưa chọn răng nào</div>
+                                <div t-else="" class="dmag-selected">
+                                    <span t-foreach="selectedTeeth" t-as="code" t-key="code" class="dmag-tooth-pill">
+                                        R<t t-esc="code"/><t t-if="state.selection.teeth[code].length"> · <t t-esc="state.selection.teeth[code].join('')"/></t>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="dmag-panel" t-foreach="conditionGroups" t-as="group" t-key="group.key">
+                                <div class="dmag-panel-title" t-esc="group.title"/>
+                                <div class="dmag-palette">
+                                    <button t-foreach="group.items" t-as="cond" t-key="cond.id" class="dmag-palette-btn"
+                                            t-att-disabled="locked" t-on-click="() => this.applyCondition(cond)">
+                                        <i class="dmag-swatch" t-att-style="'background:' + cond.color"/>
+                                        <t t-esc="cond.name"/>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dmag-panel" t-if="selectionEntries.length">
+                                <div class="dmag-panel-title">Ghi nhận trên răng đang chọn</div>
+                                <div t-foreach="selectionEntries" t-as="entry" t-key="entry.id" class="dmag-entry">
+                                    <i class="dmag-swatch" t-att-style="'background:' + entry.color"/>
+                                    <span class="flex-grow-1">R<t t-esc="entry.tooth"/><t t-if="entry.surfaces.length"> (<t t-esc="entry.surfaces.join('')"/>)</t> · <t t-esc="entry.condition"/>
+                                        <small class="text-muted d-block"><t t-esc="formatDate(entry.date)"/><t t-if="entry.by"> · <t t-esc="entry.by"/></t></small></span>
+                                    <button t-if="entry.category === 'finding'" class="dmag-link" t-on-click="() => this.resolveEntry(entry)">Đã xử lý</button>
+                                </div>
+                            </div>
+                            <button class="dmag-btn dmag-btn-primary w-100" t-on-click="startBuilder" t-att-disabled="!findings.length and !selectedTeeth.length">
+                                <i class="fa fa-magic me-1" title="Lập kế hoạch"/>Lập kế hoạch từ sơ đồ
+                            </button>
+                        </aside>
+                    </section>
+
+                    <!-- TAB: Bệnh án -->
+                    <section t-if="state.tab === 'record'" class="dmag-record">
+                        <div t-if="locked" class="dmag-banner"><i class="fa fa-lock me-1" title="Khóa"/>Bệnh án đã ký lúc <t t-esc="formatTime(visit.signed_at)"/> – chỉ Quản lý mới mở bổ sung được.</div>
+                        <t t-foreach="[['chief_complaint', 'Lý do khám / triệu chứng (S)'], ['examination', 'Khám lâm sàng (O)'], ['assessment', 'Chẩn đoán / đánh giá (A)'], ['treatment_note', 'Xử trí / thủ thuật (P)'], ['advice', 'Lời dặn bệnh nhân']]" t-as="f" t-key="f[0]">
+                            <div class="dmag-field">
+                                <label t-esc="f[1]"/>
+                                <textarea t-att-value="visit[f[0]]" t-att-readonly="locked" rows="2"
+                                          t-on-change="(ev) => this.saveField(f[0], ev.target.value)"/>
+                                <div class="dmag-phrases" t-if="!locked">
+                                    <button t-foreach="QUICK_PHRASES[f[0]]" t-as="p" t-key="p" class="dmag-phrase" t-on-click="() => this.appendPhrase(f[0], p)" t-esc="'+ ' + p"/>
+                                </div>
+                            </div>
+                        </t>
+                        <div class="dmag-field">
+                            <label>Chẩn đoán ICD-10</label>
+                            <div class="dmag-phrases">
+                                <button t-foreach="diagnosisChoices" t-as="d" t-key="d.id" t-att-class="'dmag-phrase' + (d.selected ? ' is-on' : '')"
+                                        t-att-disabled="locked" t-on-click="() => this.toggleDiagnosis(d)" t-esc="d.label"/>
+                                <select t-if="!locked" class="dmag-select" t-on-change="addDiagnosisById">
+                                    <option value="">+ Thêm mã ICD-10…</option>
+                                    <option t-foreach="state.diagnoses" t-as="d" t-key="d.id" t-att-value="d.id" t-esc="d.code + ' – ' + d.name"/>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="dmag-field">
+                            <label>Điểm đau sau thủ thuật (hỏi trước khi rời ghế)</label>
+                            <div class="dmag-pain">
+                                <button t-foreach="[0,1,2,3,4,5,6,7,8,9,10]" t-as="n" t-key="n"
+                                        t-att-class="'dmag-pain-btn' + (visit.pain_score === n ? ' is-on' : '') + (n &lt;= 3 ? ' is-low' : n &lt;= 6 ? ' is-mid' : ' is-high')"
+                                        t-on-click="() => this.setPain(n)" t-esc="n"/>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Kế hoạch điều trị -->
+                    <section t-if="state.tab === 'plan'" class="dmag-plans">
+                        <t t-if="state.builder">
+                            <div class="dmag-panel dmag-builder">
+                                <div class="dmag-panel-title">Lập kế hoạch – tư vấn đồng thuận 2 bước</div>
+                                <input class="dmag-input" placeholder="Tiêu đề (ví dụ: Phục hình răng hàm dưới)" t-model="state.builder.title"/>
+                                <table class="dmag-table">
+                                    <thead>
+                                        <tr><th>Răng / bệnh lý</th><th>Buổi</th><th><input class="dmag-input-inline" t-model="state.builder.nameA"/></th>
+                                            <th><label class="dmag-toggle"><input type="checkbox" t-model="state.builder.useB"/></label><input class="dmag-input-inline" t-model="state.builder.nameB" t-att-disabled="!state.builder.useB"/></th><th/></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="state.builder.lines" t-as="line" t-key="line.key">
+                                            <td t-esc="line.label"/>
+                                            <td><input type="number" min="1" class="dmag-input-num" t-model="line.phase"/></td>
+                                            <td>
+                                                <select class="dmag-select w-100" t-model="line.productA">
+                                                    <option value="">— Chọn dịch vụ —</option>
+                                                    <option t-foreach="state.services" t-as="s" t-key="s.id" t-att-value="s.id" t-esc="s.display_name + ' · ' + formatMoney(s.lst_price)"/>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select class="dmag-select w-100" t-model="line.productB" t-att-disabled="!state.builder.useB">
+                                                    <option value="">— Không áp dụng —</option>
+                                                    <option t-foreach="state.services" t-as="s" t-key="s.id" t-att-value="s.id" t-esc="s.display_name + ' · ' + formatMoney(s.lst_price)"/>
+                                                </select>
+                                            </td>
+                                            <td><button class="dmag-link text-danger" t-on-click="() => this.removeBuilderLine(line)" title="Bỏ dòng"><i class="fa fa-times" title="Bỏ"/></button></td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="2"><button class="dmag-link" t-on-click="addBuilderLine">+ Thêm dòng (theo răng đang chọn)</button></td>
+                                            <td><b t-esc="formatMoney(builderTotal('A'))"/></td>
+                                            <td><b t-if="state.builder.useB" t-esc="formatMoney(builderTotal('B'))"/></td>
+                                            <td/>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                <div class="dmag-builder-notes">
+                                    <div>
+                                        <label>Ưu / nhược phương án A</label>
+                                        <textarea class="dmag-input" rows="2" t-model="state.builder.summaryA"/>
+                                        <label>Trả góp (tháng)</label>
+                                        <input type="number" min="0" class="dmag-input-num" t-model="state.builder.installmentA"/>
+                                    </div>
+                                    <div t-if="state.builder.useB">
+                                        <label>Ưu / nhược phương án B</label>
+                                        <textarea class="dmag-input" rows="2" t-model="state.builder.summaryB"/>
+                                        <label>Trả góp (tháng)</label>
+                                        <input type="number" min="0" class="dmag-input-num" t-model="state.builder.installmentB"/>
+                                    </div>
+                                </div>
+                                <div class="dmag-row-end">
+                                    <button class="dmag-btn dmag-btn-ghost" t-on-click="() => this.state.builder = null">Hủy</button>
+                                    <button class="dmag-btn dmag-btn-primary" t-on-click="saveBuilder">Lưu kế hoạch</button>
+                                </div>
+                            </div>
+                        </t>
+                        <div t-if="!state.builder" class="dmag-row-end">
+                            <button class="dmag-btn dmag-btn-primary" t-on-click="startBuilder"><i class="fa fa-plus me-1" title="Thêm"/>Kế hoạch mới</button>
+                        </div>
+                        <div t-if="!state.ws.plans.length and !state.builder" class="dmag-empty-sm">Bệnh nhân chưa có kế hoạch điều trị. Ghi bệnh lý trên sơ đồ rồi bấm "Lập kế hoạch từ sơ đồ".</div>
+                        <div t-foreach="state.ws.plans" t-as="plan" t-key="plan.id" class="dmag-plan">
+                            <div class="dmag-plan-head">
+                                <div>
+                                    <b t-esc="plan.name"/> <span t-if="plan.title"> · <t t-esc="plan.title"/></span>
+                                    <div class="small text-muted"><t t-esc="plan.doctor"/></div>
+                                </div>
+                                <div class="dmag-plan-head-right">
+                                    <span t-att-class="'dmag-state is-plan-' + plan.state" t-esc="PLAN_STATES[plan.state]"/>
+                                    <div t-if="['accepted', 'in_progress', 'done'].includes(plan.state)" class="dmag-progress"><div t-att-style="'width:' + plan.progress + '%'"/></div>
+                                    <button t-if="['draft', 'presented'].includes(plan.state)" class="dmag-btn dmag-btn-primary dmag-btn-sm" t-on-click="() => this.openConsult(plan)"><i class="fa fa-desktop me-1" title="Tư vấn"/>Chế độ tư vấn</button>
+                                    <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.openPlanForm(plan)">Chi tiết</button>
+                                </div>
+                            </div>
+                            <div t-if="plan.second_opinion_required and !plan.second_opinion_by and ['draft', 'presented'].includes(plan.state)" class="dmag-card-warn">
+                                <i class="fa fa-shield me-1" title="Cầu chì"/>Cần bác sĩ thứ hai duyệt chỉ định trước khi bệnh nhân ký.
+                            </div>
+                            <div class="dmag-options">
+                                <div t-foreach="plan.options" t-as="opt" t-key="opt.id"
+                                     t-att-class="'dmag-option' + (opt.is_recommended ? ' is-recommended' : '') + (opt.is_accepted ? ' is-accepted' : '')">
+                                    <div class="dmag-option-name"><t t-esc="opt.name"/><span t-if="opt.is_accepted" class="dmag-chip is-ok ms-2">Đã chọn</span></div>
+                                    <div class="dmag-option-total" t-esc="formatMoney(opt.amount_total)"/>
+                                    <div t-if="opt.installment_months" class="small text-muted">Trả góp <t t-esc="opt.installment_months"/> tháng · <t t-esc="formatMoney(opt.monthly_amount)"/>/tháng</div>
+                                    <ul class="dmag-option-lines">
+                                        <li t-foreach="opt.lines" t-as="l" t-key="l.id" t-att-class="l.state === 'done' ? 'is-done' : ''">
+                                            <t t-esc="l.product"/><t t-if="l.teeth.length"> · R<t t-esc="l.teeth.join(', ')"/></t>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Thủ thuật hôm nay -->
+                    <section t-if="state.tab === 'proc'" class="dmag-procs">
+                        <div t-if="visit.state !== 'in_chair'" class="dmag-banner">Bấm "Bắt đầu khám" để ghi nhận thủ thuật.</div>
+                        <div class="dmag-panel" t-if="todoPlanLines.length">
+                            <div class="dmag-panel-title">Theo kế hoạch đã đồng ý</div>
+                            <div t-foreach="todoPlanLines" t-as="line" t-key="line.id" class="dmag-entry">
+                                <span class="flex-grow-1"><b t-esc="line.product"/><t t-if="line.teeth.length"> · R<t t-esc="line.teeth.join(', ')"/></t>
+                                    <small class="text-muted d-block"><t t-esc="line.plan"/> · buổi <t t-esc="line.phase"/> · <t t-esc="formatMoney(line.subtotal)"/></small></span>
+                                <button class="dmag-btn dmag-btn-primary dmag-btn-sm" t-att-disabled="visit.state !== 'in_chair'" t-on-click="() => this.doPlanLine(line)">Đã làm</button>
+                            </div>
+                        </div>
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Thủ thuật phát sinh</div>
+                            <div class="dmag-proc-add">
+                                <select class="dmag-select flex-grow-1" t-model="state.procedure.productId">
+                                    <option value="">— Chọn dịch vụ —</option>
+                                    <option t-foreach="state.services" t-as="s" t-key="s.id" t-att-value="s.id" t-esc="s.display_name + ' · ' + formatMoney(s.lst_price)"/>
+                                </select>
+                                <span class="dmag-hint">Răng: <t t-esc="selectedTeeth.length ? selectedTeeth.join(', ') : 'chọn trên sơ đồ'"/></span>
+                                <button class="dmag-btn dmag-btn-primary" t-att-disabled="visit.state !== 'in_chair' or !state.procedure.productId" t-on-click="addProcedure">Ghi nhận</button>
+                            </div>
+                        </div>
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Đã làm trong lượt này <span class="ms-auto" t-esc="formatMoney(proceduresTotal)"/></div>
+                            <div t-if="!state.ws.procedures.length" class="text-muted small">Chưa có thủ thuật</div>
+                            <div t-foreach="state.ws.procedures" t-as="p" t-key="p.id" class="dmag-entry">
+                                <i class="fa fa-check-circle text-success me-2" title="Hoàn tất"/>
+                                <span class="flex-grow-1" t-esc="p.name"/>
+                                <b t-esc="formatMoney(p.amount)"/>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Lịch sử -->
+                    <section t-if="state.tab === 'history'" class="dmag-history">
+                        <div t-if="!state.ws.history.length" class="dmag-empty-sm">Đây là lần khám đầu tiên.</div>
+                        <div t-foreach="state.ws.history" t-as="h" t-key="h.id" class="dmag-timeline-item">
+                            <div class="dmag-timeline-date" t-esc="formatDate(h.date)"/>
+                            <div class="dmag-timeline-body">
+                                <b t-esc="h.assessment or 'Không ghi chẩn đoán'"/>
+                                <div class="small text-muted"><t t-esc="h.doctor"/></div>
+                                <div t-if="h.procedures.length" class="small"><t t-esc="h.procedures.join(' · ')"/></div>
+                            </div>
+                        </div>
+                    </section>
+                </t>
+            </main>
+            <ConsultMode t-if="state.consultPlan" plan="state.consultPlan" patient="patient" onClose.bind="onConsultClosed"/>
+        </div>
+    </t>
+</templates>

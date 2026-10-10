@@ -100,6 +100,12 @@ class DmagDentalChartEntry(models.Model):
             tooth = Tooth.search([('code', '=', code)], limit=1)
             if not tooth:
                 raise ValidationError(_('Không tìm thấy răng %s.', code))
+            duplicates = self.search([
+                ('patient_id', '=', patient_id), ('tooth_id', '=', tooth.id),
+                ('condition_id', '=', condition_id), ('layer', '=', layer),
+            ]).filtered(lambda e: set(e.surface_ids.ids) == set(surface_ids))
+            if duplicates:
+                continue
             vals_list.append({
                 'patient_id': patient_id,
                 'tooth_id': tooth.id,

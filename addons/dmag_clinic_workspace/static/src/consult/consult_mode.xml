@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.ConsultMode">
+        <div class="dmag-consult">
+            <div class="dmag-consult-inner">
+                <header class="dmag-consult-head">
+                    <div>
+                        <div class="dmag-consult-kicker">Kế hoạch điều trị dành riêng cho</div>
+                        <h2 t-esc="props.patient.name"/>
+                        <div class="dmag-consult-title" t-esc="props.plan.title or props.plan.name"/>
+                    </div>
+                    <div class="dmag-consult-tools">
+                        <button class="dmag-btn dmag-btn-ghost" t-on-click="print"><i class="fa fa-print me-1" title="In"/>In bản tóm tắt</button>
+                        <button class="dmag-btn dmag-btn-ghost" t-on-click="close"><i class="fa fa-times me-1" title="Đóng"/>Đóng</button>
+                    </div>
+                </header>
+                <div t-if="blocked" class="dmag-banner is-warn">
+                    <i class="fa fa-shield me-1" title="Cầu chì y đức"/>Kế hoạch có dịch vụ cần bác sĩ thứ hai duyệt chỉ định trước khi bệnh nhân chọn.
+                </div>
+                <div class="dmag-consult-options">
+                    <div t-foreach="props.plan.options" t-as="opt" t-key="opt.id"
+                         t-att-class="'dmag-consult-option' + (opt.is_recommended ? ' is-recommended' : '')">
+                        <div t-if="opt.is_recommended" class="dmag-consult-ribbon">Bác sĩ khuyến nghị</div>
+                        <h3 t-esc="opt.name"/>
+                        <div class="dmag-consult-price" t-esc="formatMoney(opt.amount_total)"/>
+                        <div t-if="opt.installment_months" class="dmag-consult-monthly">
+                            hoặc <b t-esc="formatMoney(opt.monthly_amount)"/>/tháng × <t t-esc="opt.installment_months"/> tháng
+                        </div>
+                        <p t-if="opt.summary" class="dmag-consult-summary" t-esc="opt.summary"/>
+                        <ul class="dmag-consult-lines">
+                            <li t-foreach="opt.lines" t-as="l" t-key="l.id">
+                                <span><t t-esc="l.product"/><t t-if="l.teeth.length"> <small>· răng <t t-esc="l.teeth.join(', ')"/></small></t></span>
+                                <span class="dmag-consult-line-meta">
+                                    <t t-if="l.warranty_months">BH <t t-esc="l.warranty_months >= 12 ? (l.warranty_months / 12) + ' năm' : l.warranty_months + ' tháng'"/> · </t>
+                                    <t t-esc="formatMoney(l.subtotal)"/>
+                                </span>
+                            </li>
+                        </ul>
+                        <div class="dmag-consult-meta">Khoảng <t t-esc="opt.estimated_visits"/> buổi điều trị</div>
+                        <t t-if="state.confirming === opt.id">
+                            <div class="dmag-consult-confirm">
+                                <span>Xác nhận bệnh nhân chọn phương án này?</span>
+                                <button class="dmag-btn dmag-btn-primary" t-on-click="() => this.choose(opt)">Đồng ý</button>
+                                <button class="dmag-btn dmag-btn-ghost" t-on-click="() => this.state.confirming = null">Quay lại</button>
+                            </div>
+                        </t>
+                        <button t-else="" class="dmag-btn dmag-btn-primary dmag-btn-lg w-100" t-att-disabled="blocked"
+                                t-on-click="() => this.state.confirming = opt.id">Chọn phương án này</button>
+                    </div>
+                </div>
+                <footer class="dmag-consult-foot">
+                    Mọi chi phí phát sinh đều được bác sĩ giải thích và bệnh nhân đồng ý trước khi thực hiện. Không áp dụng ưu đãi ép thời hạn.
+                </footer>
+            </div>
+        </div>
+    </t>
+</templates>

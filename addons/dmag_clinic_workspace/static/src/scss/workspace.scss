@@ -1,0 +1,327 @@
+// DMAG Clinic Workspace – nhận diện DMAG: navy #11346A, xanh #178BEC
+$dmag-navy: #11346A;
+$dmag-blue: #178BEC;
+$dmag-blue-soft: #E8F3FE;
+$dmag-bg: #F4F7FB;
+$dmag-line: #DDE5EF;
+$dmag-text: #1B2A3D;
+$dmag-muted: #6B7A90;
+$dmag-ok: #12A594;
+$dmag-warn: #F5A524;
+$dmag-danger: #E5484D;
+$dmag-radius: 14px;
+
+.dmag-ws {
+    background: $dmag-bg;
+    color: $dmag-text;
+    height: 100%;
+    overflow: auto;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+
+    button { cursor: pointer; }
+    button[disabled] { cursor: not-allowed; opacity: .5; }
+}
+
+// ---------------------------------------------------------------- shared
+.dmag-brand-mark {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, $dmag-navy, $dmag-blue);
+    color: #fff; font-weight: 800; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 14px rgba($dmag-blue, .3);
+    flex: none;
+}
+.dmag-ws-sub { color: $dmag-muted; font-size: 12px; }
+
+.dmag-btn {
+    border: 1px solid transparent; border-radius: 10px; padding: 8px 14px;
+    font-weight: 600; font-size: 14px; line-height: 1.2; white-space: nowrap;
+    transition: background .15s, box-shadow .15s, transform .05s;
+    &:active { transform: translateY(1px); }
+}
+.dmag-btn-primary {
+    background: $dmag-blue; color: #fff;
+    &:hover:not([disabled]) { background: darken($dmag-blue, 6%); box-shadow: 0 4px 12px rgba($dmag-blue, .35); }
+}
+.dmag-btn-ghost {
+    background: #fff; color: $dmag-navy; border-color: $dmag-line;
+    &:hover:not([disabled]) { border-color: $dmag-blue; color: $dmag-blue; }
+}
+.dmag-btn-sm { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+.dmag-btn-lg { padding: 14px 18px; font-size: 16px; border-radius: 12px; }
+.dmag-btn-icon { background: transparent; color: $dmag-muted; padding: 6px 8px; &:hover { color: $dmag-navy; } }
+.dmag-link { background: none; border: 0; color: $dmag-blue; font-weight: 600; padding: 0; font-size: 13px; }
+
+.dmag-select, .dmag-input, .dmag-input-inline, .dmag-input-num {
+    border: 1px solid $dmag-line; border-radius: 10px; padding: 8px 10px; background: #fff; color: $dmag-text;
+    &:focus { outline: none; border-color: $dmag-blue; box-shadow: 0 0 0 3px rgba($dmag-blue, .15); }
+}
+.dmag-input { width: 100%; margin-bottom: 10px; }
+.dmag-input-inline { padding: 4px 8px; font-weight: 700; width: 100%; }
+.dmag-input-num { width: 70px; padding: 4px 8px; }
+
+.dmag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.dmag-chip {
+    font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px;
+    background: #EEF2F7; color: $dmag-muted;
+    &.is-danger { background: #FDECEC; color: #B4232A; }
+    &.is-warning { background: #FFF4E0; color: #9A5B00; }
+    &.is-info { background: $dmag-blue-soft; color: $dmag-navy; }
+    &.is-new { background: #E6F7F4; color: #0B7A6D; }
+    &.is-ok { background: #E6F7F4; color: #0B7A6D; }
+}
+.dmag-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex: none;
+    background: $dmag-blue-soft; color: $dmag-navy; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+}
+.dmag-avatar-lg { width: 58px; height: 58px; font-size: 24px; background: linear-gradient(135deg, $dmag-navy, $dmag-blue); color: #fff; }
+.dmag-badge { background: $dmag-blue; color: #fff; border-radius: 999px; font-size: 11px; padding: 1px 7px; margin-left: 4px; }
+.dmag-hint { color: $dmag-muted; font-size: 12px; }
+.dmag-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; color: $dmag-muted; padding: 80px 20px; }
+.dmag-empty-sm { color: $dmag-muted; padding: 18px; text-align: center; background: #fff; border: 1px dashed $dmag-line; border-radius: $dmag-radius; }
+.dmag-banner { background: $dmag-blue-soft; color: $dmag-navy; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-weight: 600;
+    &.is-warn { background: #FFF4E0; color: #9A5B00; } }
+.dmag-row-end { display: flex; justify-content: flex-end; gap: 8px; margin: 8px 0 12px; }
+.dmag-seg {
+    display: inline-flex; background: #E9EEF5; border-radius: 10px; padding: 3px; gap: 2px;
+    button { border: 0; background: transparent; padding: 6px 12px; border-radius: 8px; font-weight: 600; color: $dmag-muted; font-size: 13px;
+        &.is-on { background: #fff; color: $dmag-navy; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); } }
+}
+.dmag-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: $dmag-muted; margin: 0; }
+.dmag-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; flex: none; vertical-align: -1px; }
+.dmag-swatch-hatch { background: repeating-linear-gradient(45deg, #fff 0 3px, $dmag-blue 3px 5px); border: 1px solid $dmag-blue; }
+.dmag-panel {
+    background: #fff; border: 1px solid $dmag-line; border-radius: $dmag-radius; padding: 14px; margin-bottom: 12px;
+}
+.dmag-panel-title { display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: $dmag-navy; margin-bottom: 10px; gap: 8px; }
+.dmag-state {
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #EEF2F7; color: $dmag-muted;
+    &.is-arrived { background: #FFF4E0; color: #9A5B00; }
+    &.is-in_chair { background: $dmag-blue-soft; color: $dmag-navy; }
+    &.is-done, &.is-plan-accepted, &.is-plan-in_progress, &.is-plan-done { background: #E6F7F4; color: #0B7A6D; }
+    &.is-plan-presented { background: $dmag-blue-soft; color: $dmag-navy; }
+    &.is-plan-cancel { background: #FDECEC; color: #B4232A; }
+}
+
+// ---------------------------------------------------------------- header + KPIs
+.dmag-ws-header {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 18px 22px 10px;
+    h1 { font-size: 22px; font-weight: 800; color: $dmag-navy; margin: 0; }
+}
+.dmag-ws-title { display: flex; align-items: center; gap: 12px; }
+.dmag-ws-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; flex: 1; }
+.dmag-ws .dmag-select { width: auto; max-width: 100%; }
+.dmag-search {
+    display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid $dmag-line; border-radius: 10px; padding: 0 10px;
+    i { color: $dmag-muted; }
+    input { border: 0; outline: none; padding: 8px 0; min-width: 240px; background: transparent; }
+}
+.dmag-kpis { display: grid; grid-template-columns: repeat(6, minmax(110px, 1fr)); gap: 10px; padding: 6px 22px; }
+.dmag-kpi {
+    background: #fff; border: 1px solid $dmag-line; border-radius: $dmag-radius; padding: 12px 14px;
+    display: flex; flex-direction: column;
+    &.is-alert { border-color: $dmag-danger; box-shadow: 0 0 0 3px rgba($dmag-danger, .12); .dmag-kpi-value { color: $dmag-danger; } }
+}
+.dmag-kpi-value { font-size: 24px; font-weight: 800; color: $dmag-navy; line-height: 1.1; }
+.dmag-kpi-label { color: $dmag-muted; font-size: 12px; margin-top: 2px; }
+
+// ---------------------------------------------------------------- chairs
+.dmag-chairs { display: flex; gap: 10px; padding: 8px 22px; overflow-x: auto; }
+.dmag-chair {
+    min-width: 180px; border-radius: $dmag-radius; padding: 10px 12px; border: 1px solid $dmag-line; background: #fff;
+    &.is-busy { background: linear-gradient(135deg, $dmag-navy, darken($dmag-blue, 4%)); color: #fff; border-color: transparent;
+        .dmag-chair-meta { color: rgba(255, 255, 255, .8); } .dmag-chair-status { background: rgba(255, 255, 255, .18); color: #fff; } }
+    &.is-free .dmag-chair-status { background: #E6F7F4; color: #0B7A6D; }
+}
+.dmag-chair-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.dmag-chair-name { font-weight: 700; }
+.dmag-chair-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.dmag-chair-patient { font-weight: 700; margin-top: 6px; }
+.dmag-chair-meta { font-size: 12px; color: $dmag-muted; margin-top: 2px; }
+
+// ---------------------------------------------------------------- lanes
+.dmag-lanes { display: grid; grid-template-columns: repeat(5, minmax(250px, 1fr)); gap: 12px; padding: 10px 22px 24px; overflow-x: auto; }
+.dmag-lane { background: #EBF0F6; border-radius: 16px; padding: 10px; display: flex; flex-direction: column; min-height: 300px; }
+.dmag-lane-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px; }
+.dmag-lane-title { font-weight: 800; color: $dmag-navy; }
+.dmag-lane-count { background: #fff; color: $dmag-navy; font-weight: 700; border-radius: 999px; padding: 1px 9px; font-size: 12px; }
+.dmag-lane-hint { color: $dmag-muted; font-size: 11px; padding: 0 4px 8px; }
+.dmag-lane-waiting .dmag-lane-title { color: #9A5B00; }
+.dmag-lane-in_chair .dmag-lane-title { color: $dmag-blue; }
+.dmag-lane-checkout .dmag-lane-title { color: #B4232A; }
+.dmag-lane-finished .dmag-lane-title { color: #0B7A6D; }
+.dmag-lane-body { display: flex; flex-direction: column; gap: 10px; }
+.dmag-lane-empty { color: $dmag-muted; text-align: center; font-size: 12px; padding: 18px 0; }
+
+.dmag-card {
+    background: #fff; border-radius: 12px; padding: 12px; border: 1px solid transparent;
+    box-shadow: 0 1px 2px rgba(17, 52, 106, .06), 0 4px 12px rgba(17, 52, 106, .05);
+    &.is-late { border-color: $dmag-danger; .dmag-timer { background: #FDECEC; color: #B4232A; } }
+}
+.dmag-card-top { display: flex; gap: 10px; align-items: center; }
+.dmag-card-who { flex: 1; min-width: 0; }
+.dmag-card-name { font-weight: 700; color: $dmag-text; text-decoration: none; &:hover { color: $dmag-blue; } }
+.dmag-card-sub { color: $dmag-muted; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dmag-card-time { font-weight: 700; color: $dmag-navy; }
+.dmag-timer { background: #FFF4E0; color: #9A5B00; padding: 3px 8px; border-radius: 8px; font-size: 13px;
+    &.is-chair { background: $dmag-blue-soft; color: $dmag-navy; } }
+.dmag-card-body { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.dmag-card-line { color: $dmag-text; i { color: $dmag-muted; width: 16px; } }
+.dmag-card-warn { background: #FFF4E0; color: #9A5B00; border-radius: 8px; padding: 6px 8px; font-size: 12px; margin-top: 6px; }
+.dmag-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.dmag-chair-picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; padding: 8px; background: $dmag-blue-soft; border-radius: 10px; font-size: 13px; }
+
+// ---------------------------------------------------------------- doctor desk
+.dmag-doctor { display: grid; grid-template-columns: 270px 1fr; height: 100%; }
+.dmag-doctor-list { background: #fff; border-right: 1px solid $dmag-line; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+.dmag-doctor-me { display: flex; gap: 10px; align-items: center; }
+.dmag-doctor-me-name { font-weight: 800; color: $dmag-navy; }
+.dmag-doctor-items { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.dmag-doctor-item {
+    display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; background: $dmag-bg; border-radius: 12px; padding: 10px;
+    &.is-active { background: $dmag-blue-soft; border-color: $dmag-blue; }
+    &:hover { border-color: $dmag-line; }
+}
+.dmag-doctor-item-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.dmag-doctor-item-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dmag-doctor-item-sub { font-size: 12px; color: $dmag-muted; }
+.dmag-dot { width: 10px; height: 10px; border-radius: 50%; background: #B9C3D0; flex: none;
+    &.is-arrived { background: $dmag-warn; } &.is-in_chair { background: $dmag-blue; box-shadow: 0 0 0 4px rgba($dmag-blue, .2); }
+    &.is-done { background: $dmag-ok; } }
+.dmag-doctor-main { padding: 18px 22px; overflow: auto; }
+
+.dmag-patient-head {
+    display: flex; gap: 14px; align-items: center; background: #fff; border: 1px solid $dmag-line; border-radius: 18px; padding: 14px 16px;
+}
+.dmag-patient-id { flex: 1; min-width: 0; }
+.dmag-patient-name { font-size: 20px; font-weight: 800; a { color: $dmag-navy; text-decoration: none; } }
+.dmag-patient-code { font-size: 12px; font-weight: 700; color: $dmag-blue; background: $dmag-blue-soft; padding: 2px 8px; border-radius: 6px; margin-left: 8px; vertical-align: 3px; }
+.dmag-patient-meta { color: $dmag-muted; font-size: 13px; }
+.dmag-patient-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.dmag-signed { color: #0B7A6D; font-weight: 700; font-size: 13px; }
+
+.dmag-tabs {
+    display: flex; gap: 4px; margin: 14px 0 12px; border-bottom: 1px solid $dmag-line; overflow-x: auto;
+    button { border: 0; background: none; padding: 10px 14px; font-weight: 700; color: $dmag-muted; border-bottom: 3px solid transparent; white-space: nowrap;
+        &.is-on { color: $dmag-navy; border-bottom-color: $dmag-blue; } }
+}
+
+.dmag-chart-tab { display: grid; grid-template-columns: 1fr 320px; gap: 14px; }
+.dmag-chart-board { background: #fff; border: 1px solid $dmag-line; border-radius: 18px; padding: 14px; }
+.dmag-chart-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 8px; }
+.dmag-legend { display: flex; flex-wrap: wrap; gap: 14px; color: $dmag-muted; font-size: 12px; margin-top: 6px; }
+.dmag-chart-side { min-width: 0; }
+.dmag-palette { display: flex; flex-wrap: wrap; gap: 6px; }
+.dmag-palette-btn {
+    display: inline-flex; align-items: center; border: 1px solid $dmag-line; background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600;
+    &:hover:not([disabled]) { border-color: $dmag-blue; background: $dmag-blue-soft; }
+}
+.dmag-selected { display: flex; flex-wrap: wrap; gap: 6px; }
+.dmag-tooth-pill { background: $dmag-navy; color: #fff; border-radius: 8px; padding: 3px 8px; font-weight: 700; font-size: 13px; }
+.dmag-entry { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid #EEF2F7; font-size: 13px;
+    &:first-of-type { border-top: 0; } }
+
+.dmag-chart-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid $dmag-line; }
+.dmag-summary-title { font-weight: 700; color: $dmag-navy; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; .dmag-lane-count { background: $dmag-bg; } }
+.dmag-summary-item { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; border: 0; background: none; padding: 5px 6px; border-radius: 8px; font-size: 13px;
+    &:hover { background: $dmag-blue-soft; } }
+
+// odontogram svg
+.dmag-odontogram { width: 100%; height: auto; user-select: none; touch-action: manipulation; }
+.dmag-midline { stroke: $dmag-line; stroke-width: 2; stroke-dasharray: 4 6; }
+.dmag-tooth-label { font-size: 13px; font-weight: 700; fill: $dmag-muted; cursor: pointer; }
+.dmag-tooth-halo { fill: transparent; stroke: transparent; stroke-width: 3; }
+.dmag-surface { stroke: #9FB0C6; stroke-width: 1.2; cursor: pointer; transition: opacity .1s;
+    &:hover { opacity: .75; }
+    &.is-picked { stroke: $dmag-navy; stroke-width: 3; } }
+.dmag-tooth.is-selected {
+    .dmag-tooth-halo { stroke: $dmag-blue; fill: rgba($dmag-blue, .08); }
+    .dmag-tooth-label { fill: $dmag-blue; }
+}
+.dmag-tooth.has-finding .dmag-tooth-label { fill: $dmag-danger; }
+.dmag-symbol.is-planned { opacity: .45; }
+
+// record
+.dmag-record { max-width: 980px; }
+.dmag-field { background: #fff; border: 1px solid $dmag-line; border-radius: $dmag-radius; padding: 12px 14px; margin-bottom: 10px;
+    label { display: block; font-weight: 700; color: $dmag-navy; margin-bottom: 6px; }
+    textarea { width: 100%; border: 1px solid $dmag-line; border-radius: 10px; padding: 8px 10px; resize: vertical; min-height: 54px;
+        &:focus { outline: none; border-color: $dmag-blue; box-shadow: 0 0 0 3px rgba($dmag-blue, .15); }
+        &[readonly] { background: #F7F9FC; } } }
+.dmag-phrases { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.dmag-phrase { border: 1px dashed #C4D0DF; background: #fff; color: $dmag-navy; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+    &:hover:not([disabled]) { border-style: solid; border-color: $dmag-blue; }
+    &.is-on { background: $dmag-navy; color: #fff; border-style: solid; border-color: $dmag-navy; } }
+.dmag-pain { display: flex; gap: 6px; flex-wrap: wrap; }
+.dmag-pain-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid $dmag-line; background: #fff; font-weight: 800; font-size: 16px;
+    &.is-low.is-on { background: $dmag-ok; color: #fff; border-color: $dmag-ok; }
+    &.is-mid.is-on { background: $dmag-warn; color: #fff; border-color: $dmag-warn; }
+    &.is-high.is-on { background: $dmag-danger; color: #fff; border-color: $dmag-danger; } }
+
+// plans
+.dmag-plan { background: #fff; border: 1px solid $dmag-line; border-radius: 18px; padding: 14px; margin-bottom: 12px; }
+.dmag-plan-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.dmag-plan-head-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.dmag-progress { width: 120px; height: 8px; background: #E9EEF5; border-radius: 99px; overflow: hidden;
+    div { height: 100%; background: linear-gradient(90deg, $dmag-blue, $dmag-ok); } }
+.dmag-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.dmag-option { border: 1px solid $dmag-line; border-radius: 14px; padding: 12px;
+    &.is-recommended { border-color: $dmag-blue; box-shadow: 0 0 0 3px rgba($dmag-blue, .1); }
+    &.is-accepted { border-color: $dmag-ok; box-shadow: 0 0 0 3px rgba($dmag-ok, .12); } }
+.dmag-option-name { font-weight: 800; color: $dmag-navy; }
+.dmag-option-total { font-size: 20px; font-weight: 800; color: $dmag-blue; margin: 4px 0; }
+.dmag-option-lines { margin: 8px 0 0; padding-left: 18px; font-size: 13px; li.is-done { color: $dmag-ok; text-decoration: line-through; } }
+.dmag-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 13px;
+    th { color: $dmag-muted; font-weight: 700; text-align: left; padding: 0 6px; }
+    td { padding: 4px 6px; vertical-align: middle; }
+    th label { margin-right: 6px; } th { white-space: nowrap; } }
+.dmag-builder-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; label { font-weight: 700; color: $dmag-navy; font-size: 12px; } }
+
+// procedures + history
+.dmag-proc-add { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.dmag-timeline-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid $dmag-line; }
+.dmag-timeline-date { width: 100px; flex: none; font-weight: 700; color: $dmag-navy; }
+
+// ---------------------------------------------------------------- consult mode
+.dmag-consult {
+    position: fixed; inset: 0; z-index: 1050; background: rgba(10, 25, 50, .55); backdrop-filter: blur(4px);
+    display: flex; align-items: stretch; justify-content: center; padding: 24px;
+}
+.dmag-consult-inner { background: linear-gradient(180deg, #fff, $dmag-bg); border-radius: 24px; width: 100%; max-width: 1280px; overflow: auto; padding: 28px 32px; }
+.dmag-consult-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 18px;
+    h2 { font-size: 30px; font-weight: 800; color: $dmag-navy; margin: 2px 0; } }
+.dmag-consult-kicker { color: $dmag-blue; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; }
+.dmag-consult-title { color: $dmag-muted; font-size: 16px; }
+.dmag-consult-tools { display: flex; gap: 8px; }
+.dmag-consult-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+.dmag-consult-option {
+    position: relative; background: #fff; border: 1px solid $dmag-line; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 8px;
+    h3 { font-size: 22px; font-weight: 800; color: $dmag-navy; margin: 0; }
+    &.is-recommended { border: 2px solid $dmag-blue; box-shadow: 0 12px 30px rgba($dmag-blue, .18); }
+}
+.dmag-consult-ribbon { position: absolute; top: -12px; left: 24px; background: $dmag-blue; color: #fff; font-weight: 700; font-size: 12px; padding: 4px 12px; border-radius: 999px; }
+.dmag-consult-price { font-size: 34px; font-weight: 800; color: $dmag-blue; }
+.dmag-consult-monthly { color: $dmag-muted; }
+.dmag-consult-summary { white-space: pre-line; background: $dmag-bg; border-radius: 12px; padding: 12px; margin: 4px 0; font-size: 15px; }
+.dmag-consult-lines { list-style: none; padding: 0; margin: 0; flex: 1;
+    li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed $dmag-line; font-size: 15px; } }
+.dmag-consult-line-meta { color: $dmag-muted; white-space: nowrap; }
+.dmag-consult-meta { color: $dmag-muted; font-size: 13px; }
+.dmag-consult-confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: $dmag-blue-soft; border-radius: 12px; padding: 10px; font-weight: 600; }
+.dmag-consult-foot { margin-top: 20px; color: $dmag-muted; font-size: 13px; text-align: center; }
+
+// ---------------------------------------------------------------- responsive (tablet)
+@media (max-width: 1200px) {
+    .dmag-kpis { grid-template-columns: repeat(3, 1fr); }
+    .dmag-chart-tab { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+    .dmag-doctor { grid-template-columns: 1fr; }
+    .dmag-doctor-list { border-right: 0; border-bottom: 1px solid $dmag-line; max-height: 240px; }
+    .dmag-patient-head { flex-wrap: wrap; }
+    .dmag-builder-notes { grid-template-columns: 1fr; }
+    .dmag-search input { min-width: 160px; }
+}

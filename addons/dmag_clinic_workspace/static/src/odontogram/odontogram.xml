@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.Odontogram">
+        <t t-set="layout" t-value="rows"/>
+        <svg class="dmag-odontogram" t-att-viewBox="'0 0 ' + width + ' ' + height" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <pattern id="dmagPlannedHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                    <rect width="6" height="6" fill="#FFFFFF"/>
+                    <line x1="0" y1="0" x2="0" y2="6" stroke="#178BEC" stroke-width="2"/>
+                </pattern>
+            </defs>
+            <line t-att-x1="width / 2" y1="0" t-att-x2="width / 2" t-att-y2="height" class="dmag-midline"/>
+            <t t-foreach="layout" t-as="row" t-key="row.key">
+                <t t-foreach="row.teeth" t-as="tooth" t-key="tooth.code">
+                    <g t-att-class="'dmag-tooth' + (isSelected(tooth.code) ? ' is-selected' : '') + (hasFinding(tooth.code) ? ' has-finding' : '')">
+                        <text t-att-x="tooth.x + size / 2" t-att-y="tooth.labelY" class="dmag-tooth-label"
+                              text-anchor="middle" t-on-click="() => this.onToothClick(tooth)" t-esc="tooth.code"/>
+                        <rect t-att-x="tooth.x - 3" t-att-y="tooth.y - 3" t-att-width="size + 6" t-att-height="size + 6"
+                              rx="7" class="dmag-tooth-halo"/>
+                        <t t-foreach="surfacePolys(tooth)" t-as="poly" t-key="poly.slot">
+                            <t t-set="st" t-value="surfaceStyle(tooth, poly.surface)"/>
+                            <polygon t-att-points="poly.points"
+                                     t-att-fill="st.planned ? 'url(#dmagPlannedHatch)' : st.fill"
+                                     t-att-class="'dmag-surface' + (isSurfaceSelected(tooth.code, poly.surface) ? ' is-picked' : '')"
+                                     t-on-click="() => this.onSurfaceClick(tooth, poly.surface)">
+                                <title t-esc="tooth.code + ' – ' + poly.surface"/>
+                            </polygon>
+                        </t>
+                        <t t-foreach="symbolsFor(tooth)" t-as="sym" t-key="sym.id">
+                            <g t-att-class="'dmag-symbol' + (sym.layer === 'planned' ? ' is-planned' : '')" pointer-events="none">
+                                <t t-if="sym.symbol === 'cross'">
+                                    <line t-att-x1="tooth.x + 4" t-att-y1="tooth.y + 4" t-att-x2="tooth.x + size - 4" t-att-y2="tooth.y + size - 4" t-att-stroke="sym.color" stroke-width="5" stroke-linecap="round"/>
+                                    <line t-att-x1="tooth.x + size - 4" t-att-y1="tooth.y + 4" t-att-x2="tooth.x + 4" t-att-y2="tooth.y + size - 4" t-att-stroke="sym.color" stroke-width="5" stroke-linecap="round"/>
+                                </t>
+                                <rect t-elif="sym.symbol === 'ring'" t-att-x="tooth.x - 1" t-att-y="tooth.y - 1" t-att-width="size + 2" t-att-height="size + 2" rx="10" fill="none" t-att-stroke="sym.color" stroke-width="4"/>
+                                <t t-elif="sym.symbol === 'implant'">
+                                    <rect t-att-x="tooth.x + size / 2 - 5" t-att-y="tooth.y + 8" width="10" t-att-height="size - 16" rx="2" t-att-fill="sym.color"/>
+                                    <line t-foreach="[14, 21, 28]" t-as="dy" t-key="dy" t-att-x1="tooth.x + size / 2 - 9" t-att-y1="tooth.y + dy" t-att-x2="tooth.x + size / 2 + 9" t-att-y2="tooth.y + dy + 3" t-att-stroke="sym.color" stroke-width="2.5"/>
+                                </t>
+                                <line t-elif="sym.symbol === 'root'" t-att-x1="tooth.x + size / 2" t-att-y1="tooth.y + 5" t-att-x2="tooth.x + size / 2" t-att-y2="tooth.y + size - 5" t-att-stroke="sym.color" stroke-width="6" stroke-linecap="round"/>
+                                <line t-elif="sym.symbol === 'dash'" t-att-x1="tooth.x + 6" t-att-y1="tooth.y + size / 2" t-att-x2="tooth.x + size - 6" t-att-y2="tooth.y + size / 2" t-att-stroke="sym.color" stroke-width="5" stroke-dasharray="6 4" stroke-linecap="round"/>
+                            </g>
+                        </t>
+                    </g>
+                </t>
+            </t>
+        </svg>
+    </t>
+</templates>
