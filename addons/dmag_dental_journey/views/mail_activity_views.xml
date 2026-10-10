@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Bảng việc CSKH: các việc "Gọi CSKH" / "Phàn nàn khách hàng" -->
+    <record id="view_mail_activity_cskh_tree" model="ir.ui.view">
+        <field name="name">mail.activity.cskh.tree</field>
+        <field name="model">mail.activity</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <tree string="Việc CSKH" create="0" decoration-danger="date_deadline &lt; current_date"
+                  decoration-warning="date_deadline == current_date">
+                <field name="date_deadline"/>
+                <field name="activity_type_id"/>
+                <field name="res_name" string="Khách / lượt khám"/>
+                <field name="summary"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="res_model" column_invisible="1"/>
+                <field name="res_id" column_invisible="1"/>
+                <button name="action_open_document" type="object" string="Mở hồ sơ" icon="fa-external-link"/>
+                <button name="action_done" type="object" string="Xong" icon="fa-check" class="text-success"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_mail_activity_cskh_kanban" model="ir.ui.view">
+        <field name="name">mail.activity.cskh.kanban</field>
+        <field name="model">mail.activity</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <kanban string="Việc CSKH" create="0" default_group_by="activity_type_id">
+                <field name="date_deadline"/>
+                <field name="res_name"/>
+                <field name="summary"/>
+                <field name="user_id"/>
+                <field name="activity_type_id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="d-flex justify-content-between">
+                                <strong><field name="res_name"/></strong>
+                                <span t-attf-class="badge #{record.date_deadline.raw_value &lt; new Date(new Date().toDateString()) ? 'text-bg-danger' : 'text-bg-light'}">
+                                    <field name="date_deadline"/>
+                                </span>
+                            </div>
+                            <div class="text-muted"><field name="summary"/></div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <div>
+                                    <a name="action_open_document" type="object" class="btn btn-sm btn-link">Mở hồ sơ</a>
+                                    <a name="action_done" type="object" class="btn btn-sm btn-success">Xong</a>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_mail_activity_cskh_search" model="ir.ui.view">
+        <field name="name">mail.activity.cskh.search</field>
+        <field name="model">mail.activity</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <search string="Việc CSKH">
+                <field name="res_name" string="Khách / lượt khám"/>
+                <field name="summary"/>
+                <field name="user_id"/>
+                <filter name="my" string="Việc của tôi" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="today" string="Hôm nay"
+                        domain="[('date_deadline', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="overdue" string="Quá hạn"
+                        domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="todo" string="Hôm nay &amp; quá hạn"
+                        domain="[('date_deadline', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="call" string="Gọi CSKH"
+                        domain="[('activity_type_id', '=', %(activity_type_cskh_call)d)]"/>
+                <filter name="complaint" string="Phàn nàn"
+                        domain="[('activity_type_id', '=', %(activity_type_complaint)d)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_type" string="Loại việc" context="{'group_by': 'activity_type_id'}"/>
+                    <filter name="group_user" string="Người phụ trách" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_deadline" string="Hạn" context="{'group_by': 'date_deadline:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mail_activity_cskh" model="ir.actions.act_window">
+        <field name="name">Bảng việc CSKH</field>
+        <field name="res_model">mail.activity</field>
+        <field name="view_mode">tree,kanban</field>
+        <field name="domain" eval="[('activity_type_id', 'in', [ref('activity_type_cskh_call'), ref('activity_type_complaint')])]"/>
+        <field name="search_view_id" ref="view_mail_activity_cskh_search"/>
+        <field name="context">{'search_default_todo': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_mail_activity_cskh_tree')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_mail_activity_cskh_kanban')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Không còn việc CSKH nào cần làm hôm nay</p>
+            <p>Việc gọi lại khách không đến, hỏi thăm sau 24h, nhắc tái khám, phàn nàn NPS được tạo tự động.</p>
+        </field>
+    </record>
+
+    <record id="action_dmag_journey_dashboard" model="ir.actions.client">
+        <field name="name">Bảng điều khiển hành trình</field>
+        <field name="tag">dmag_journey_dashboard</field>
+    </record>
+</odoo>

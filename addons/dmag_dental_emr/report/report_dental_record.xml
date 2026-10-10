@@ -26,7 +26,7 @@
                                 <t t-if="not rowdef[1]"><div class="num" t-esc="code"/></t>
                                 <div>
                                     <t t-foreach="chart['teeth'].get(code, [])" t-as="mk">
-                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="'X' if mk['symbol'] == 'cross' else mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
+                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
                                     </t>
                                 </div>
                                 <t t-if="rowdef[1]"><div class="num" t-esc="code"/></t>
@@ -45,7 +45,7 @@
                                 <t t-if="not rowdef[1]"><div class="num" t-esc="code"/></t>
                                 <div>
                                     <t t-foreach="chart['teeth'].get(code, [])" t-as="mk">
-                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="'X' if mk['symbol'] == 'cross' else mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
+                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
                                     </t>
                                 </div>
                                 <t t-if="rowdef[1]"><div class="num" t-esc="code"/></t>
@@ -59,7 +59,7 @@
                 <b>Chú giải:</b>
                 <t t-if="not chart['legend']">Chưa ghi nhận tình trạng răng.</t>
                 <t t-foreach="chart['legend']" t-as="lg">
-                    <span style="margin-right: 10px; white-space: nowrap;"><span class="sw" t-attf-style="background-color: #{lg['color']};"/><b t-esc="'X' if lg['symbol'] == 'cross' else lg['key']"/> = <t t-esc="lg['name']"/></span>
+                    <span style="margin-right: 10px; white-space: nowrap;"><span class="sw" t-attf-style="background-color: #{lg['color']};"/><b t-esc="lg['key']"/> = <t t-esc="lg['name']"/></span>
                 </t>
                 <span style="white-space: nowrap;">· dấu * = chỉ định / kế hoạch điều trị · dấu ✓ = đã điều trị</span>
             </div>
@@ -190,7 +190,7 @@
             <t t-call="dmag_dental_emr.emr_tooth_chart"/>
 
             <div class="section">V. Cận lâm sàng</div>
-            <div class="val dots" t-esc="o.paraclinical_summary or 'Không chỉ định'"/>
+            <div class="val dots" t-esc="o.paraclinical_summary or ''"/>
 
             <div class="section">VI. Chẩn đoán</div>
             <table class="grid">

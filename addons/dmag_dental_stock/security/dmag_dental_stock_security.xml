@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Nhân viên lâm sàng không có quyền Kho: xuất tiêu hao chạy quyền hệ thống khi hoàn tất thủ thuật.
+         Giám đốc quản trị kho (định mức, tồn tối thiểu, điều chỉnh). -->
+    <record id="dmag_dental_base.group_dmag_director" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_manager')), (4, ref('stock.group_production_lot'))]"/>
+    </record>
+    <record id="rule_dmag_service_bom_company" model="ir.rule">
+        <field name="name">Định mức vật tư: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_service_bom"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_material_usage_company" model="ir.rule">
+        <field name="name">Vật tư tiêu hao: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_material_usage"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

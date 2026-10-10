@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_journey" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.journey</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_journey_executions" type="object" class="oe_stat_button" icon="fa-road"
+                        invisible="not journey_execution_count">
+                    <field name="journey_execution_count" widget="statinfo" string="Điểm chạm"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='journey']/group" position="after">
+                <group>
+                    <group string="Chăm sóc sau điều trị">
+                        <field name="pain_score_24h" invisible="not pain_score_24h_date"/>
+                        <field name="pain_score_24h_date" invisible="not pain_score_24h_date"/>
+                        <field name="pain_score_24h_note" invisible="not pain_score_24h_note"/>
+                        <button name="action_open_pain_wizard" type="object" string="Ghi điểm đau 24h"
+                                class="btn-secondary" icon="fa-phone" invisible="state != 'done'" colspan="2"/>
+                    </group>
+                    <group string="Khảo sát NPS">
+                        <field name="nps_response_ids" nolabel="1" colspan="2" readonly="1">
+                            <tree>
+                                <field name="state"/>
+                                <field name="score"/>
+                                <field name="category"/>
+                                <field name="comment"/>
+                            </tree>
+                        </field>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

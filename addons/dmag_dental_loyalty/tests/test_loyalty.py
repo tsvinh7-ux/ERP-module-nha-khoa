@@ -116,6 +116,7 @@ class TestLoyalty(DentalCommon):
         # Tắt ví gia đình → xét riêng từng người (cron hằng đêm)
         self.company.dmag_loyalty_family_pool = False
         self.env['res.partner']._cron_dmag_loyalty_recompute()
+        (self.patient | child).invalidate_recordset()
         self.assertEqual(self.patient.dmag_tier_id, member_tier)
         self.assertEqual(child.dmag_points_balance, 40)
 
@@ -210,7 +211,7 @@ class TestLoyalty(DentalCommon):
         self.assertEqual(self.patient.dmag_points_balance, 500)
         with self.assertRaises(AccessError):
             voucher.with_user(self.recep).action_approve()
-        voucher.action_reject()
+        voucher.with_user(self.director).action_reject()
         self.assertEqual(voucher.state, 'cancel')
         self.assertEqual(self.patient.dmag_points_balance, 2000)
         # Không ai dùng được voucher của người khác (ngoài gia đình)

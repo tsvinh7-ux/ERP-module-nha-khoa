@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_journey_rule_tree" model="ir.ui.view">
+        <field name="name">dmag.journey.rule.tree</field>
+        <field name="model">dmag.journey.rule</field>
+        <field name="arch" type="xml">
+            <tree string="Luật hành trình">
+                <field name="sequence" widget="handle"/>
+                <field name="stage"/>
+                <field name="name"/>
+                <field name="trigger"/>
+                <field name="event" optional="show"/>
+                <field name="offset_hours" optional="show"/>
+                <field name="offset_days" optional="hide"/>
+                <field name="action"/>
+                <field name="template_id" optional="show"/>
+                <field name="activity_role" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_journey_rule_form" model="ir.ui.view">
+        <field name="name">dmag.journey.rule.form</field>
+        <field name="model">dmag.journey.rule</field>
+        <field name="arch" type="xml">
+            <form string="Luật hành trình">
+                <header>
+                    <button name="action_run_now" type="object" string="Chạy ngay"
+                            invisible="trigger == 'event'" groups="dmag_dental_base.group_dmag_manager"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_executions" type="object" class="oe_stat_button" icon="fa-history">
+                            <field name="execution_count" widget="statinfo" string="Đã chạy"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Tắt" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Ví dụ: Trước 1 ngày → nhắc lịch"/></h1>
+                    </div>
+                    <group>
+                        <group string="Khi nào">
+                            <field name="stage"/>
+                            <field name="trigger"/>
+                            <field name="event" invisible="trigger != 'event'" required="trigger == 'event'"/>
+                            <field name="offset_hours" invisible="trigger not in ('before_start', 'after_done')"/>
+                            <field name="offset_days" invisible="trigger not in ('recall', 'birthday', 'warranty')"/>
+                            <field name="lookback_days" invisible="trigger not in ('after_done', 'recall')"/>
+                            <field name="skip_if_booked_late" invisible="trigger != 'before_start'"/>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Điều kiện">
+                            <field name="service_scope"/>
+                            <field name="invasive_only"/>
+                            <field name="new_patient_only"/>
+                            <field name="domain" widget="domain" options="{'model': 'dmag.dental.visit'}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Gửi Zalo ZNS">
+                            <field name="action"/>
+                            <field name="template_id" invisible="action == 'activity'" required="action != 'activity'"/>
+                            <field name="create_nps" invisible="action == 'activity'"/>
+                            <field name="expire_on_start" invisible="action == 'activity'"/>
+                        </group>
+                        <group string="Việc CSKH" invisible="action == 'zns'">
+                            <field name="activity_type_id"/>
+                            <field name="activity_role"/>
+                            <field name="activity_summary"/>
+                            <field name="activity_deadline_days"/>
+                        </group>
+                    </group>
+                    <group string="Kịch bản gọi" invisible="action == 'zns'">
+                        <field name="activity_note" nolabel="1" colspan="2"/>
+                    </group>
+                    <group string="Mô tả">
+                        <field name="note" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_journey_rule_search" model="ir.ui.view">
+        <field name="name">dmag.journey.rule.search</field>
+        <field name="model">dmag.journey.rule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="template_id"/>
+                <filter name="inactive" string="Đã tắt" domain="[('active', '=', False)]"/>
+                <group expand="1" string="Nhóm theo">
+                    <filter name="group_stage" string="Giai đoạn" context="{'group_by': 'stage'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_journey_rule" model="ir.actions.act_window">
+        <field name="name">Luật hành trình</field>
+        <field name="res_model">dmag.journey.rule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_group_stage': 1}</field>
+    </record>
+</odoo>

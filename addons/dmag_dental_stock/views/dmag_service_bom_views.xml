@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_service_bom_form" model="ir.ui.view">
+        <field name="name">dmag.service.bom.form</field>
+        <field name="model">dmag.service.bom</field>
+        <field name="arch" type="xml">
+            <form string="Định mức vật tư">
+                <sheet>
+                    <widget name="web_ribbon" title="Lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="product_tmpl_id" options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company" placeholder="Dùng chung"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="standard_cost"/>
+                            <field name="has_tracked"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <tree editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                            <field name="tracking" optional="show"/>
+                            <field name="quantity"/>
+                            <field name="uom_category_id" column_invisible="1"/>
+                            <field name="uom_id" domain="[('category_id', '=', uom_category_id)]" groups="uom.group_uom"/>
+                            <field name="basis"/>
+                        </tree>
+                    </field>
+                    <field name="note" placeholder="Ghi chú quy trình, thay thế tương đương…"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_service_bom_tree" model="ir.ui.view">
+        <field name="name">dmag.service.bom.tree</field>
+        <field name="model">dmag.service.bom</field>
+        <field name="arch" type="xml">
+            <tree string="Định mức vật tư">
+                <field name="product_tmpl_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="has_tracked"/>
+                <field name="standard_cost"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_service_bom_search" model="ir.ui.view">
+        <field name="name">dmag.service.bom.search</field>
+        <field name="model">dmag.service.bom</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_tmpl_id"/>
+                <field name="line_ids" string="Vật tư" filter_domain="[('line_ids.product_id', 'ilike', self)]"/>
+                <filter name="tracked" string="Có serial / lô" domain="[('has_tracked', '=', True)]"/>
+                <filter name="archived" string="Lưu trữ" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_service_bom" model="ir.actions.act_window">
+        <field name="name">Định mức vật tư</field>
+        <field name="res_model">dmag.service.bom</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Khai báo định mức vật tư cho dịch vụ</p>
+            <p>Khi hoàn tất thủ thuật, vật tư theo định mức tự xuất khỏi kho tới "Tiêu hao lâm sàng".</p>
+        </field>
+    </record>
+</odoo>

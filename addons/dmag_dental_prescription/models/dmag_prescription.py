@@ -1,5 +1,6 @@
 import re
 import secrets
+import threading
 import string
 
 from dateutil.relativedelta import relativedelta
@@ -436,7 +437,7 @@ class DmagPrescription(models.Model):
             ], order='date asc', limit=limit)
             for rx in pending:
                 rx._rx_send_national()
-                if not self.env.registry.in_test_mode():
+                if not getattr(threading.current_thread(), 'testing', False):
                     self.env.cr.commit()  # giữ kết quả từng đơn nếu đơn sau lỗi
         return True
 

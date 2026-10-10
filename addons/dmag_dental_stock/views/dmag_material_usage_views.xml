@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_material_usage_form" model="ir.ui.view">
+        <field name="name">dmag.material.usage.form</field>
+        <field name="model">dmag.material.usage</field>
+        <field name="arch" type="xml">
+            <form string="Vật tư tiêu hao">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="procedure_id" readonly="id" options="{'no_create': True}"
+                                   domain="[('state', '=', 'done')]"/>
+                            <field name="patient_id"/>
+                            <field name="visit_id"/>
+                            <field name="kind" readonly="1"/>
+                            <field name="date" readonly="id"/>
+                        </group>
+                        <group>
+                            <field name="product_id" readonly="id" options="{'no_create': True}"/>
+                            <field name="tracking" invisible="1"/>
+                            <field name="quantity" readonly="id"/>
+                            <field name="uom_id"/>
+                            <field name="lot_id" readonly="id" invisible="tracking == 'none'"
+                                   required="tracking != 'none'" options="{'no_create': True}"/>
+                            <field name="reason" readonly="id" required="kind == 'extra'"/>
+                            <field name="cost"/>
+                            <field name="user_id"/>
+                            <field name="picking_id" groups="stock.group_stock_user"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_material_usage_tree" model="ir.ui.view">
+        <field name="name">dmag.material.usage.tree</field>
+        <field name="model">dmag.material.usage</field>
+        <field name="arch" type="xml">
+            <tree string="Vật tư tiêu hao" decoration-warning="kind == 'extra'">
+                <field name="date"/>
+                <field name="patient_id"/>
+                <field name="service_id"/>
+                <field name="product_id"/>
+                <field name="lot_id" optional="show"/>
+                <field name="quantity"/>
+                <field name="uom_id" optional="show"/>
+                <field name="cost" sum="Tổng giá vốn"/>
+                <field name="kind" widget="badge"/>
+                <field name="reason" optional="hide"/>
+                <field name="user_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_material_usage_search" model="ir.ui.view">
+        <field name="name">dmag.material.usage.search</field>
+        <field name="model">dmag.material.usage</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="service_id"/>
+                <field name="doctor_id"/>
+                <filter name="extra" string="Phát sinh ngoài định mức" domain="[('kind', '=', 'extra')]"/>
+                <filter name="bom" string="Theo định mức" domain="[('kind', '=', 'bom')]"/>
+                <filter name="serial" string="Implant / serial" domain="[('tracking', '=', 'serial')]"/>
+                <separator/>
+                <filter name="date" string="Thời điểm" date="date"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_product" string="Vật tư" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_service" string="Dịch vụ" context="{'group_by': 'service_id'}"/>
+                    <filter name="group_doctor" string="Bác sĩ" context="{'group_by': 'doctor_id'}"/>
+                    <filter name="group_kind" string="Loại" context="{'group_by': 'kind'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_dmag_material_usage_pivot" model="ir.ui.view">
+        <field name="name">dmag.material.usage.pivot</field>
+        <field name="model">dmag.material.usage</field>
+        <field name="arch" type="xml">
+            <pivot string="Giá vốn vật tư">
+                <field name="service_id" type="row"/>
+                <field name="kind" type="col"/>
+                <field name="cost" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_dmag_material_usage" model="ir.actions.act_window">
+        <field name="name">Vật tư tiêu hao</field>
+        <field name="res_model">dmag.material.usage</field>
+        <field name="view_mode">tree,pivot,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Ghi nhận vật tư dùng thêm ngoài định mức</p>
+            <p>Vật tư theo định mức tự ghi khi hoàn tất thủ thuật. Phụ tá ghi phần phát sinh (có lý do) – không sửa sau khi lưu.</p>
+        </field>
+    </record>
+
+    <record id="view_dmag_implant_trace_tree" model="ir.ui.view">
+        <field name="name">dmag.material.usage.implant.trace</field>
+        <field name="model">dmag.material.usage</field>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <tree string="Truy xuất implant" create="0">
+                <field name="lot_id" string="Serial"/>
+                <field name="product_id" string="Trụ / vật tư"/>
+                <field name="patient_id"/>
+                <field name="service_id"/>
+                <field name="visit_id"/>
+                <field name="doctor_id"/>
+                <field name="date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_implant_trace" model="ir.actions.act_window">
+        <field name="name">Truy xuất implant ↔ bệnh nhân</field>
+        <field name="res_model">dmag.material.usage</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_dmag_implant_trace_tree"/>
+        <field name="domain">[('lot_id', '!=', False)]</field>
+        <field name="context">{'search_default_serial': 1, 'create': False}</field>
+        <field name="help" type="html">
+            <p>Serial implant nào đã cấy cho bệnh nhân nào – phục vụ thu hồi lô của hãng và thẻ bảo hành.</p>
+        </field>
+    </record>
+
+</odoo>

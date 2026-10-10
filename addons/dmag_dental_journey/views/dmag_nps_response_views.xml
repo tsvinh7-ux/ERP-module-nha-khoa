@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_nps_response_tree" model="ir.ui.view">
+        <field name="name">dmag.nps.response.tree</field>
+        <field name="model">dmag.nps.response</field>
+        <field name="arch" type="xml">
+            <tree string="Khảo sát NPS" create="0" edit="0"
+                  decoration-danger="category == 'detractor'" decoration-success="category == 'promoter'"
+                  decoration-muted="state == 'pending'">
+                <field name="create_date" string="Gửi lúc"/>
+                <field name="partner_id"/>
+                <field name="visit_id"/>
+                <field name="doctor_id" optional="show"/>
+                <field name="channel" optional="hide"/>
+                <field name="state"/>
+                <field name="score"/>
+                <field name="category"/>
+                <field name="comment" optional="show"/>
+                <field name="is_complaint" optional="show"/>
+                <field name="complaint_resolved" optional="show"/>
+                <field name="date" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_nps_response_form" model="ir.ui.view">
+        <field name="name">dmag.nps.response.form</field>
+        <field name="model">dmag.nps.response</field>
+        <field name="arch" type="xml">
+            <form string="Khảo sát NPS" create="0">
+                <header>
+                    <button name="action_mark_resolved" type="object" string="Đã xử lý phàn nàn" class="btn-primary"
+                            invisible="not is_complaint or complaint_resolved"
+                            groups="dmag_dental_base.group_dmag_manager"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="visit_id"/>
+                            <field name="doctor_id"/>
+                            <field name="channel"/>
+                            <field name="url" widget="url" groups="dmag_dental_base.group_dmag_manager"/>
+                        </group>
+                        <group>
+                            <field name="score"/>
+                            <field name="category"/>
+                            <field name="date"/>
+                            <field name="is_complaint"/>
+                            <field name="complaint_resolved" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Góp ý">
+                        <field name="comment" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_nps_response_search" model="ir.ui.view">
+        <field name="name">dmag.nps.response.search</field>
+        <field name="model">dmag.nps.response</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="visit_id"/>
+                <field name="doctor_id"/>
+                <filter name="answered" string="Đã trả lời" domain="[('state', '=', 'answered')]"/>
+                <filter name="promoter" string="Ủng hộ (9–10)" domain="[('category', '=', 'promoter')]"/>
+                <filter name="detractor" string="Không hài lòng (0–6)" domain="[('category', '=', 'detractor')]"/>
+                <filter name="complaint_open" string="Phàn nàn chưa xử lý"
+                        domain="[('is_complaint', '=', True), ('complaint_resolved', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_category" string="Nhóm" context="{'group_by': 'category'}"/>
+                    <filter name="group_doctor" string="Bác sĩ" context="{'group_by': 'doctor_id'}"/>
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_dmag_nps_response_graph" model="ir.ui.view">
+        <field name="name">dmag.nps.response.graph</field>
+        <field name="model">dmag.nps.response</field>
+        <field name="arch" type="xml">
+            <graph string="NPS" type="bar">
+                <field name="date" interval="month"/>
+                <field name="category"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_dmag_nps_response" model="ir.actions.act_window">
+        <field name="name">Khảo sát NPS</field>
+        <field name="res_model">dmag.nps.response</field>
+        <field name="view_mode">tree,form,graph</field>
+        <field name="context">{'search_default_answered': 1}</field>
+    </record>
+</odoo>

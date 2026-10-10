@@ -270,8 +270,10 @@ class DmagDentalVisit(models.Model):
         for entry in entries:
             cond = entry.condition_id
             if cond.id not in legend:
-                legend[cond.id] = {'key': str(len(legend) + 1), 'name': cond.name, 'color': cond.color or '#178BEC',
-                                   'symbol': cond.symbol, 'category': cond.category}
+                numbered = sum(1 for lg in legend.values() if lg['symbol'] != 'cross')
+                legend[cond.id] = {'key': 'X' if cond.symbol == 'cross' else str(numbered + 1), 'name': cond.name,
+                                   'color': cond.color or '#178BEC', 'symbol': cond.symbol,
+                                   'category': cond.category}
             mark = dict(legend[cond.id], layer=entry.layer,
                         surfaces=', '.join(entry.surface_ids.mapped('code')))
             by_tooth.setdefault(entry.tooth_id.code, []).append(mark)

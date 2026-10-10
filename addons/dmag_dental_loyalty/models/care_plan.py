@@ -226,7 +226,7 @@ class DmagCareEntitlement(models.Model):
     partner_id = fields.Many2one(related='subscription_id.partner_id', store=True)
     product_id = fields.Many2one('product.product', string='Dịch vụ', required=True, readonly=True)
     qty_total = fields.Float('Tổng số lần', readonly=True)
-    usage_ids = fields.One2many('dmag.care.usage', 'entitlement_id', string='Đã dùng')
+    usage_ids = fields.One2many('dmag.care.usage', 'entitlement_id', string='Lần sử dụng')
     qty_used = fields.Float('Đã dùng', compute='_compute_qty', store=True)
     qty_remaining = fields.Float('Còn lại', compute='_compute_qty', store=True)
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_cskh" name="Chăm sóc khách hàng" parent="dmag_dental_base.menu_dmag_dental_root" sequence="30"/>
+    <menuitem id="menu_dmag_journey_dashboard" name="Bảng điều khiển hành trình" parent="menu_dmag_cskh"
+              action="action_dmag_journey_dashboard" sequence="5"/>
+    <menuitem id="menu_dmag_cskh_tasks" name="Bảng việc CSKH" parent="menu_dmag_cskh"
+              action="action_mail_activity_cskh" sequence="10"/>
+    <menuitem id="menu_dmag_nps" name="Khảo sát NPS" parent="menu_dmag_cskh"
+              action="action_dmag_nps_response" sequence="20"/>
+    <menuitem id="menu_dmag_zns_messages_cskh" name="Tin Zalo ZNS" parent="menu_dmag_cskh"
+              action="dmag_zalo_zns.action_dmag_zns_message" sequence="30"/>
+    <menuitem id="menu_dmag_journey_execution" name="Nhật ký điểm chạm" parent="menu_dmag_cskh"
+              action="action_dmag_journey_execution" sequence="40"/>
+    <menuitem id="menu_dmag_journey_rule" name="Luật hành trình" parent="menu_dmag_cskh"
+              action="action_dmag_journey_rule" sequence="50" groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_journey_zns_template" name="Mẫu Zalo ZNS" parent="menu_dmag_cskh"
+              action="dmag_zalo_zns.action_dmag_zns_template" sequence="60" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>
