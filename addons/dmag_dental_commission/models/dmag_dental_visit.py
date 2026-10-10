@@ -127,21 +127,24 @@ class DmagDentalProcedure(models.Model):
 
     @staticmethod
     def _dmag_paid_ratio(move):
-        """Tỷ lệ hóa đơn đã được thanh toán bằng tiền (không tính phần đối trừ với hóa đơn điều chỉnh)."""
+        """Tỷ lệ hóa đơn đã được thanh toán bằng tiền (không tính phần đối trừ với hóa đơn điều chỉnh).
+
+        Tính theo tiền tệ của hóa đơn (``*_amount_currency`` của phần đối trừ) để đúng cả khi
+        bảng giá khác tiền tệ công ty."""
         if not move.amount_total:
             return 0.0
         receivables = move.line_ids.filtered(lambda l: l.account_id.account_type == 'asset_receivable')
         if move.move_type == 'out_invoice':
-            paid = sum(p.amount for p in receivables.matched_credit_ids
+            paid = sum(p.debit_amount_currency for p in receivables.matched_credit_ids
                        if p.credit_move_id.move_id.move_type == 'entry')
             return min(paid / move.amount_total, 1.0)
         # Hóa đơn điều chỉnh giảm: phần không đối trừ với hóa đơn chưa thu là tiền phải trả lại khách
-        offset = sum(p.amount for p in receivables.matched_debit_ids
+        offset = sum(p.credit_amount_currency for p in receivables.matched_debit_ids
                      if p.debit_move_id.move_id.move_type == 'out_invoice')
         return max(0.0, 1.0 - offset / move.amount_total)
 
     def _dmag_collected_ratio(self):
-        """(tỷ lệ đã thu của thủ thuật 0–1, giá trị thủ thuật gồm thuế)."""
+        """(tỷ lệ đã thu của thủ thuật 0–1, giá trị thủ thuật gồm thuế theo tiền tệ công ty)."""
         self.ensure_one()
         sale_line = self.sale_line_id.sudo()
         unit_taxinc = sale_line.price_reduce_taxinc
@@ -154,7 +157,9 @@ class DmagDentalProcedure(models.Model):
             elif move.move_type == 'out_refund':
                 collected -= inv_line.price_total * self._dmag_paid_ratio(move)
         ratio = max(0.0, min(1.0, collected / delivered)) if delivered else 0.0
-        return ratio, unit_taxinc * self.quantity
+        # Giá trị gồm thuế theo tiền tệ công ty: thành tiền thủ thuật × hệ số thuế của dòng đơn bán
+        tax_factor = sale_line.price_total / sale_line.price_subtotal if sale_line.price_subtotal else 1.0
+        return ratio, self.amount * tax_factor
 
     def _dmag_beneficiaries(self):
         self.ensure_one()

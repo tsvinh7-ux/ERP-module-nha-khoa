@@ -24,7 +24,8 @@ class ProductTemplate(models.Model):
     def _compute_dental_vat_regime(self):
         for tmpl in self:
             if not tmpl.is_dental_service:
-                tmpl.dental_vat_regime = False
+                # Sản phẩm ngoài danh mục nha khoa (vd. gói chăm sóc trả trước) có thể khai báo KCT tường minh
+                tmpl.dental_vat_regime = tmpl.dental_vat_regime if tmpl.dental_vat_regime == 'exempt' else False
             elif not tmpl.dental_vat_regime:
                 tmpl.dental_vat_regime = 'taxable' if tmpl.dental_category == 'cosmetic' else 'exempt'
 
@@ -58,14 +59,17 @@ class ProductTemplate(models.Model):
     @api.model
     def _dmag_apply_exempt_tax_all(self):
         """Khi cài / nâng cấp: gán thuế KCT cho mọi dịch vụ nha khoa thuộc diện không chịu thuế."""
-        self.search([('is_dental_service', '=', True), ('dental_vat_regime', '=', 'exempt')])._dmag_apply_exempt_tax()
+        self.search([('dental_vat_regime', '=', 'exempt')])._dmag_apply_exempt_tax()
 
     def _dmag_apply_exempt_tax(self):
+        Tax = self.env['account.tax']
         for tmpl in self:
-            company = tmpl.company_id or self.env.company
-            tax = self.env['account.tax']._dmag_exempt_tax(company)
-            other = tmpl.taxes_id.filtered(lambda t: t.company_id != company)
-            super(ProductTemplate, tmpl).write({'taxes_id': [(6, 0, (other | tax).ids)]})
+            # Sản phẩm dùng chung: thay thuế của MỌI công ty đang gắn bằng KCT của chính công ty đó
+            companies = tmpl.company_id or (tmpl.taxes_id.company_id | self.env.company)
+            taxes = Tax.browse()
+            for company in companies:
+                taxes |= Tax._dmag_exempt_tax(company)
+            super(ProductTemplate, tmpl).write({'taxes_id': [(6, 0, taxes.ids)]})
 
 
 class AccountTax(models.Model):
@@ -104,3 +108,14 @@ class AccountTax(models.Model):
                 'country_id': company.account_fiscal_country_id.id or company.country_id.id,
             })
         return group
+
+
+class AccountChartTemplate(models.AbstractModel):
+    _inherit = 'account.chart.template'
+
+    def _load(self, template_code, company, install_demo):
+        """Nạp hệ thống tài khoản (vd. l10n_vn) gán thuế bán mặc định 10% cho mọi sản phẩm → gán lại KCT
+        cho dịch vụ y tế, tránh hóa đơn dịch vụ khám chữa bệnh bị tính VAT."""
+        res = super()._load(template_code, company, install_demo)
+        self.env['product.template'].with_company(company)._dmag_apply_exempt_tax_all()
+        return res

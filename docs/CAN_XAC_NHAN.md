@@ -39,6 +39,10 @@
 | D2 🟡 | Ngày bắt đầu bảo hành | Ngày hoàn tất thủ thuật |
 | D3 🟡 | Doanh thu tính hoa hồng / tỷ lệ giá vốn: theo **thực thu** hay theo **hóa đơn**? | Hoa hồng: thực thu (đảo hóa đơn thì tự trừ) |
 | D4 🟡 | Khung bậc **P (chuyên môn) / M (quản lý)** và mức lương 3P thật | Đang là khung demo, sẽ import file thật. |
+| D6 🟡 | Hoa hồng: tỷ lệ từng vai trò; tính trên giá trước hay sau thuế; có trừ chi phí labo không; lễ tân hưởng theo người check-in hay người thu tiền; khoản đã trả lương mà sau đó hóa đơn bị đảo thì trừ vào kỳ sau? | Quy tắc mẫu đã nạp nhưng **đang tắt** |
+| D7 🟡 | Lương 3P: cách quy đổi điểm năng lực ra hệ số P2, trần KPI (đang 120%), ngưỡng thưởng OKR (đang 70%); mã nhân viên và mã “Loại đầu vào” trên Payroll Bizapps (file xuất dùng cột `DMAG_P1`, `DMAG_P2`, `DMAG_P3`…) | Xem `addons/dmag_hr_3p/README.rst` |
+| D8 ⚪ | Nhóm Quản lý phòng khám đang được quyền đọc hồ sơ nhân viên. Giữ vậy hay tách nhóm Nhân sự riêng? | |
+| D9 ⚪ | Định nghĩa cho OKR tự đo: “ca niềng mới”, “bác sĩ phụ”, khung giờ buổi chiều. **Ẩn app `biz_okr`** để không bị 2 app OKR | |
 | D5 ⚪ | Mục tiêu KPI trên Buồng lái (công suất ghế, đồng thuận kế hoạch…) | Chuẩn DMAG trong `get_owner_cockpit` |
 
 ## E. Hạ tầng

@@ -66,8 +66,9 @@
         <field name="list_price">0</field>
         <field name="sale_ok" eval="False"/>
         <field name="purchase_ok" eval="False"/>
-        <field name="taxes_id" eval="[(5, 0, 0)]"/>
         <field name="company_id" eval="False"/>
+        <!-- Gói chăm sóc răng miệng trả trước = dịch vụ y tế → không chịu thuế GTGT (Luật 48/2024 Đ5) -->
+        <field name="dental_vat_regime">exempt</field>
     </record>
     <record id="product_care_plan" model="product.product">
         <field name="name">Gói chăm sóc định kỳ</field>
@@ -75,8 +76,9 @@
         <field name="invoice_policy">order</field>
         <field name="list_price">0</field>
         <field name="purchase_ok" eval="False"/>
-        <field name="taxes_id" eval="[(5, 0, 0)]"/>
         <field name="company_id" eval="False"/>
+        <!-- Gói chăm sóc răng miệng trả trước = dịch vụ y tế → không chịu thuế GTGT (Luật 48/2024 Đ5) -->
+        <field name="dental_vat_regime">exempt</field>
     </record>
 
     <record id="ir_cron_dmag_loyalty_recompute" model="ir.cron">

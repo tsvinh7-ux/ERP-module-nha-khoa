@@ -102,9 +102,11 @@ class TestCreateNotEdit(DentalCommon):
 
     def test_vat_regime(self):
         self.assertEqual(self.svc_filling.dental_vat_regime, 'exempt')
-        self.assertEqual(self.svc_filling.taxes_id.description, 'KCT')
+        # Sản phẩm dùng chung nhiều công ty: mỗi công ty một thuế, tất cả đều KCT (không lọt thuế 10% của hệ thống tài khoản)
+        self.assertEqual(set(self.svc_filling.taxes_id.mapped('description')), {'KCT'})
+        self.assertEqual(self.svc_filling.taxes_id.filtered(lambda t: t.company_id == self.env.company).description, 'KCT')
         cosmetic = self.env['product.product'].create({
             'name': 'Tẩy trắng thẩm mỹ', 'is_dental_service': True, 'dental_category': 'cosmetic',
             'dental_requires_tooth': False})
         self.assertEqual(cosmetic.dental_vat_regime, 'taxable')
-        self.assertNotEqual(cosmetic.taxes_id.description, 'KCT')
+        self.assertNotIn('KCT', cosmetic.taxes_id.mapped('description'))
