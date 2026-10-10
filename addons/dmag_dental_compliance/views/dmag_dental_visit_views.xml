@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_compliance" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.compliance</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Kiểm soát nhiễm khuẩn" name="sterilization">
+                    <field name="sterilization_batch_ids" options="{'no_create': True}">
+                        <tree>
+                            <field name="name"/>
+                            <field name="date"/>
+                            <field name="autoclave_id"/>
+                            <field name="instrument_set_ids" widget="many2many_tags"/>
+                            <field name="state" widget="badge"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_sterilization_batch_form" model="ir.ui.view">
+        <field name="name">dmag.sterilization.batch.form</field>
+        <field name="model">dmag.sterilization.batch</field>
+        <field name="arch" type="xml">
+            <form string="Mẻ tiệt khuẩn">
+                <header>
+                    <button name="action_release" type="object" string="Đạt – phát hành dụng cụ" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_fail" type="object" string="Không đạt" invisible="state not in ('draft', 'released')"
+                            confirm="Đánh dấu mẻ không đạt? Mẻ đã phát hành sẽ bị THU HỒI."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,released"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_visits" type="object" class="oe_stat_button" icon="fa-user-md">
+                            <field name="visit_count" widget="statinfo" string="Lượt khám"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Thu hồi" bg_color="text-bg-danger" invisible="state != 'recalled'"/>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="autoclave_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="cycle_number" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="program" readonly="state != 'draft'"/>
+                            <field name="operator_id" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Chỉ thị kiểm tra">
+                            <field name="chemical_result" readonly="state != 'draft'"/>
+                            <field name="bowie_dick_result" readonly="state != 'draft'"/>
+                            <field name="biological_result" readonly="state != 'draft' and biological_result != 'pending'"/>
+                            <field name="biological_read_date" invisible="biological_result in ('na', 'pending')"/>
+                            <field name="expiry_date" readonly="state != 'draft'"/>
+                            <field name="pack_count" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <group string="Bộ dụng cụ">
+                        <field name="instrument_set_ids" widget="many2many_tags" nolabel="1" colspan="2"
+                               readonly="state != 'draft'"/>
+                    </group>
+                    <field name="note" placeholder="Ghi chú…"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_sterilization_batch_tree" model="ir.ui.view">
+        <field name="name">dmag.sterilization.batch.tree</field>
+        <field name="model">dmag.sterilization.batch</field>
+        <field name="arch" type="xml">
+            <tree string="Mẻ tiệt khuẩn" decoration-danger="state in ('failed', 'recalled')">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="autoclave_id"/>
+                <field name="cycle_number" optional="show"/>
+                <field name="program" optional="show"/>
+                <field name="instrument_set_ids" widget="many2many_tags" optional="show"/>
+                <field name="chemical_result"/>
+                <field name="biological_result"/>
+                <field name="operator_id" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'released'"
+                       decoration-danger="state in ('failed', 'recalled')" decoration-info="state == 'draft'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_sterilization_batch_search" model="ir.ui.view">
+        <field name="name">dmag.sterilization.batch.search</field>
+        <field name="model">dmag.sterilization.batch</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="autoclave_id"/>
+                <field name="instrument_set_ids"/>
+                <filter name="released" string="Đã phát hành" domain="[('state', '=', 'released')]"/>
+                <filter name="bio_pending" string="Chờ chỉ thị sinh học" domain="[('biological_result', '=', 'pending')]"/>
+                <filter name="failed" string="Không đạt / thu hồi" domain="[('state', 'in', ('failed', 'recalled'))]"/>
+                <filter name="date" string="Ngày hấp" date="date"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_sterilization_batch" model="ir.actions.act_window">
+        <field name="name">Mẻ tiệt khuẩn</field>
+        <field name="res_model">dmag.sterilization.batch</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_dmag_instrument_set_tree" model="ir.ui.view">
+        <field name="name">dmag.instrument.set.tree</field>
+        <field name="model">dmag.instrument.set</field>
+        <field name="arch" type="xml">
+            <tree string="Bộ dụng cụ" editable="bottom">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="category"/>
+                <field name="note"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dmag_instrument_set" model="ir.actions.act_window">
+        <field name="name">Bộ dụng cụ</field>
+        <field name="res_model">dmag.instrument.set</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

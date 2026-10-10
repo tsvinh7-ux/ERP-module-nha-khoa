@@ -22,11 +22,11 @@ class DmagBooking(http.Controller):
             'error': error,
         }
 
-    @http.route(['/dental/booking'], type='http', auth='public', methods=['GET'], sitemap=False)
+    @http.route(['/dental/booking'], type='http', auth='public', methods=['GET'], sitemap=False, website=True)
     def booking_form(self, **kw):
         return request.render('dmag_patient_portal.booking_page', self._booking_values(kw if kw else None))
 
-    @http.route(['/dental/booking'], type='http', auth='public', methods=['POST'], csrf=True, sitemap=False)
+    @http.route(['/dental/booking'], type='http', auth='public', methods=['POST'], csrf=True, sitemap=False, website=True)
     def booking_submit(self, **post):
         if post.get('website_url'):  # bẫy bot (trường ẩn)
             return request.redirect('/dental/booking/thanks')
@@ -41,7 +41,7 @@ class DmagBooking(http.Controller):
         request.session['dmag_last_booking'] = visit.name
         return request.redirect('/dental/booking/thanks')
 
-    @http.route(['/dental/booking/thanks'], type='http', auth='public', sitemap=False)
+    @http.route(['/dental/booking/thanks'], type='http', auth='public', sitemap=False, website=True)
     def booking_thanks(self, **kw):
         return request.render('dmag_patient_portal.booking_thanks', {
             'booking_name': request.session.get('dmag_last_booking') or '',

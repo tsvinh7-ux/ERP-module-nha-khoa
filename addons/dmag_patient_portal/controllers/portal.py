@@ -28,7 +28,7 @@ class DmagPatientPortal(CustomerPortal):
             'fmt_money': lambda amount: '{:,.0f}'.format(amount or 0).replace(',', '.') + ' ₫',
         }
 
-    @http.route(['/my/dental'], type='http', auth='user')
+    @http.route(['/my/dental'], type='http', auth='user', website=True)
     def dmag_home(self, patient_id=None, **kw):
         values = self._dmag_values(patient_id, 'home')
         scope = values['scope']
@@ -45,7 +45,7 @@ class DmagPatientPortal(CustomerPortal):
         })
         return request.render('dmag_patient_portal.portal_dental_home', values)
 
-    @http.route(['/my/dental/visits'], type='http', auth='user')
+    @http.route(['/my/dental/visits'], type='http', auth='user', website=True)
     def dmag_visits(self, patient_id=None, **kw):
         values = self._dmag_values(patient_id, 'visits')
         visits = patient_visits(values['scope'])
@@ -65,7 +65,7 @@ class DmagPatientPortal(CustomerPortal):
             return visit
         raise Forbidden()
 
-    @http.route(['/my/dental/visit/<int:visit_id>'], type='http', auth='public')
+    @http.route(['/my/dental/visit/<int:visit_id>'], type='http', auth='public', website=True)
     def dmag_visit(self, visit_id, access_token=None, **kw):
         try:
             visit = self._dmag_visit_check_access(visit_id, access_token)
@@ -84,19 +84,19 @@ class DmagPatientPortal(CustomerPortal):
                        'company': visit.company_id})
         return request.render('dmag_patient_portal.portal_dental_visit', values)
 
-    @http.route(['/my/dental/plans'], type='http', auth='user')
+    @http.route(['/my/dental/plans'], type='http', auth='user', website=True)
     def dmag_plans(self, patient_id=None, **kw):
         values = self._dmag_values(patient_id, 'plans')
         values['plans'] = request.env['dmag.dental.visit']._dmag_portal_plan_dicts(values['scope'])
         return request.render('dmag_patient_portal.portal_dental_plans', values)
 
-    @http.route(['/my/dental/warranty'], type='http', auth='user')
+    @http.route(['/my/dental/warranty'], type='http', auth='user', website=True)
     def dmag_warranty(self, patient_id=None, **kw):
         values = self._dmag_values(patient_id, 'warranty')
         values['cards'] = request.env['dmag.dental.visit']._dmag_portal_warranty_dicts(values['scope'])
         return request.render('dmag_patient_portal.portal_dental_warranty', values)
 
-    @http.route(['/my/dental/loyalty'], type='http', auth='user')
+    @http.route(['/my/dental/loyalty'], type='http', auth='user', website=True)
     def dmag_loyalty(self, patient_id=None, **kw):
         values = self._dmag_values(patient_id, 'loyalty')
         patient = values['current_patient'] or values['viewer']

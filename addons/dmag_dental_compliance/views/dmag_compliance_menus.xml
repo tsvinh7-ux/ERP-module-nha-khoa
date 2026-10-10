@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dmag_compliance" name="Pháp chế" parent="dmag_dental_base.menu_dmag_dental_root" sequence="70"/>
+    <menuitem id="menu_dmag_compliance_doc" name="Hồ sơ pháp lý" parent="menu_dmag_compliance"
+              action="action_dmag_compliance_doc" sequence="10"/>
+    <menuitem id="menu_dmag_equipment" name="Thiết bị" parent="menu_dmag_compliance"
+              action="action_dmag_equipment" sequence="20"/>
+    <menuitem id="menu_dmag_equipment_log" name="Nhật ký bảo trì – kiểm định" parent="menu_dmag_compliance"
+              action="action_dmag_equipment_log" sequence="25"/>
+    <menuitem id="menu_dmag_sterilization_batch" name="Mẻ tiệt khuẩn" parent="menu_dmag_compliance"
+              action="action_dmag_sterilization_batch" sequence="30"/>
+    <menuitem id="menu_dmag_instrument_set" name="Bộ dụng cụ" parent="menu_dmag_compliance"
+              action="action_dmag_instrument_set" sequence="40"/>
+    <menuitem id="menu_dmag_compliance_doc_type" name="Loại hồ sơ pháp chế" parent="dmag_dental_base.menu_dmag_config_clinic"
+              action="action_dmag_compliance_doc_type" sequence="80"/>
+</odoo>

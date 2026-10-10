@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_equipment_form" model="ir.ui.view">
+        <field name="name">dmag.equipment.form</field>
+        <field name="model">dmag.equipment</field>
+        <field name="arch" type="xml">
+            <form string="Thiết bị">
+                <header>
+                    <field name="state" widget="statusbar" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Quá hạn kiểm định / bảo trì" bg_color="text-bg-danger"
+                            invisible="inspection_status != 'overdue'"/>
+                    <div class="oe_title"><h1><field name="name" placeholder="VD: Máy CBCT phòng 2"/></h1></div>
+                    <group>
+                        <group string="Thông tin">
+                            <field name="category"/>
+                            <field name="code"/>
+                            <field name="brand"/>
+                            <field name="model_name"/>
+                            <field name="serial_no"/>
+                            <field name="chair_id" options="{'no_create': True}"/>
+                            <field name="location"/>
+                            <field name="purchase_date"/>
+                            <field name="warranty_end_date"/>
+                            <field name="responsible_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Kiểm định &amp; bảo trì">
+                            <field name="is_radiation"/>
+                            <field name="inspection_required"/>
+                            <field name="inspection_interval_months" invisible="not inspection_required"/>
+                            <field name="last_inspection_date" invisible="not inspection_required"/>
+                            <field name="next_inspection_date" invisible="not inspection_required"/>
+                            <field name="maintenance_interval_months"/>
+                            <field name="last_maintenance_date"/>
+                            <field name="next_maintenance_date"/>
+                            <field name="alert_days"/>
+                            <field name="inspection_status" widget="badge" decoration-success="inspection_status == 'ok'"
+                                   decoration-warning="inspection_status == 'due_soon'" decoration-danger="inspection_status == 'overdue'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Nhật ký" name="logs">
+                            <field name="log_ids" context="{'default_equipment_id': id}">
+                                <tree>
+                                    <field name="date"/>
+                                    <field name="log_type"/>
+                                    <field name="result" widget="badge" decoration-success="result == 'pass'" decoration-danger="result == 'fail'"/>
+                                    <field name="vendor_id"/>
+                                    <field name="certificate_number"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="cost" sum="Tổng"/>
+                                    <field name="user_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Hồ sơ pháp chế" name="docs">
+                            <field name="compliance_doc_ids" context="{'default_equipment_id': id}">
+                                <tree>
+                                    <field name="type_id"/><field name="number"/><field name="expiry_date"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'valid'"
+                                           decoration-warning="state == 'expiring'" decoration-danger="state == 'expired'"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Ghi chú" name="note"><field name="note"/></page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_equipment_tree" model="ir.ui.view">
+        <field name="name">dmag.equipment.tree</field>
+        <field name="model">dmag.equipment</field>
+        <field name="arch" type="xml">
+            <tree string="Thiết bị">
+                <field name="name"/>
+                <field name="category"/>
+                <field name="serial_no" optional="show"/>
+                <field name="chair_id" optional="show"/>
+                <field name="next_inspection_date" optional="show"/>
+                <field name="next_maintenance_date" optional="show"/>
+                <field name="inspection_status" widget="badge" decoration-success="inspection_status == 'ok'"
+                       decoration-warning="inspection_status == 'due_soon'" decoration-danger="inspection_status == 'overdue'"/>
+                <field name="state" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_equipment_search" model="ir.ui.view">
+        <field name="name">dmag.equipment.search</field>
+        <field name="model">dmag.equipment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="serial_no"/>
+                <filter name="radiation" string="Thiết bị bức xạ" domain="[('is_radiation', '=', True)]"/>
+                <filter name="autoclave" string="Nồi hấp" domain="[('category', '=', 'autoclave')]"/>
+                <filter name="in_use" string="Đang sử dụng" domain="[('state', '=', 'in_use')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_category" string="Loại" context="{'group_by': 'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_equipment" model="ir.actions.act_window">
+        <field name="name">Thiết bị</field>
+        <field name="res_model">dmag.equipment</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_dmag_equipment_log_form" model="ir.ui.view">
+        <field name="name">dmag.equipment.log.form</field>
+        <field name="model">dmag.equipment.log</field>
+        <field name="arch" type="xml">
+            <form string="Nhật ký thiết bị">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="equipment_id" readonly="id"/>
+                            <field name="date" readonly="id"/>
+                            <field name="log_type" readonly="id"/>
+                            <field name="result" readonly="id"/>
+                        </group>
+                        <group>
+                            <field name="vendor_id"/>
+                            <field name="certificate_number"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="cost"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Nội dung công việc, linh kiện thay thế, kết luận…"/>
+                    <field name="attachment_ids" widget="many2many_binary"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dmag_equipment_log" model="ir.actions.act_window">
+        <field name="name">Nhật ký bảo trì – kiểm định</field>
+        <field name="res_model">dmag.equipment.log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
