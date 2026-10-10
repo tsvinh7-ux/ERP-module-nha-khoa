@@ -8,6 +8,7 @@ và bổ sung phần nghiệp vụ nha khoa theo hành trình khách hàng, đú
 - Căn cứ pháp lý: [`docs/PHAP_LY_NHA_KHOA.md`](docs/PHAP_LY_NHA_KHOA.md)
 - **Việc cần anh/chị xác nhận trước khi chạy thật: [`docs/CAN_XAC_NHAN.md`](docs/CAN_XAC_NHAN.md)**
 - Hiện trạng Bizapps: [`docs/HIEN_TRANG_BIZAPPS.md`](docs/HIEN_TRANG_BIZAPPS.md) · Đánh giá ACS HMS: [`docs/DANH_GIA_ACS_HMS.md`](docs/DANH_GIA_ACS_HMS.md)
+- **Cài bản demo để kiểm tra: [`docs/HUONG_DAN_CAI_DEMO.md`](docs/HUONG_DAN_CAI_DEMO.md)**
 - Hướng dẫn lập trình: [`docs/DEV_GUIDE.md`](docs/DEV_GUIDE.md)
 
 ## Module
@@ -32,6 +33,7 @@ và bổ sung phần nghiệp vụ nha khoa theo hành trình khách hàng, đú
 | Nhân sự | `dmag_hr_3p` | Ngạch bậc P/M (demo), lương 3P xuất cho Payroll Bizapps |
 | | `dmag_dental_commission` | Thủ thuật phí, hoa hồng theo thực thu, cầu chì y đức |
 | | `dmag_okr_dental` | Cầu nối OKR Scale: KR tự đo từ dữ liệu nha khoa |
+| Demo | `dmag_dental_demo` | Kiểu `social_demo`: giả lập mọi tích hợp, sinh dữ liệu + chính sách mẫu, tài khoản thử theo vai trò; gỡ là sạch |
 
 ## Nguyên tắc phân quyền “tạo được – không sửa”
 

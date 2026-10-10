@@ -59,6 +59,8 @@ class TestMaterial(DentalCommon):
         return visit
 
     def test_bom_consumption(self):
+        # Số liệu có sẵn trong CSDL (vd. đã cài dmag_dental_demo) → so sánh phần chênh lệch
+        base = self.env['dmag.material.usage'].get_material_kpis(self.today - timedelta(days=1), self.today)
         visit = self._visit_in_chair()
         Proc = self.env['dmag.dental.procedure']
         res = Proc.add_from_workspace(visit.id, self.svc_filling.id, teeth=['36', '37'])
@@ -91,15 +93,15 @@ class TestMaterial(DentalCommon):
 
         # KPI giá vốn
         kpi = self.env['dmag.material.usage'].get_material_kpis(self.today - timedelta(days=1), self.today)
-        self.assertEqual(kpi['revenue'], 800000)
-        self.assertEqual(kpi['bom_cost'], 46000)
-        self.assertEqual(kpi['extra_cost'], 20000)
-        self.assertEqual(kpi['material_cost'], 66000)
-        self.assertAlmostEqual(kpi['material_ratio'], 8.25)
+        self.assertEqual(kpi['revenue'] - base['revenue'], 800000)
+        self.assertEqual(kpi['bom_cost'] - base['bom_cost'], 46000)
+        self.assertEqual(kpi['extra_cost'] - base['extra_cost'], 20000)
+        self.assertEqual(kpi['material_cost'] - base['material_cost'], 66000)
+        self.assertAlmostEqual(kpi['material_ratio'], round(kpi['material_cost'] / kpi['revenue'] * 100, 2), places=1)
         self.assertEqual(kpi['threshold'], 22.0)
-        if 'dmag.lab.order' not in self.env:
+        if 'dmag.lab.order' not in self.env and not base['revenue']:
             self.assertFalse(kpi['alert'])
-        self.company.dmag_cogs_threshold = 5.0
+        self.company.dmag_cogs_threshold = 0.01
         kpi = self.env['dmag.material.usage'].get_material_kpis(self.today, self.today)
         self.assertTrue(kpi['alert'])
         self.assertTrue(kpi['message'])

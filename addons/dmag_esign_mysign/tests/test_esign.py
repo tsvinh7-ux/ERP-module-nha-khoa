@@ -26,6 +26,8 @@ class TestEsign(DentalCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # Chỉ dùng nhà cung cấp của bài test (CSDL có thể đã có nhà cung cấp khác, vd. dmag_dental_demo)
+        cls.env['dmag.esign.provider'].search([]).write({'active': False})
         cls.provider = cls.env['dmag.esign.provider'].create({
             'name': 'Giả lập', 'provider_type': 'mock', 'sequence': 1,
             'client_id': 'cid', 'client_secret': 'super-secret',

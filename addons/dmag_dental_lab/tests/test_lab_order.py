@@ -86,6 +86,8 @@ class TestLabOrder(DentalCommon):
         self.assertEqual(new.state, 'fitted')
 
     def test_overdue_and_kpi(self):
+        # Số liệu có sẵn trong CSDL (vd. đã cài dmag_dental_demo) → so sánh phần chênh lệch
+        base = self.env['dmag.lab.order'].get_lab_kpis(self.today - timedelta(days=30), self.today)
         order = self._order(due_date=self.today, sent_date=self.today - timedelta(days=7))
         order.action_send()
         self.assertFalse(order.is_late)
@@ -106,11 +108,12 @@ class TestLabOrder(DentalCommon):
         visit.action_start()
         self.env['dmag.dental.procedure'].add_from_workspace(visit.id, self.svc_filling.id, teeth=['36'])
         kpi = Order.get_lab_kpis(self.today - timedelta(days=30), self.today)
-        self.assertEqual(kpi['lab_cost'], 900000)
-        self.assertGreaterEqual(kpi['revenue'], 400000)
+        self.assertEqual(kpi['lab_cost'] - base['lab_cost'], 900000)
+        self.assertGreaterEqual(kpi['revenue'] - base['revenue'], 400000)
         self.assertEqual(kpi['late_count'] >= 1, True)
-        self.assertAlmostEqual(kpi['lab_cost_ratio'], round(900000 / kpi['revenue'] * 100, 2))
-        self.assertTrue(kpi['alert'])
+        self.assertAlmostEqual(kpi['lab_cost_ratio'], round(kpi['lab_cost'] / kpi['revenue'] * 100, 2))
+        if not base['revenue']:
+            self.assertTrue(kpi['alert'])
         order.action_receive()
         self.assertFalse(order.is_late)
         self.assertFalse(order.activity_ids)

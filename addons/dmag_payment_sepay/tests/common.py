@@ -17,6 +17,11 @@ class SepayCommon(DentalCommon):
         env = cls.env
         cls.company = env.company
         cls.company.partner_id.tz = 'Asia/Ho_Chi_Minh'
+        # CSDL có thể đã có cấu hình (vd. dmag_dental_demo) – mỗi phòng khám chỉ 1 cấu hình
+        env['dmag.sepay.config'].search([('company_id', '=', cls.company.id)]).unlink()
+        # Bài test tính tổng theo ngày → bỏ giao dịch / nhật ký thu có sẵn (chỉ trong giao dịch test, rollback sau đó)
+        env['dmag.sepay.transaction'].sudo().search([]).unlink()
+        env['dmag.payment.log'].sudo().search([]).unlink()
         cls.config = env['dmag.sepay.config'].create({
             'company_id': cls.company.id,
             'bank_code': 'MBBank',
