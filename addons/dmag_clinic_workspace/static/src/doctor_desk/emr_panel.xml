@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.EmrPanel">
+        <div class="dmag-emr">
+            <div t-if="props.emr.missing_for_signature and props.emr.missing_for_signature.length and !props.locked" class="dmag-banner is-warn">
+                <i class="fa fa-info-circle me-1" title="Thiếu"/>Còn thiếu để ký bệnh án:
+                <t t-esc="props.emr.missing_for_signature.join(', ')"/>
+            </div>
+            <div class="dmag-field">
+                <label>Sinh hiệu <span class="small text-muted fw-normal">· MS: 16/BV1<t t-if="props.emr.outpatient_number"> · Số ngoại trú <t t-esc="props.emr.outpatient_number"/></t></span></label>
+                <div class="dmag-vitals">
+                    <label t-foreach="VITALS" t-as="v" t-key="v[0]" class="dmag-vital">
+                        <span t-esc="v[1]"/>
+                        <input type="number" step="0.1" class="dmag-input-num" t-att-value="props.emr[v[0]] || ''" t-att-readonly="props.locked"
+                               t-on-change="(ev) => this.save(v[0], ev.target.value, true)"/>
+                        <small t-esc="v[2]"/>
+                    </label>
+                    <div t-if="props.emr.bmi" class="dmag-vital"><span>BMI</span><b t-esc="props.emr.bmi"/></div>
+                </div>
+            </div>
+            <div t-foreach="SECTIONS" t-as="sec" t-key="sec.title" class="dmag-field">
+                <label t-esc="sec.title"/>
+                <div class="dmag-emr-grid">
+                    <div t-foreach="sec.fields" t-as="f" t-key="f[0]">
+                        <div class="dmag-emr-label" t-esc="f[1]"/>
+                        <textarea rows="2" t-att-value="props.emr[f[0]] || ''" t-att-readonly="props.locked"
+                                  t-on-change="(ev) => this.save(f[0], ev.target.value)"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

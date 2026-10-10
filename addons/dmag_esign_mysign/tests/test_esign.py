@@ -35,8 +35,16 @@ class TestEsign(DentalCommon):
         visit = self._visit()
         visit.action_check_in()
         visit.action_start()
-        visit.write({'chief_complaint': 'Đau răng 36', 'examination': 'Sâu ngà 36', 'assessment': 'K02.1'})
+        self._legal_ready(visit, {'chief_complaint': 'Đau răng 36', 'examination': 'Sâu ngà 36',
+                                  'assessment': 'K02.1'})
         return visit
+
+    def _legal_ready(self, visit, vals):
+        """Đủ điều kiện ký theo TT 13/2025 + TT 32/2023: số định danh, khám, chẩn đoán ICD-10."""
+        visit.patient_id.citizen_id = visit.patient_id.citizen_id or '079090000001'
+        vals = dict(vals, examination=vals.get('examination') or 'Khám lâm sàng',
+                    diagnosis_ids=[(6, 0, self.env.ref('dmag_dental_base.diag_k02_1').ids)])
+        visit.write(vals)
 
     def test_sign_visit_with_mock(self):
         visit = self._signed_ready_visit()
@@ -105,7 +113,7 @@ class TestEsign(DentalCommon):
         visit = self._visit(doctor_id=self.doctor2.id)
         visit.action_check_in()
         visit.action_start()
-        visit.write({'chief_complaint': 'Ê buốt'})
+        self._legal_ready(visit, {'chief_complaint': 'Ê buốt'})
         visit = visit.with_user(self.doctor_user2)
         visit.action_sign_record()
         req = visit.esign_request_id

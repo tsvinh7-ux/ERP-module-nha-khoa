@@ -294,9 +294,10 @@ class DmagWorkspace(models.AbstractModel):
         extras = {}
         providers = [
             ('compliance', 'dmag.compliance.doc', 'get_compliance_status', ()),
-            ('material', 'dmag.service.bom', 'get_material_kpis', (d_from, d_to)),
+            ('material', 'dmag.material.usage', 'get_material_kpis', (d_from, d_to)),
             ('lab', 'dmag.lab.order', 'get_lab_kpis', (d_from, d_to)),
-            ('journey', 'dmag.journey.rule', 'get_journey_dashboard', ()),
+            ('journey', 'dmag.dental.visit', 'get_journey_dashboard',
+             (fields.Date.to_string(d_from), fields.Date.to_string(d_to))),
         ]
         for key, model, method, args in providers:
             if model in self.env and hasattr(self.env[model], method):

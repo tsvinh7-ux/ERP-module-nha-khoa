@@ -57,10 +57,24 @@ export class OwnerCockpit extends Component {
             { key: "wait", label: "Thời gian chờ trung bình", value: `${(k.avg_wait || 0).toFixed(0)} phút`, target: `≤ ${t.avg_wait} phút`, ok: k.avg_wait <= t.avg_wait, ratio: Math.min(1, (k.avg_wait || 0) / (t.avg_wait * 2)) },
         ];
         const material = this.state.data.extras.material;
-        if (material && material.ratio !== undefined) {
-            cards.push({ key: "material", label: "Giá vốn vật tư / doanh thu", value: this.pct(material.ratio), target: `≤ ${t.material_ratio}%`, ok: material.ratio <= t.material_ratio, ratio: material.ratio / 100 });
+        if (material && material.cogs_ratio !== undefined) {
+            cards.push({ key: "material", label: "Giá vốn vật tư + labo / doanh thu", value: this.pct(material.cogs_ratio), target: `≤ ${material.threshold || t.material_ratio}%`, ok: !material.alert, ratio: material.cogs_ratio / 100 });
+        }
+        const journey = this.state.data.extras.journey;
+        if (journey && journey.nps && !journey.error) {
+            cards.push({ key: "nps", label: "NPS sau điều trị", value: journey.nps.responses ? String(Math.round(journey.nps.score)) : "–", target: "≥ 50 (thang −100…100)", ok: !journey.nps.responses || journey.nps.score >= 50, ratio: Math.max(0, (journey.nps.score + 100) / 200) });
+            cards.push({ key: "showup", label: "Tỷ lệ khách đến đúng hẹn", value: this.pct(journey.show_up_rate), target: "≥ 85%", ok: journey.show_up_rate >= 85, ratio: (journey.show_up_rate || 0) / 100 });
         }
         return cards;
+    }
+
+    get compliance() {
+        const c = this.state.data.extras.compliance;
+        if (!c || c.error) {
+            return null;
+        }
+        const counts = c.counts || c;
+        return { expired: counts.expired || 0, expiring: counts.expiring || 0, valid: counts.valid || 0, missing: counts.missing || 0, red: c.red_items || [], score: c.score };
     }
 
     get chart() {

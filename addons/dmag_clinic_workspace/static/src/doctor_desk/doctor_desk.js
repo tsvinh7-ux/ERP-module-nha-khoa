@@ -5,6 +5,8 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Odontogram } from "../odontogram/odontogram";
 import { ConsultMode } from "../consult/consult_mode";
+import { EmrPanel } from "./emr_panel";
+import { RxPanel } from "./rx_panel";
 import { formatDate, formatMoney, formatTime, PLAN_STATES, VISIT_STATES } from "../js/utils";
 
 const QUICK_PHRASES = {
@@ -17,7 +19,7 @@ const QUICK_PHRASES = {
 
 export class DoctorDesk extends Component {
     static template = "dmag_clinic_workspace.DoctorDesk";
-    static components = { Odontogram, ConsultMode };
+    static components = { Odontogram, ConsultMode, EmrPanel, RxPanel };
     static props = ["*"];
 
     setup() {
@@ -471,6 +473,18 @@ export class DoctorDesk extends Component {
             },
             { onClose: () => this.reloadVisit() }
         );
+    }
+
+    get hasRx() {
+        return this.state.ws && Array.isArray(this.state.ws.prescriptions);
+    }
+
+    get hasEmr() {
+        return this.state.ws && this.state.ws.emr;
+    }
+
+    async onRxChanged() {
+        await this.reloadVisit();
     }
 
     goFrontDesk() {

@@ -34,11 +34,11 @@
                         <span class="dmag-hero-value" t-esc="k.new_patients"/>
                         <span class="dmag-hero-sub">Không đến: <t t-esc="pct(k.no_show_rate)"/></span>
                     </div>
-                    <div class="dmag-hero" t-if="state.data.extras.compliance and !state.data.extras.compliance.error">
-                        <t t-set="c" t-value="state.data.extras.compliance"/>
-                        <span class="dmag-hero-label">Hồ sơ pháp chế</span>
-                        <span t-att-class="'dmag-hero-value' + ((c.expired or 0) ? ' is-bad' : '')"><t t-esc="c.expired or 0"/> hết hạn</span>
-                        <span class="dmag-hero-sub"><t t-esc="c.expiring or 0"/> sắp hết hạn · <t t-esc="c.valid or 0"/> còn hiệu lực</span>
+                    <div class="dmag-hero" t-if="compliance">
+                        <t t-set="c" t-value="compliance"/>
+                        <span class="dmag-hero-label">Hồ sơ pháp chế – sẵn sàng thanh tra</span>
+                        <span t-att-class="'dmag-hero-value' + ((c.expired + c.missing) ? ' is-bad' : '')"><t t-esc="c.expired + c.missing"/> cần xử lý</span>
+                        <span class="dmag-hero-sub"><t t-esc="c.expired"/> hết hạn · <t t-esc="c.missing"/> còn thiếu · <t t-esc="c.expiring"/> sắp hết hạn</span>
                     </div>
                 </section>
 
@@ -107,12 +107,12 @@
                             <div class="dmag-hbar-track"><div t-att-style="'width:' + (100 * s.count / ms) + '%'"/></div>
                         </div>
                     </div>
-                    <div class="dmag-panel" t-if="state.data.extras.compliance and state.data.extras.compliance.red_items and state.data.extras.compliance.red_items.length">
+                    <div class="dmag-panel" t-if="compliance and compliance.red.length">
                         <div class="dmag-panel-title">Cần xử lý ngay (pháp chế)</div>
-                        <div t-foreach="state.data.extras.compliance.red_items" t-as="it" t-key="it_index" class="dmag-entry">
-                            <i class="fa fa-exclamation-triangle text-danger me-2" title="Hết hạn"/>
-                            <span class="flex-grow-1" t-esc="it.name or it"/>
-                            <span class="small text-muted" t-esc="it.expiry_date or ''"/>
+                        <div t-foreach="compliance.red" t-as="it" t-key="it_index" class="dmag-entry">
+                            <i class="fa fa-exclamation-triangle text-danger me-2" title="Cần xử lý"/>
+                            <span class="flex-grow-1"><b t-esc="it.type or it.kind"/> <span t-esc="it.name"/></span>
+                            <span class="small text-muted"><t t-if="it.kind === 'missing'">Chưa có</t><t t-elif="it.expiry_date">Hạn <t t-esc="it.expiry_date"/></t></span>
                         </div>
                     </div>
                 </section>

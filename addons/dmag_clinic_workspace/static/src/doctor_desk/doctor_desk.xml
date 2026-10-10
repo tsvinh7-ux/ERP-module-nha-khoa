@@ -74,6 +74,7 @@
                         <button t-att-class="state.tab === 'chart' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'chart'"><i class="fa fa-th me-1" title="Sơ đồ"/>Sơ đồ răng</button>
                         <button t-att-class="state.tab === 'record' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'record'"><i class="fa fa-file-text-o me-1" title="Bệnh án"/>Bệnh án</button>
                         <button t-att-class="state.tab === 'plan' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'plan'"><i class="fa fa-list-ol me-1" title="Kế hoạch"/>Kế hoạch điều trị <span t-if="state.ws.plans.length" class="dmag-badge" t-esc="state.ws.plans.length"/></button>
+                        <button t-if="hasRx" t-att-class="state.tab === 'rx' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'rx'"><i class="fa fa-file-text me-1" title="Đơn thuốc"/>Đơn thuốc <span t-if="state.ws.prescriptions.length" class="dmag-badge" t-esc="state.ws.prescriptions.length"/></button>
                         <button t-att-class="state.tab === 'proc' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'proc'"><i class="fa fa-medkit me-1" title="Thủ thuật"/>Thủ thuật hôm nay <span t-if="state.ws.procedures.length" class="dmag-badge" t-esc="state.ws.procedures.length"/></button>
                         <button t-att-class="state.tab === 'history' ? 'is-on' : ''" t-on-click="() => this.state.tab = 'history'"><i class="fa fa-history me-1" title="Lịch sử"/>Lịch sử</button>
                     </nav>
@@ -151,7 +152,8 @@
 
                     <!-- TAB: Bệnh án -->
                     <section t-if="state.tab === 'record'" class="dmag-record">
-                        <div t-if="locked" class="dmag-banner"><i class="fa fa-lock me-1" title="Khóa"/>Bệnh án đã ký lúc <t t-esc="formatTime(visit.signed_at)"/> – chỉ Quản lý mới mở bổ sung được.</div>
+                        <div t-if="locked" class="dmag-banner"><i class="fa fa-lock me-1" title="Khóa"/>Bệnh án đã ký lúc <t t-esc="formatTime(visit.signed_at)"/> – chỉ Giám đốc / Quản lý cấp cao mới mở bổ sung được.</div>
+                        <EmrPanel t-if="hasEmr" t-key="visit.id" visitId="visit.id" emr="state.ws.emr" locked="locked"/>
                         <t t-foreach="[['chief_complaint', 'Lý do khám / triệu chứng (S)'], ['examination', 'Khám lâm sàng (O)'], ['assessment', 'Chẩn đoán / đánh giá (A)'], ['treatment_note', 'Xử trí / thủ thuật (P)'], ['advice', 'Lời dặn bệnh nhân']]" t-as="f" t-key="f[0]">
                             <div class="dmag-field">
                                 <label t-esc="f[1]"/>
@@ -181,6 +183,11 @@
                                         t-on-click="() => this.setPain(n)" t-esc="n"/>
                             </div>
                         </div>
+                    </section>
+
+                    <!-- TAB: Đơn thuốc (dmag_dental_prescription) -->
+                    <section t-if="state.tab === 'rx' and hasRx">
+                        <RxPanel t-key="visit.id" visitId="visit.id" prescriptions="state.ws.prescriptions" locked="false" onChanged.bind="onRxChanged"/>
                     </section>
 
                     <!-- TAB: Kế hoạch điều trị -->

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.RxPanel">
+        <div class="dmag-rx">
+            <div t-if="!state.catalog" class="text-muted">Đang tải danh mục thuốc…</div>
+            <t t-else="">
+                <div t-if="state.result" class="dmag-banner">
+                    <i class="fa fa-check-circle me-1" title="Đã phát hành"/>Đơn <b t-esc="state.result.code"/> đã phát hành.
+                    <div class="small mt-1" t-esc="state.result.patient_message"/>
+                </div>
+                <div class="dmag-panel">
+                    <div class="dmag-panel-title">Đơn mẫu <span class="small text-muted ms-auto">TT 26/2025 · tối đa <t t-esc="state.catalog.max_days"/> ngày/thuốc</span></div>
+                    <div class="dmag-phrases">
+                        <button t-foreach="state.catalog.templates" t-as="t" t-key="t.id" class="dmag-phrase" t-att-disabled="props.locked" t-on-click="() => this.applyTemplate(t)" t-esc="'+ ' + t.name"/>
+                        <button t-if="!state.draft" class="dmag-phrase is-on" t-att-disabled="props.locked" t-on-click="newDraft">+ Đơn trống</button>
+                    </div>
+                </div>
+                <div t-if="state.draft" class="dmag-panel dmag-rx-editor">
+                    <div class="dmag-panel-title">Đơn thuốc đang kê <span t-if="state.draft.id" class="small text-muted">· nháp đã lưu</span></div>
+                    <div class="dmag-search w-100 mb-2">
+                        <i class="fa fa-search" title="Tìm thuốc"/>
+                        <input type="search" placeholder="Tìm thuốc theo tên chung / biệt dược…" t-model="state.search"/>
+                    </div>
+                    <div t-if="drugResults.length" class="dmag-results mb-2">
+                        <button t-foreach="drugResults" t-as="d" t-key="d.id" class="dmag-result" t-on-click="() => this.addDrug(d)">
+                            <b t-esc="d.name"/> <span class="text-muted" t-esc="d.dosage_form or ''"/>
+                            <span t-if="d.is_narcotic or d.is_psychotropic" class="dmag-chip is-danger">Thuốc kiểm soát đặc biệt</span>
+                        </button>
+                    </div>
+                    <table class="dmag-table dmag-rx-table">
+                        <thead><tr><th>#</th><th>Thuốc</th><th>Mỗi lần</th><th>Lần/ngày</th><th>Số ngày</th><th>Thời điểm</th><th>Số lượng</th><th/></tr></thead>
+                        <tbody>
+                            <tr t-foreach="state.draft.lines" t-as="l" t-key="l_index">
+                                <td t-esc="l_index + 1"/>
+                                <td><b t-esc="l.drug_name"/><div class="small text-muted" t-if="l.usage" t-esc="l.usage"/></td>
+                                <td><input type="number" min="0" step="0.5" class="dmag-input-num" t-model="l.dose_per_time"/> <span class="small" t-esc="l.dose_unit or ''"/></td>
+                                <td><input type="number" min="1" class="dmag-input-num" t-model="l.times_per_day"/></td>
+                                <td><input type="number" min="1" t-att-max="state.catalog.max_days" class="dmag-input-num" t-model="l.days"/></td>
+                                <td>
+                                    <select class="dmag-select" t-model="l.timing">
+                                        <option t-foreach="timings" t-as="tm" t-key="tm[0]" t-att-value="tm[0]" t-esc="tm[1]"/>
+                                    </select>
+                                </td>
+                                <td><b t-esc="String(qtyOf(l)).padStart(2, '0')"/> <span class="small" t-esc="l.unit or ''"/></td>
+                                <td><button class="dmag-link text-danger" t-on-click="() => this.removeLine(l)" title="Bỏ thuốc"><i class="fa fa-times" title="Bỏ"/></button></td>
+                            </tr>
+                            <tr t-if="!state.draft.lines.length"><td colspan="8" class="text-muted small">Chọn đơn mẫu hoặc tìm thuốc để thêm.</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="dmag-form-grid mt-2">
+                        <label class="dmag-form-field dmag-span-2"><span>Lời dặn</span>
+                            <textarea class="dmag-input" rows="2" t-model="state.draft.advice" placeholder="Chế độ ăn uống, vệ sinh răng miệng, dấu hiệu cần quay lại…"/></label>
+                        <label class="dmag-form-field"><span>Tái khám sau (ngày)</span>
+                            <input type="number" min="0" class="dmag-input" t-model="state.draft.re_exam_days"/></label>
+                        <t t-if="state.draft.is_under_72_months">
+                            <label class="dmag-form-field"><span>Cân nặng trẻ (kg) *</span><input type="number" step="0.1" class="dmag-input" t-model="state.draft.weight"/></label>
+                            <label class="dmag-form-field dmag-span-2"><span>Họ tên người đưa trẻ đi khám *</span><input class="dmag-input" t-model="state.draft.companion_name"/></label>
+                        </t>
+                    </div>
+                    <div class="dmag-row-end">
+                        <button class="dmag-btn dmag-btn-ghost" t-att-disabled="state.saving" t-on-click="save">Lưu nháp</button>
+                        <button class="dmag-btn dmag-btn-primary" t-att-disabled="state.saving or !state.draft.lines.length" t-on-click="issue">
+                            <i class="fa fa-paper-plane me-1" title="Phát hành"/>Phát hành &amp; liên thông
+                        </button>
+                    </div>
+                    <div class="small text-muted">Sau khi phát hành, đơn bị khóa – muốn đổi phải kê đơn mới thay thế (TT 26/2025).</div>
+                </div>
+                <div t-foreach="props.prescriptions.filter((p) => p.state !== 'draft')" t-as="p" t-key="p.id" class="dmag-plan">
+                    <div class="dmag-plan-head">
+                        <div><b t-esc="p.code or 'Chưa cấp mã'"/> <span class="small text-muted">· <t t-esc="p.date"/> · <t t-esc="p.doctor"/></span></div>
+                        <div class="dmag-plan-head-right">
+                            <span t-att-class="'dmag-state ' + stateClass(p)" t-esc="p.state_label"/>
+                            <a t-if="p.print_url" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-att-href="p.print_url" target="_blank"><i class="fa fa-print me-1" title="In"/>In đơn</a>
+                        </div>
+                    </div>
+                    <div t-if="p.send_error" class="dmag-card-warn"><t t-esc="p.send_error"/></div>
+                    <ol class="dmag-option-lines">
+                        <li t-foreach="p.lines" t-as="l" t-key="l.id"><b t-esc="l.drug_name"/> – <t t-esc="l.quantity_display"/> · <span class="text-muted" t-esc="l.usage"/></li>
+                    </ol>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>
