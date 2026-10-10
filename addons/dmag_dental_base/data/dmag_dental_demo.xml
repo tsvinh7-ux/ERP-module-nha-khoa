@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Phòng khám demo: thông tin pháp lý bắt buộc trên bệnh án / đơn thuốc (TT 32/2023, TT 26/2025) -->
+    <record id="base.main_company" model="res.company">
+        <field name="name">Nha khoa DMAG (Demo)</field>
+        <field name="street">123 Nguyễn Thị Minh Khai, Phường Bến Thành</field>
+        <field name="city">TP. Hồ Chí Minh</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="state_id" eval="False"/>
+        <field name="zip" eval="False"/>
+        <field name="phone">028 3822 0000</field>
+        <field name="dmag_facility_code">79999</field>
+        <field name="dmag_license_number">00000/HCM-GPHĐ (demo)</field>
+        <field name="dmag_professional_director">ThS.BS Nguyễn Văn An</field>
+    </record>
+
     <!-- Ghế -->
     <record id="demo_chair_1" model="dmag.dental.chair"><field name="name">Ghế 1</field><field name="room">Phòng điều trị A</field><field name="sequence">1</field></record>
     <record id="demo_chair_2" model="dmag.dental.chair"><field name="name">Ghế 2</field><field name="room">Phòng điều trị A</field><field name="sequence">2</field></record>

@@ -116,7 +116,7 @@
                     <td>5. Dân tộc: <t t-esc="p.ethnicity or ''"/></td>
                 </tr>
                 <tr>
-                    <td>6. Quốc tịch (ngoại kiều): <t t-esc="p.nationality_id.name or ''"/></td>
+                    <td>6. Quốc tịch (ngoại kiều): <t t-esc="'Việt Nam' if p.nationality_id.code == 'VN' else (p.nationality_id.with_context(lang='vi_VN').name or '')"/></td>
                     <td colspan="2">7. Địa chỉ: <t t-esc="p._emr_address()"/></td>
                 </tr>
                 <tr>
