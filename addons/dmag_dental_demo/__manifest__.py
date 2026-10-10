@@ -1,0 +1,42 @@
+{
+    'name': 'DMAG – Dữ liệu demo & giả lập tích hợp',
+    'summary': 'Biến cơ sở dữ liệu thành môi trường demo / kiểm thử: tích hợp chạy giả lập, tự sinh dữ liệu '
+               'nha khoa tiếng Việt và chính sách mẫu; gỡ module là xóa sạch dữ liệu demo',
+    'version': '17.0.1.0.0',
+    'category': 'Healthcare/Dental',
+    'author': 'DMAG – Dental Management & Analytics Group',
+    'website': 'https://dmagroup.vn',
+    'license': 'LGPL-3',
+    'depends': [
+        'dmag_clinic_workspace',
+        'dmag_dental_emr',
+        'dmag_dental_prescription',
+        'dmag_payment_sepay',
+        'dmag_esign_mysign',
+        'dmag_dental_journey',
+        'dmag_zalo_zns',
+        'dmag_dental_loyalty',
+        'dmag_patient_portal',
+        'dmag_dental_lab',
+        'dmag_dental_warranty',
+        'dmag_dental_stock',
+        'dmag_dental_compliance',
+        'dmag_hr_3p',
+        'dmag_dental_commission',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/dmag_demo_views.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'dmag_dental_demo/static/src/js/demo_systray.js',
+            'dmag_dental_demo/static/src/xml/demo_systray.xml',
+            'dmag_dental_demo/static/src/scss/demo_systray.scss',
+        ],
+    },
+    'post_init_hook': 'post_init_hook',
+    'uninstall_hook': 'uninstall_hook',
+    'installable': True,
+    'application': False,
+}

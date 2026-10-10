@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_demo_settings_form" model="ir.ui.view">
+        <field name="name">dmag.demo.settings.form</field>
+        <field name="model">dmag.demo.settings</field>
+        <field name="arch" type="xml">
+            <form string="Dữ liệu demo" create="false" delete="false">
+                <header>
+                    <button name="action_regenerate" type="object" string="Tạo lại dữ liệu demo"
+                            class="btn-primary" groups="dmag_dental_base.group_dmag_manager"
+                            confirm="Xóa toàn bộ dữ liệu demo hiện có (chỉ bản ghi do module demo sinh ra) rồi sinh lại từ đầu? Thao tác mất khoảng 1–3 phút."/>
+                    <button name="action_purge" type="object" string="Xóa dữ liệu demo"
+                            groups="dmag_dental_base.group_dmag_director"
+                            confirm="Xóa toàn bộ dữ liệu demo và khôi phục cấu hình tích hợp cũ? Dữ liệu thật không bị ảnh hưởng."/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger fw-bold" role="alert" invisible="not demo_active">
+                        CHẾ ĐỘ DEMO – toàn bộ tích hợp bên ngoài đang chạy giả lập. Không dùng cơ sở dữ liệu này
+                        để khám chữa bệnh thật. Gỡ module "DMAG – Dữ liệu demo &amp; giả lập tích hợp" để xóa dữ liệu mẫu.
+                    </div>
+                    <field name="demo_active" invisible="1"/>
+                    <group string="Tình trạng">
+                        <field name="summary_html" nolabel="1" colspan="2" readonly="1"/>
+                    </group>
+                    <group string="Tài khoản đăng nhập demo">
+                        <field name="logins_html" nolabel="1" colspan="2" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dmag_demo_settings" model="ir.actions.act_window">
+        <field name="name">Dữ liệu demo</field>
+        <field name="res_model">dmag.demo.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_server_dmag_demo_regenerate" model="ir.actions.server">
+        <field name="name">Tạo lại dữ liệu demo</field>
+        <field name="model_id" ref="model_dmag_demo_settings"/>
+        <field name="state">code</field>
+        <field name="code">action = env['dmag.demo'].action_regenerate()</field>
+        <field name="groups_id" eval="[(4, ref('dmag_dental_base.group_dmag_manager'))]"/>
+    </record>
+
+    <menuitem id="menu_dmag_demo_banner" name="⚠ CHẾ ĐỘ DEMO" parent="dmag_dental_base.menu_dmag_dental_root"
+              action="action_dmag_demo_settings" sequence="1"/>
+    <menuitem id="menu_dmag_demo_settings" name="Dữ liệu demo" parent="dmag_dental_base.menu_dmag_config"
+              action="action_dmag_demo_settings" sequence="99" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>

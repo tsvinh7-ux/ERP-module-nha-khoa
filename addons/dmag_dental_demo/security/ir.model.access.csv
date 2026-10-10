@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_demo_settings_user,dmag.demo.settings user,model_dmag_demo_settings,dmag_dental_base.group_dmag_receptionist,1,1,1,1

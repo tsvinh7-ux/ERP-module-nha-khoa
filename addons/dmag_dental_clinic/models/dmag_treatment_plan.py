@@ -275,10 +275,12 @@ class DmagTreatmentOption(models.Model):
             'order_line': [(0, 0, line._prepare_sale_line()) for line in self.line_ids],
         })
         order.action_confirm()
-        lines = self.line_ids.with_context(dmag_workflow=True)
+        # Lễ tân / tư vấn chốt được phương án (nghiệp vụ bán hàng) – liên kết đơn bán ghi bằng quyền hệ thống
+        lines = self.line_ids.sudo().with_context(dmag_workflow=True)
         for line, sale_line in zip(lines, order.order_line):
             line.sale_line_id = sale_line.id
         lines._create_planned_chart_entries()
+        plan = plan.sudo()  # người chốt vẫn được ghi nhận (uid giữ nguyên trong chatter / ghi vết)
         plan._workflow_write({
             'accepted_option_id': self.id,
             'accepted_date': fields.Datetime.now(),

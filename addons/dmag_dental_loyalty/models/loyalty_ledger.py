@@ -58,6 +58,7 @@ class DmagLoyaltyLedger(models.Model):
             ('res.partner', 'Bệnh nhân'),
             ('dmag.loyalty.voucher', 'Voucher'),
             ('dmag.care.subscription', 'Gói chăm sóc'),
+            ('dmag.nps.response', 'Khảo sát NPS'),
         ]
 
     @api.model_create_multi

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_dental_demo.DemoSystray">
+        <div t-if="state.active" class="o_dmag_demo_systray d-flex align-items-center">
+            <button type="button" class="btn btn-sm o_dmag_demo_badge" t-att-title="state.title" t-on-click="onClick">
+                <i class="fa fa-flask me-1"/>CHẾ ĐỘ DEMO
+            </button>
+        </div>
+    </t>
+</templates>

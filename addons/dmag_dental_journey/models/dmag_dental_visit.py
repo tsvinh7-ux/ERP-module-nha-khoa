@@ -18,7 +18,7 @@ class DmagDentalVisit(models.Model):
                                     help='CSKH gọi hỏi thăm sau 24 giờ (ca xâm lấn).')
     pain_score_24h_date = fields.Datetime('Hỏi điểm đau 24h lúc', readonly=True)
     pain_score_24h_note = fields.Char('Ghi chú hỏi thăm 24h', readonly=True)
-    dmag_journey_today_url = fields.Char('Link "Nội dung khám hôm nay"', compute='_compute_dmag_journey_today_url')
+    dmag_journey_today_url = fields.Char('Link "Nội dung khám hôm nay" (gửi ZNS)', compute='_compute_dmag_journey_today_url')
     nps_response_ids = fields.One2many('dmag.nps.response', 'visit_id', string='Khảo sát NPS')
     journey_execution_ids = fields.One2many('dmag.journey.execution', 'visit_id', string='Điểm chạm hành trình')
     journey_execution_count = fields.Integer(compute='_compute_journey_execution_count')

@@ -62,3 +62,16 @@ class TestTreatmentPlan(DentalCommon):
         self.assertEqual(plan.accepted_option_id, opt_b)
         with self.assertRaises(UserError):
             plan.option_ids[0].action_accept()
+
+    def test_receptionist_accepts_option(self):
+        """Lễ tân / tư vấn chốt phương án bệnh nhân chọn (không có quyền Bán hàng)."""
+        recep = self.env['res.users'].create({
+            'name': 'Lễ tân KH', 'login': 'recep_plan', 'email': 'recep_plan@dmag.test',
+            'groups_id': [(6, 0, [self.env.ref('dmag_dental_base.group_dmag_receptionist').id])],
+        })
+        data = self._plan()
+        plan = self.env['dmag.treatment.plan'].browse(data['id'])
+        opt_b = plan.option_ids[1]
+        opt_b.with_user(recep).action_accept()
+        self.assertEqual(plan.accepted_option_id, opt_b)
+        self.assertTrue(all(opt_b.line_ids.mapped('sale_line_id')))

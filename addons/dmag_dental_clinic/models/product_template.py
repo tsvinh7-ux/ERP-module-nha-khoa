@@ -86,6 +86,7 @@ class AccountTax(models.Model):
             tax_group = self._dmag_exempt_tax_group(company)
             tax = self.sudo().create({
                 'tax_group_id': tax_group.id,
+                'country_id': tax_group.country_id.id,
                 'name': _('Không chịu thuế GTGT'),
                 'description': 'KCT',
                 'invoice_label': 'KCT',
@@ -105,7 +106,9 @@ class AccountTax(models.Model):
             group = Group.create({
                 'name': 'KCT',
                 'company_id': company.id,
-                'country_id': company.account_fiscal_country_id.id or company.country_id.id,
+                # Công ty chưa khai quốc gia (CSDL mới) → mặc định Việt Nam (thuế bắt buộc có quốc gia)
+                'country_id': (company.account_fiscal_country_id or company.country_id
+                               or self.env.ref('base.vn')).id,
             })
         return group
 
