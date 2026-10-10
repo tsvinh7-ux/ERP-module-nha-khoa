@@ -1,189 +1,275 @@
-# ĐỀ XUẤT KIẾN TRÚC DENTAL ERP TRÊN ODOO 17 COMMUNITY (BIZAPPS)
+# DMAG DENTAL ERP — ĐỀ XUẤT KIẾN TRÚC v2
 
-> Trạng thái: **BẢN NHÁP CHỜ PHÊ DUYỆT** — chưa viết code.
-> Ghi chú: tại thời điểm lập đề xuất, repository còn trống (chưa có source Odoo/Bizapps). Đề xuất dựa trên năng lực chuẩn của Odoo 17 Community; danh sách cần đối chiếu lại với bộ addons Bizapps đang dùng (xem mục 8).
-
----
-
-## 1. Nguyên tắc thiết kế
-
-1. **Không sửa core** Odoo/Bizapps — mọi thứ nằm trong addons riêng, kế thừa (`_inherit`) model sẵn có.
-2. **Tái sử dụng tối đa app sẵn có** (Contacts, Calendar, Sales, Invoicing, Inventory, Purchase, HR, CRM, POS, Website…) thay vì viết lại.
-3. **Tách module nhỏ, cài theo gói** — phòng khám đơn lẻ cài gói lõi; chuỗi nha khoa cài thêm gói chuỗi/marketing.
-4. **Chỉ dùng tính năng Community** — các app Enterprise (Appointment, Studio, Sign, Documents, Payroll, Helpdesk, Marketing Automation, WhatsApp…) phải có phương án thay thế bằng custom hoặc OCA.
-5. **Tuân thủ pháp lý Việt Nam**: hồ sơ bệnh án, đơn thuốc điện tử, hóa đơn điện tử, bảo vệ dữ liệu cá nhân (dữ liệu sức khỏe là dữ liệu nhạy cảm).
+> **Trạng thái:** bản nháp chờ phê duyệt, chưa viết code.
+> **Nền tảng:** Odoo 17 Community bản Bizapps đã customize (có sẵn Kế toán VN, Hóa đơn điện tử, Lương, Appointment, Sign, Documents, Studio…).
+> **Chủ sở hữu sản phẩm:** CT TNHH Dental Management & Analytics Group (DMAG), định vị *Nền tảng Vận hành & Tăng trưởng Nha khoa*.
+> **Nguồn tham chiếu:** tài liệu DMAG trên Drive (Q-Summit 2026, OKRs Nha khoa – bản mẫu, Bộ phân độ OKR v1.0, JD Lễ tân/Bác sĩ/Điều dưỡng/KTV, thư mục Pháp luật Nha khoa) và repo `tsvinh7-ux/OKR-scale` (đã có `okr_scale*` và `dmag_brand_theme`).
 
 ---
 
-## 2. Danh sách module đề xuất
+## 0. Định vị sản phẩm rút ra từ tài liệu DMAG
 
-Tiền tố tạm đặt `dental_` (có thể đổi theo quy ước Bizapps, ví dụ `bz_dental_`).
+Dental ERP không phải "phần mềm quản lý phòng khám" thông thường. Đây là **hệ điều hành** để bác sĩ chủ **chuyển giao năng lực vào tổ chức** (thông điệp Q-Summit). Mọi tính năng phải phục vụ 4 mục tiêu đo được:
 
-### Nhóm A — Lõi (bắt buộc)
-
-| # | Module | Chức năng chính | Kế thừa từ |
-|---|--------|-----------------|------------|
-| A1 | `dental_base` | Menu "Nha khoa", phân quyền (Lễ tân, Bác sĩ, Phụ tá, Thu ngân, Quản lý chi nhánh, Giám đốc), danh mục răng FDI (11–48, răng sữa 51–85), mặt răng (M/D/O/B/L), tình trạng răng, danh mục chẩn đoán ICD-10 nhóm K00–K14, cấu hình chi nhánh/ghế nha | `base`, `res.company` |
-| A2 | `dental_patient` | Hồ sơ bệnh nhân: mã BN tự sinh, CCCD, ngày sinh, giới tính, người giám hộ (trẻ em), tiền sử bệnh toàn thân, dị ứng thuốc, thuốc đang dùng, cảnh báo (tim mạch, tiểu đường, thai kỳ…), nguồn khách, người giới thiệu, gia đình (liên kết hồ sơ) | `res.partner` |
-| A3 | `dental_appointment` | Lịch hẹn theo **bác sĩ / ghế / phòng / chi nhánh**, kiểm tra trùng lịch, trạng thái (Đặt → Xác nhận → Đã đến → Đang điều trị → Hoàn tất / Hủy / Không đến), hàng chờ lễ tân (check-in), màn hình gọi bệnh nhân, nhắc lịch SMS/Zalo | `calendar.event`, `resource` |
-| A4 | `dental_chart` | **Sơ đồ răng (Odontogram)** dạng widget OWL tương tác: click răng/mặt răng để ghi tình trạng & chỉ định; lịch sử theo thời gian; người lớn/trẻ em/hỗn hợp; nha chu đồ (periodontal chart) ở giai đoạn sau | OWL component |
-| A5 | `dental_clinical` (EMR) | Phiếu khám, lý do đến khám, khám ngoài mặt/trong miệng, chẩn đoán, **tiến trình điều trị theo từng lần hẹn** (ghi chú SOAP), bác sĩ & phụ tá thực hiện, vật tư đã dùng, phiếu cam kết/đồng ý điều trị (ký điện tử trên tablet), khóa hồ sơ sau khi ký | model mới |
-| A6 | `dental_treatment_plan` | **Kế hoạch điều trị** nhiều phương án (cơ bản/tiêu chuẩn/cao cấp), chia giai đoạn, theo răng; chuyển thành báo giá; bệnh nhân chấp thuận → tạo lịch hẹn & đơn hàng; theo dõi % hoàn thành | `sale.order`, `sale.order.line` |
-| A7 | `dental_service` | Danh mục dịch vụ nha khoa (khám, cạo vôi, trám, nội nha, nhổ, implant, chỉnh nha, răng sứ, tẩy trắng…) với: thời lượng chuẩn, cần chỉ định răng hay không, **định mức vật tư (BOM)**, bảng giá theo chi nhánh/hạng thành viên, bảo hành | `product.template`, `product.pricelist` |
-| A8 | `dental_billing` | Thanh toán **theo tiến độ điều trị**, đặt cọc, trả góp nhiều kỳ, công nợ bệnh nhân, hoàn tiền, nhiều phương thức (tiền mặt, CK, thẻ, QR VietQR), phiếu thu in khổ A5/K80, xuất **hóa đơn điện tử** (nối nhà cung cấp HĐĐT mà Bizapps đang tích hợp) | `account.move`, `account.payment`, `point_of_sale` (tùy chọn) |
-| A9 | `dental_prescription` | Đơn thuốc theo mẫu Bộ Y tế, danh mục thuốc, liều dùng mẫu, in đơn, chuẩn bị liên thông **đơn thuốc quốc gia** (giai đoạn 2) | model mới + `product` |
-
-### Nhóm B — Vận hành phòng khám
-
-| # | Module | Chức năng chính | Kế thừa từ |
-|---|--------|-----------------|------------|
-| B1 | `dental_imaging` | Lưu ảnh trong miệng/ngoài mặt, X-quang, CBCT (file hoặc link PACS/viewer), so sánh trước–sau, gắn vào răng/lần điều trị | `ir.attachment` |
-| B2 | `dental_lab` | **Phiếu gửi Labo** (răng sứ, khay chỉnh nha, hàm tháo lắp…): màu răng, vật liệu, hạn trả, trạng thái, thử sườn, chi phí labo → công nợ nhà cung cấp; cảnh báo trễ hạn | `purchase.order`, `res.partner` (labo) |
-| B3 | `dental_inventory` | Trừ kho vật tư **tự động theo định mức** khi hoàn tất thủ thuật, kho theo chi nhánh/ghế, quản lý **lô – hạn dùng**, **serial implant** (truy xuất implant nào cắm cho bệnh nhân nào), cảnh báo tồn tối thiểu | `stock`, `stock.lot` |
-| B4 | `dental_warranty` | **Thẻ bảo hành** implant/răng sứ/chỉnh nha: mã thẻ, thời hạn, điều kiện, lịch sử bảo hành — yếu tố cạnh tranh quan trọng tại thị trường VN | model mới |
-| B5 | `dental_sterilization` (tùy chọn) | Quy trình tiệt khuẩn dụng cụ: mẻ hấp, chỉ thị, bộ dụng cụ dùng cho bệnh nhân nào | `maintenance` |
-| B6 | `dental_equipment` | Thiết bị (ghế nha, máy X-quang, autoclave…): bảo trì định kỳ, hiệu chuẩn | `maintenance` |
-
-### Nhóm C — Nhân sự & hoa hồng
-
-| # | Module | Chức năng chính | Kế thừa từ |
-|---|--------|-----------------|------------|
-| C1 | `dental_staff` | Hồ sơ bác sĩ: chứng chỉ hành nghề (số, ngày cấp, phạm vi), chuyên khoa, lịch làm việc theo ca/chi nhánh, cảnh báo hết hạn chứng chỉ | `hr.employee`, `resource.calendar` |
-| C2 | `dental_commission` | **Hoa hồng/thủ thuật phí** cho bác sĩ, phụ tá, tư vấn viên, telesale, người giới thiệu: theo % doanh thu / % thực thu / số tiền cố định / bậc thang; tính trên tiền đã thu; bảng kê hàng tháng xuất cho lương | model mới; nối `hr_payroll` OCA nếu dùng |
-| C3 | `dental_kpi` | KPI: doanh thu/bác sĩ, tỉ lệ chốt kế hoạch điều trị, tỉ lệ quay lại, số ca/ghế/giờ | báo cáo |
-
-### Nhóm D — Khách hàng, marketing, CSKH
-
-| # | Module | Chức năng chính | Kế thừa từ |
-|---|--------|-----------------|------------|
-| D1 | `dental_crm` | Lead từ Facebook/TikTok/Zalo/Website/Hotline, phân bổ telesale, kịch bản tư vấn, chuyển lead → bệnh nhân + lịch hẹn, đo hiệu quả kênh/chiến dịch (chi phí/lead, chi phí/khách) | `crm`, `utm` |
-| D2 | `dental_recall` | **Nhắc tái khám / chăm sóc sau điều trị** tự động (sau nhổ răng 1 ngày, sau implant 7 ngày, cạo vôi 6 tháng…), danh sách gọi điện CSKH, khảo sát hài lòng (NPS) | `mail.activity`, `survey` |
-| D3 | `dental_loyalty` | Thẻ thành viên/hạng, gói dịch vụ trả trước, voucher, chương trình giới thiệu bạn bè | `loyalty` |
-| D4 | `dental_zalo` | Tích hợp **Zalo OA / ZNS**: nhắc lịch, xác nhận lịch, gửi kết quả, chăm sóc sau điều trị (thay cho WhatsApp Enterprise) | connector mới |
-| D5 | `dental_portal` | Cổng bệnh nhân: **đặt lịch online** (thay Appointment Enterprise), xem lịch hẹn, kế hoạch điều trị, hóa đơn, thanh toán online, thẻ bảo hành | `portal`, `website` |
-
-### Nhóm E — Chuỗi & quản trị
-
-| # | Module | Chức năng chính | Kế thừa từ |
-|---|--------|-----------------|------------|
-| E1 | `dental_multi_branch` | Chuỗi nhiều chi nhánh: hồ sơ bệnh nhân dùng chung, kho/doanh thu/phân quyền theo chi nhánh, chuyển bệnh nhân giữa chi nhánh, bảng giá theo chi nhánh | multi-company / `stock.warehouse` / analytic |
-| E2 | `dental_insurance` | Bảo hiểm tư nhân/bảo lãnh viện phí: hợp đồng BH, hạn mức, phần BH chi trả – phần BN chi trả, hồ sơ yêu cầu bồi thường | model mới |
-| E3 | `dental_dashboard` | Dashboard điều hành: doanh thu/thực thu, công nợ, lịch hẹn hôm nay, tỉ lệ lấp đầy ghế, tỉ lệ no-show, top dịch vụ, hiệu quả marketing | `spreadsheet_dashboard`, `board` |
-| E4 | `dental_audit` | Nhật ký truy cập & chỉnh sửa hồ sơ bệnh án, che dữ liệu nhạy cảm theo vai trò, đồng ý xử lý dữ liệu cá nhân | `mail.tracking`, `ir.rule` |
-
----
-
-## 3. Customize các app sẵn có của Odoo 17 Community
-
-| App sẵn có | Vai trò trong Dental ERP | Hướng customize |
+| Mục tiêu | Chỉ số ERP phải tự đo (không nhập tay) | Nguồn |
 |---|---|---|
-| **Contacts** (`res.partner`) | Bệnh nhân, labo, nhà cung cấp, công ty bảo hiểm | Thêm cờ `is_patient`, mã BN, trường y khoa, smart button (lịch hẹn, kế hoạch điều trị, công nợ, ảnh, đơn thuốc) |
-| **Calendar** + **Resource** | Lịch hẹn | Thêm bác sĩ/ghế/chi nhánh/dịch vụ, chống trùng lịch, view lịch theo cột ghế/bác sĩ (OWL), trạng thái phòng khám |
-| **Sales** (`sale.order`) | Báo giá & kế hoạch điều trị | Dòng đơn gắn răng/mặt răng/giai đoạn; nhiều phương án; mẫu in "Kế hoạch điều trị" thay cho báo giá |
-| **Invoicing** (`account`) + l10n_vn của Bizapps | Thu tiền, công nợ, hóa đơn | Hóa đơn theo tiến độ/đặt cọc, phiếu thu, trả góp, liên kết HĐĐT; giữ nguyên hệ thống kế toán VN của Bizapps |
-| **Point of Sale** (tùy chọn) | Quầy thu ngân / bán sản phẩm (bàn chải, nước súc miệng) | Nạp đơn từ kế hoạch điều trị vào POS để thu tiền nhanh |
-| **Inventory** | Vật tư nha khoa, implant | Định mức vật tư theo dịch vụ, trừ kho tự động, lô/hạn dùng/serial |
-| **Purchase** | Mua vật tư, đặt Labo | Loại đơn "Labo" có thông tin ca lâm sàng |
-| **Employees / Attendances / Time Off** | Nhân sự | Chứng chỉ hành nghề, lịch ca theo chi nhánh/ghế |
-| **CRM** | Lead marketing, telesale | Pipeline nha khoa, nguồn lead, chuyển đổi sang bệnh nhân + lịch hẹn |
-| **Email Marketing / SMS / Survey** | Chăm sóc khách hàng | Mẫu nhắc lịch, khảo sát NPS sau điều trị |
-| **Loyalty** (`sale_loyalty`) | Thẻ thành viên, voucher | Áp dụng cho dịch vụ nha khoa |
-| **Website / Portal / Live Chat** | Đặt lịch online, cổng BN | Trang đặt lịch theo chi nhánh/bác sĩ/khung giờ trống |
-| **Maintenance** | Thiết bị, tiệt khuẩn | Lịch bảo trì ghế nha, autoclave |
-| **Project** (tùy chọn) | Ca chỉnh nha/implant dài hạn | Có thể dùng làm bảng theo dõi ca phức tạp |
+| Tuân thủ "3 lằn ranh đỏ" | Bệnh án điện tử trước 31/12/2026; 100% doanh thu có HĐĐT; giấy phép, phạm vi hành nghề, bức xạ, chất thải còn hiệu lực | Q-Summit, TT 13/2025/TT-BYT, NĐ 70/2025 |
+| Dòng tiền minh bạch | Két cuối ngày khớp 100% (tiền mặt + POS + chuyển khoản so với phần mềm) | Q-Summit, "Chốt két 4 bước" |
+| Năng suất vận hành | Công suất ghế buổi chiều ≥ 65%; giá vốn vật tư & labo ≤ 22% doanh thu; bác sĩ phụ đảm nhận ≥ 50% số ca | Q-Summit, KR 90 ngày |
+| Trải nghiệm & tăng trưởng | NPS sau điều trị; điểm đau sau thủ thuật; thời gian chờ; tỷ lệ đồng thuận kế hoạch điều trị; doanh thu từ khách giới thiệu | OKRs Nha khoa – bản mẫu |
 
-**Phương án thay thế các app Enterprise** (không có trong Community):
-
-| Enterprise | Thay thế |
-|---|---|
-| Appointment | `dental_appointment` + `dental_portal` (custom) |
-| Studio | Phát triển trực tiếp trong addons |
-| Sign | Ký trên tablet (widget chữ ký `signature` sẵn có) trong `dental_clinical` |
-| Documents | `dental_imaging` dựa trên `ir.attachment` |
-| Payroll | Xuất bảng hoa hồng / dùng OCA `payroll` hoặc giải pháp lương của Bizapps |
-| WhatsApp / Marketing Automation | `dental_zalo` + `dental_recall` (cron + `mail.activity`) |
-| Helpdesk | Khiếu nại/bảo hành xử lý trong `dental_warranty` + `mail.activity` |
+Toàn bộ chỉ số trên cùng đổ về **Radar DDA (thang 100, 10 trụ cột)**. Radar dùng để phân **5 phân khúc** khách hàng của DMAG, và đó cũng là cơ sở **đóng gói ERP** (mục 10).
 
 ---
 
-## 4. Luồng nghiệp vụ chuẩn (end-to-end)
+## 1. Nguyên tắc: tận dụng tối đa nền Bizapps, không dựng lại
 
-```
-Lead (FB/Zalo/Web/Hotline) ──► CRM telesale ──► Đặt lịch hẹn
-        │
-        ▼
-Lễ tân check-in ──► Hàng chờ ──► Bác sĩ khám (Phiếu khám + Sơ đồ răng + Ảnh/X-quang)
-        │
-        ▼
-Kế hoạch điều trị (nhiều phương án) ──► Tư vấn viên chốt ──► BN đồng ý & ký
-        │
-        ▼
-Điều trị theo từng lần hẹn ──► Trừ vật tư tự động ──► (Gửi Labo nếu cần) ──► Đơn thuốc
-        │
-        ▼
-Thu tiền theo tiến độ / trả góp ──► Hóa đơn điện tử ──► Hoa hồng nhân viên
-        │
-        ▼
-Thẻ bảo hành ──► Chăm sóc sau điều trị ──► Nhắc tái khám định kỳ ──► Khảo sát NPS
-```
-
----
-
-## 5. Phân quyền đề xuất
-
-| Vai trò | Quyền chính |
-|---|---|
-| Lễ tân | Bệnh nhân (hành chính), lịch hẹn, check-in; không xem chi tiết bệnh án |
-| Tư vấn viên / Telesale | Lead, lịch hẹn, kế hoạch điều trị (giá), không sửa bệnh án |
-| Bác sĩ | Bệnh án, sơ đồ răng, kế hoạch điều trị, đơn thuốc, gửi labo — của bệnh nhân mình / chi nhánh mình |
-| Phụ tá | Xem bệnh án, ghi vật tư sử dụng, ảnh |
-| Thu ngân | Thanh toán, phiếu thu, công nợ |
-| Kho | Vật tư, nhập/xuất, labo |
-| Quản lý chi nhánh | Toàn bộ dữ liệu chi nhánh, báo cáo |
-| Giám đốc / Chủ chuỗi | Toàn chuỗi, dashboard, cấu hình hoa hồng & giá |
-
----
-
-## 6. Lộ trình triển khai đề xuất
-
-| Giai đoạn | Phạm vi | Mục tiêu |
+| App Bizapps có sẵn | Dùng cho nha khoa | Phần cần bổ sung (chỉ mở rộng, không viết lại) |
 |---|---|---|
-| **GĐ 1 – MVP vận hành** | A1–A8 (lõi), B3 cơ bản | Một phòng khám chạy được trọn vòng: hẹn → khám → kế hoạch → điều trị → thu tiền |
-| **GĐ 2 – Lâm sàng nâng cao** | A9, B1, B2, B4, C1, C2 | Đơn thuốc, ảnh/X-quang, labo, bảo hành, hoa hồng |
-| **GĐ 3 – Tăng trưởng** | D1–D5 | CRM, nhắc tái khám, Zalo, loyalty, đặt lịch online |
-| **GĐ 4 – Chuỗi & tuân thủ** | E1–E4, B5, B6, C3 | Chuỗi chi nhánh, bảo hiểm, dashboard, audit, liên thông đơn thuốc quốc gia |
+| **Contacts** | Hồ sơ bệnh nhân, gia đình, labo, nhà cung cấp | Trường y khoa, cảnh báo, mã BN, nhóm gia đình |
+| **Appointment** | Đặt lịch online & tại quầy | Resource = bác sĩ + ghế; thời lượng theo dịch vụ; luật xếp lịch xen ca khó/dễ; trạng thái ghế; hàng chờ |
+| **Calendar / Resource** | Lịch làm việc bác sĩ theo ca, chi nhánh | Liên kết phạm vi hành nghề |
+| **Sales** | Kế hoạch điều trị = báo giá nhiều phương án | Dòng gắn răng/mặt răng/giai đoạn; mẫu in "Bản tóm tắt bệnh án mini" |
+| **POS** | Quầy lễ tân: thu tiền, bán sản phẩm chăm sóc răng | Nạp kế hoạch điều trị vào POS, QR động, chốt két |
+| **Invoicing/Accounting + HĐĐT Bizapps** | Thu tiền, công nợ, hóa đơn điện tử | Tự phát hành HĐĐT khi tiền về; thu theo tiến độ, trả góp |
+| **Sign** | Phiếu đồng ý điều trị, cam kết, hợp đồng chỉnh nha/implant | Mẫu văn bản nha khoa, ký trên tablet tại ghế |
+| **Documents** | Lưu ảnh nhẹ, phiếu, hồ sơ pháp chế | Thư mục tự động theo bệnh nhân / lần khám |
+| **Studio** | Phòng khám tự chỉnh nhỏ (trường, báo cáo) | Khóa vùng lõi để nâng cấp không vỡ |
+| **Inventory / Purchase** | Vật tư, implant, labo | Định mức theo dịch vụ, serial implant, phiếu labo |
+| **Employees / Attendance / Time Off / Payroll Bizapps** | Nhân sự, chấm công, lương | Cấu phần lương 3P (mục 6) |
+| **CRM / Email / SMS / Survey / Marketing** | Lead, CSKH, khảo sát | Hành trình 3 chặng, Zalo ZNS (mục 5) |
+| **Loyalty** | Chương trình khách hàng thân thiết | Hạng thành viên, ví gia đình, giới thiệu (mục 5) |
+| **Website / Portal** | Đặt lịch, tài khoản bệnh nhân | Trang "Hồ sơ răng của tôi", API cho app sau này |
+| **Maintenance** | Thiết bị, ghế, autoclave, máy X-quang | Lịch kiểm định bức xạ |
+| **OKR Scale (DMAG)** + `dmag_brand_theme` | OKR, CFR, điểm thưởng nội bộ | Cầu nối KR tự đo từ dữ liệu nha khoa |
+
+> ⚠️ Tôi **chưa xem được source Bizapps**. Tên kỹ thuật các module (`appointment`, `sign`, `documents`, `web_studio`, payroll, HĐĐT…) cần đối chiếu khi anh/chị cung cấp danh sách addons hoặc quyền truy cập repo.
 
 ---
 
-## 7. Cấu trúc thư mục dự kiến
+## 2. Kiến trúc 3 lớp
 
 ```
-ERP-module-nha-khoa/
-├── docs/
-├── addons/
-│   ├── dental_base/
-│   ├── dental_patient/
-│   ├── dental_appointment/
-│   ├── dental_chart/
-│   ├── dental_clinical/
-│   ├── dental_treatment_plan/
-│   ├── dental_service/
-│   ├── dental_billing/
-│   └── ... (các module giai đoạn sau)
-└── README.md
+┌──────────────────────────────────────────────────────────────────────────┐
+│  LỚP 3 · TRẢI NGHIỆM (DMAG Clinic Workspace – OWL, tablet-first)         │
+│  Bàn làm việc Bác sĩ · Bảng điều phối Lễ tân · Chế độ Tư vấn · Buồng lái │
+│  Chủ PK · Cổng/App Bệnh nhân (qua API)                                   │
+├──────────────────────────────────────────────────────────────────────────┤
+│  LỚP 2 · NGHIỆP VỤ NHA KHOA (addons dmag_*)                              │
+│  EMR · Sơ đồ răng · Kế hoạch điều trị · Labo · Định mức · Hành trình KH  │
+│  · Loyalty · 3P · OKR nha khoa · Radar DDA · Pháp chế                    │
+├──────────────────────────────────────────────────────────────────────────┤
+│  LỚP 1 · NỀN BIZAPPS (có sẵn – chỉ kế thừa)                              │
+│  Contacts · Appointment · Sales · POS · Accounting · HĐĐT · Sign ·       │
+│  Documents · Inventory · Purchase · HR · Payroll · CRM · Loyalty · Portal│
+└──────────────────────────────────────────────────────────────────────────┘
+          ▲ Zalo OA/ZNS · Cổng thanh toán/ngân hàng · PACS/thiết bị ảnh · CA chữ ký số
 ```
 
-Mỗi module theo chuẩn Odoo 17: `__manifest__.py`, `models/`, `views/`, `security/` (`ir.model.access.csv` + record rules), `data/`, `report/` (QWeb), `static/src/` (OWL), `i18n/vi_VN.po`, `tests/`.
+Bác sĩ và lễ tân **làm việc 100% ở Lớp 3**. Lớp 1–2 là giao diện Odoo chuẩn, dành cho kế toán, kho, quản lý và admin.
 
 ---
 
-## 8. Câu hỏi cần anh/chị xác nhận trước khi code
+## 3. Danh sách module đề xuất (tiền tố `dmag_`)
 
-1. **"DMAG"** là viết tắt của mô hình/tiêu chuẩn nào? (Để chuẩn hóa thuật ngữ, quy trình và báo cáo theo đúng mô hình đó.)
-2. **Nền tảng Bizapps**: có thể cung cấp danh sách addons Bizapps đang cài (hoặc đẩy source vào repo) không? Đặc biệt: kế toán VN, HĐĐT (nhà cung cấp nào), lương, module đã có sẵn về y tế/phòng khám.
-3. **Quy mô mục tiêu**: một phòng khám, hay chuỗi nhiều chi nhánh ngay từ đầu?
-4. **Thu ngân**: dùng Invoicing thuần hay dùng POS?
-5. **Hình ảnh X-quang/CBCT**: chỉ lưu file/ảnh, hay cần tích hợp phần mềm/thiết bị chụp cụ thể (PACS/DICOM)?
-6. **Kênh nhắn tin**: Zalo OA/ZNS, SMS brandname nhà mạng nào?
-7. **Phạm vi GĐ 1** ở mục 6 có phù hợp không, cần thêm/bớt module nào?
-8. **Tiền tố module** muốn dùng (`dental_`, `bz_dental_`, hay tên thương hiệu riêng)?
+### A. Lõi nha khoa
+| # | Module | Chức năng chính | Kế thừa |
+|---|---|---|---|
+| A1 | `dmag_dental_base` | Danh mục răng FDI (người lớn, trẻ em, hỗn hợp), mặt răng, tình trạng, ICD-10 K00–K14; chi nhánh, phòng, ghế; **phạm vi hành nghề** từng người; **cây phân cấp lâm sàng** Bậc 1–3; vai trò & phân quyền | `base`, `hr` |
+| A2 | `dmag_dental_patient` | Hồ sơ bệnh nhân, tiền sử, dị ứng, cảnh báo đỏ, nguồn khách, người giới thiệu, **nhóm gia đình**, người giám hộ, đồng ý xử lý dữ liệu cá nhân | `res.partner` |
+| A3 | `dmag_dental_appointment` | Mở rộng Appointment: bác sĩ + ghế + dịch vụ + thời lượng; **luật xếp lịch** (không chồng 2 ca implant/phẫu thuật cùng khung, xen ca nhẹ để lấp ghế); lấp **ghế trống buổi chiều**; check-in, hàng chờ, **đồng hồ thời gian chờ** | `appointment`, `calendar`, `resource` |
+| A4 | `dmag_dental_emr` | **Bệnh án điện tử theo TT 13/2025**: phiếu khám, **sơ đồ răng tương tác**, chẩn đoán, tiến trình từng lần (SOAP), chỉ định và kết quả cận lâm sàng, **chữ ký số** bác sĩ, khóa hồ sơ, nhật ký truy cập, xuất bệnh án; phiếu đồng ý qua **Sign** | `sign`, `documents` |
+| A5 | `dmag_dental_treatment` | Kế hoạch điều trị **2+ phương án**, chia giai đoạn theo răng; bệnh nhân tự chọn → báo giá/đơn hàng; **Bản tóm tắt bệnh án mini** (in màu/gửi Zalo) kèm **lộ trình chi phí theo tháng & trả góp**; theo dõi % hoàn thành; **cầu chì y đức**: ca bọc sứ/mài cùi bắt buộc bác sĩ thứ hai duyệt | `sale` |
+| A6 | `dmag_dental_service` | Danh mục dịch vụ: thời lượng chuẩn, **định mức vật tư (BOM)**, bậc lâm sàng tối thiểu, giá theo chi nhánh/hạng thành viên, chính sách bảo hành | `product`, `pricelist` |
+| A7 | `dmag_dental_billing` | Thu theo tiến độ, đặt cọc, trả góp, công nợ; **QR động kèm số tiền** / cổng thanh toán; **đối soát ngân hàng tự động** → **tự phát hành HĐĐT** (qua HĐĐT Bizapps); **Chốt két 4 bước** có biên bản bàn giao | `account`, `pos`, HĐĐT Bizapps |
+| A8 | `dmag_dental_prescription` | Đơn thuốc theo TT 52/2017 & TT 04/2022, mẫu đơn theo thủ thuật, in/gửi Zalo, sẵn sàng **liên thông đơn thuốc quốc gia** | model mới |
+
+### B. Vận hành lâm sàng
+| # | Module | Chức năng chính |
+|---|---|---|
+| B1 | `dmag_dental_imaging` | **Tích hợp thiết bị/PACS, không lưu file gốc**: chỉ lưu metadata (Study/Series UID, loại phim, răng, ngày, máy) + ảnh thu nhỏ + **deep-link mở viewer**; ánh xạ vào bệnh án theo răng/lần khám. Chuẩn kết nối: DICOMweb (QIDO/WADO) nếu thiết bị hỗ trợ, hoặc thư mục giám sát / link viewer của hãng. Camera trong miệng chụp trực tiếp lên màn hình tư vấn |
+| B2 | `dmag_dental_lab` | Phiếu gửi labo (màu răng, vật liệu, hạn), trạng thái, thử sườn, trễ hạn, chi phí labo → công nợ, % labo/doanh thu |
+| B3 | `dmag_dental_stock` | Trừ vật tư theo định mức khi hoàn tất thủ thuật, lô/hạn dùng, **serial implant ↔ bệnh nhân**, chênh lệch định mức – thực tế, **COGS ≤ 22%** |
+| B4 | `dmag_dental_warranty` | Thẻ bảo hành điện tử implant/sứ/chỉnh nha, hiển thị trong tài khoản bệnh nhân |
+| B5 | `dmag_dental_compliance` | **Hồ sơ pháp chế**: giấy phép hoạt động, giấy phép hành nghề (5 năm, phạm vi), giấy phép bức xạ, kiểm định X-quang/CBCT, hợp đồng chất thải y tế, PCCC; cảnh báo trước hạn; "sẵn sàng thanh tra" 1 click |
+
+### C. Khách hàng & tăng trưởng (chi tiết mục 5)
+| # | Module | Chức năng chính |
+|---|---|---|
+| C1 | `dmag_dental_journey` | **CRM hành trình Trước – Trong – Sau**, kịch bản tự động theo sự kiện, bảng việc CSKH, NPS, xử lý phàn nàn |
+| C2 | `dmag_dental_loyalty` | Hạng thành viên, điểm, **ví gia đình**, giới thiệu 2 chiều, gói chăm sóc định kỳ trả trước, quyền lợi theo hạng |
+| C3 | `dmag_zalo` | Kết nối Zalo OA + ZNS: mẫu tin, gửi theo sự kiện, nhận phản hồi/NPS, đồng bộ người quan tâm OA ↔ bệnh nhân |
+| C4 | `dmag_patient_portal` | **Tài khoản bệnh nhân** (portal hôm nay, app sau này): lịch hẹn, nội dung khám từng lần, kế hoạch điều trị, đơn thuốc, lời dặn, ảnh trước/sau, hóa đơn, bảo hành, điểm/hạng; **REST API** dùng chung cho app |
+
+### D. Con người & quản trị (chi tiết mục 6)
+| # | Module | Chức năng chính |
+|---|---|---|
+| D1 | `dmag_hr_3p` | Lương 3P: P1 vị trí, P2 năng lực (bậc lâm sàng, chứng chỉ, thâm niên), P3 kết quả (OKR + KPI + hoa hồng); đẩy vào **Payroll Bizapps** |
+| D2 | `dmag_dental_commission` | Thủ thuật phí bác sĩ/phụ tá, hoa hồng tư vấn, telesale, lễ tân (sản phẩm 8–10%, chốt dịch vụ 1–2%); tính trên **thực thu**; tự hủy khi vi phạm cầu chì y đức |
+| D3 | `dmag_okr_dental` | Cầu nối với **OKR Scale** (đã có): KR **tự cập nhật** từ dữ liệu nha khoa qua hook `_compute_progress_by_method`; **chỉ số sức khỏe/cầu chì**: tỷ lệ phàn nàn > 2%/tháng, hủy hợp đồng niềng 30 ngày > 5%, đánh giá 1–2 sao > 3/tháng |
+| D4 | `dmag_dda_radar` | **Radar DDA 10 trụ cột, thang 100**: tự chấm từ dữ liệu ERP + phần tự đánh giá (Survey); xếp phân khúc 1–5; theo dõi 90 ngày |
+| D5 | `dmag_dental_chain` | Chuỗi đa chi nhánh: hồ sơ bệnh nhân dùng chung, kho/giá/doanh thu theo chi nhánh, chuyển bệnh nhân, mua hàng tập trung, báo cáo hợp nhất; bảo hiểm tư nhân (tùy chọn) |
+
+### E. Lớp trải nghiệm (chi tiết mục 4)
+| # | Module | Chức năng chính |
+|---|---|---|
+| E1 | `dmag_clinic_workspace` | Ứng dụng OWL toàn màn hình, tối ưu tablet và màn hình cảm ứng: Bàn làm việc Bác sĩ, Bảng điều phối Lễ tân, Chế độ Tư vấn, Buồng lái Chủ phòng khám; dùng màu nhận diện DMAG (`#11346A` navy, `#178BEC` xanh) từ `dmag_brand_theme` |
+
+Tổng cộng **23 module mới** cùng 7 module OKR Scale/brand theme đã có.
+
+---
+
+## 4. Giao diện cho bác sĩ: "ít chạm, đúng việc, đẹp như app"
+
+Nguyên tắc UX: bác sĩ **không bao giờ thấy menu Odoo**. Mỗi thao tác lâm sàng tối đa **3 chạm**. Thiết kế cho găng tay và tablet đặt cạnh ghế: nút lớn, chữ lớn, có chế độ tối.
+
+| Màn hình | Người dùng | Nội dung |
+|---|---|---|
+| **Bàn làm việc Bác sĩ** | Bác sĩ, phụ tá | Danh sách bệnh nhân hôm nay theo giờ và trạng thái; thẻ cảnh báo đỏ (dị ứng, tim mạch, thai kỳ); chạm vào bệnh nhân mở **Hồ sơ 1 trang**: sơ đồ răng ở giữa, lịch sử bên trái, phim/ảnh bên phải |
+| **Sơ đồ răng tương tác** | Bác sĩ | Chạm răng → chạm mặt răng → chọn tình trạng/chỉ định từ **phác đồ mẫu**; lớp hiển thị: hiện trạng / kế hoạch / đã làm; xem lại theo dòng thời gian |
+| **Ghi bệnh án nhanh** | Bác sĩ, phụ tá | Mẫu SOAP theo thủ thuật (nhổ, nội nha, implant…) tự điền sẵn; **nhập giọng nói** tiếng Việt (tùy chọn); phụ tá ghi vật tư; bác sĩ ký số 1 chạm |
+| **Chế độ Tư vấn** (Tư vấn đồng thuận 2 bước) | Bác sĩ, tư vấn viên | Màn hình hướng về bệnh nhân: **ảnh camera trong miệng/phim** → **2 phương án** đặt cạnh nhau (ưu nhược, thời gian, chi phí, trả góp) → bệnh nhân chọn → **ký Sign trên tablet** → tạo lịch và đơn |
+| **Bảng điều phối Lễ tân** | Lễ tân | Sơ đồ ghế theo trạng thái (trống / đang làm / sắp xong / vệ sinh); hàng chờ có **đồng hồ đếm phút** (đỏ khi > 15 phút); check-in bằng SĐT/QR; thu tiền, QR động, chốt két ngay trên màn hình |
+| **Buồng lái Chủ phòng khám** | Chủ, quản lý | Radar DDA, doanh thu/thực thu, két ngày, công suất ghế theo khung giờ, COGS, % ca bác sĩ phụ, NPS, OKR xanh/vàng/đỏ, cảnh báo pháp chế |
+
+Kỹ thuật: OWL 2 client actions, cập nhật thời gian thực qua bus (`bus.bus`), dùng được như PWA (cài lên tablet như app), API dùng chung với app bệnh nhân sau này.
+
+---
+
+## 5. CRM Trước – Trong – Sau & Loyalty
+
+### 5.1 Hành trình khách hàng (mỗi điểm chạm là một sự kiện tự động trong `dmag_dental_journey`)
+
+**TRƯỚC khi đến**
+| Điểm chạm | Kênh | Nội dung |
+|---|---|---|
+| Lead vào | FB / TikTok / Zalo / Web / Hotline / Giới thiệu | Tự tạo lead, gắn nguồn/chiến dịch (đo CAC), chia telesale, kịch bản tư vấn |
+| Đặt lịch thành công | ZNS | Xác nhận lịch: giờ, bác sĩ, chi nhánh, bản đồ, nút "Đổi lịch" |
+| Trước 1 ngày | ZNS | Nhắc lịch, kèm **video 90 giây "quy trình không đau"** (theo OKR mẫu) cho ca thủ thuật |
+| Trước 2 giờ | ZNS | Nhắc lần cuối; link **khai báo sức khỏe trước** để rút ngắn thời gian chờ |
+| Không đến | Bảng việc CSKH | Tự tạo việc gọi lại, đề xuất giờ trống buổi chiều |
+
+**TRONG khi ở phòng khám**
+| Điểm chạm | Kênh | Nội dung |
+|---|---|---|
+| Check-in | Quầy / QR | ZNS **"Chào mừng [Tên] đến với [Nha khoa]"**; màn hình sảnh hiện tên và thời gian chờ dự kiến (tùy chọn) |
+| Chờ | Hệ thống | Đồng hồ chờ; quá 15 phút thì báo lễ tân xin lỗi hoặc mời nước |
+| Khám & tư vấn | Chế độ Tư vấn | Bản tóm tắt bệnh án mini; 2 phương án; ký đồng ý |
+| Trước khi rời ghế | Tablet phụ tá | Hỏi **điểm đau 0–10** (KR 1.2) |
+| Thanh toán | Quầy | QR động → tiền về → **HĐĐT tự phát hành**, gửi kèm Zalo |
+
+**SAU khi về**
+| Thời điểm | Kênh | Nội dung |
+|---|---|---|
+| Ngay sau khi về | ZNS | **Lời cảm ơn** + link **"Nội dung khám hôm nay"** trong tài khoản: chẩn đoán, việc đã làm, đơn thuốc, **lời dặn sau thủ thuật**, lịch hẹn tiếp |
+| +24 giờ | Gọi điện / Zalo | Hỏi thăm, hỏi lại điểm đau (ca xâm lấn); bất thường → báo bác sĩ |
+| +48 giờ | ZNS | **NPS 1 câu**. Điểm 9–10: mời đánh giá Google và giới thiệu. Điểm ≤ 6: mở phiếu phàn nàn cho Trưởng CSKH |
+| Theo chu kỳ dịch vụ | ZNS + bảng việc | **Nhắc tái khám**: cạo vôi 6 tháng, chỉnh nha theo tháng, implant 1/3/6/12 tháng, bảo hành |
+| Sinh nhật / dịp lễ | ZNS | Lời chúc + quà theo hạng |
+| Thẻ bảo hành | Tài khoản | Thẻ bảo hành điện tử, nhắc trước khi hết hạn |
+
+Bảng điều khiển hành trình hiển thị: tỷ lệ đến hẹn, no-show, NPS, tỷ lệ tái khám, doanh thu từ khách giới thiệu, CAC theo kênh.
+
+### 5.2 Loyalty: chăm sóc, không ép mua
+
+| Thành phần | Thiết kế |
+|---|---|
+| **Hạng thành viên** | Thành viên → Bạc → Vàng → Kim cương, xét theo **thực thu 12 tháng** và **mức độ gắn bó** (đúng lịch tái khám, giới thiệu) |
+| **Điểm thưởng** | Tích theo thực thu; thưởng thêm khi tái khám đúng hẹn, giới thiệu thành công, hoàn thành khảo sát |
+| **Ví gia đình** | Thành viên trong nhóm gia đình dùng chung hạng và điểm, phù hợp mô hình "cả nhà cùng chăm răng" |
+| **Giới thiệu 2 chiều** | Người giới thiệu và người được giới thiệu cùng nhận quà; theo dõi doanh thu giới thiệu (KR 2.3) |
+| **Gói chăm sóc định kỳ** | Thuê bao năm trả trước (ví dụ 2 lần khám + cạo vôi + X-quang): khách cam kết quay lại, phòng khám có dòng tiền ổn định và lấp ghế chiều |
+| **Quyền lợi theo hạng** | Ưu tiên giờ đẹp, miễn phí phim kiểm tra, bảo hành mở rộng, quà sinh nhật |
+| **Cầu chì y đức** | Không có ưu đãi kiểu "chỉ hôm nay" ép ký; mọi ưu đãi hiển thị minh bạch trong tài khoản |
+
+Xây trên **Loyalty có sẵn** của Odoo/Bizapps (chương trình, phiếu, điểm), bổ sung hạng, ví gia đình, thuê bao và quy tắc theo hành vi.
+
+---
+
+## 6. Nhân sự: Lương 3P + OKR + KPI
+
+```
+Thu nhập = P1 (Vị trí) + P2 (Năng lực) + P3 (Kết quả)
+```
+
+| Thành phần | Nguồn dữ liệu trong ERP |
+|---|---|
+| **P1 – Vị trí** | Khung lương theo chức danh/bậc (Bác sĩ, Điều dưỡng/Phụ tá, Lễ tân điều phối, KTV, Tư vấn, Quản lý PK) |
+| **P2 – Năng lực** | **Bậc lâm sàng** 1–3 (cây phân cấp Q-Summit) gắn với **phạm vi hành nghề**, chứng chỉ, đào tạo, thâm niên. Bậc quyết định dịch vụ được phép nhận trên lịch |
+| **P3 – Kết quả** | (a) **OKR**: điểm KR cá nhân/khối lấy từ OKR Scale; (b) **KPI vận hành** theo JD (ví dụ Lễ tân: dữ liệu 20%, điều phối 20%, retention 25%, doanh số 20%, hài lòng 15%); (c) **Hoa hồng/thủ thuật phí** theo thực thu |
+
+Nguyên tắc (theo OKR mẫu DMAG):
+- OKR **đạt ~70% là thành công**. P3 không phạt khi chưa đạt 100%, chỉ khấu trừ khi **vi phạm cầu chì y đức**.
+- KR **tự cập nhật** từ dữ liệu (NPS, thời gian chờ, điểm đau, ca niềng mới, tỷ lệ chốt, doanh thu giới thiệu, CAC, công suất ghế…). Không ai phải nhập tay, nên không ai "làm đẹp số".
+- Check-in tuần (OKR Scale đã có) hiển thị cả **bản đồ tự tin** và **interlock** giữa các khối.
+- Bảng lương 3P đẩy thẳng vào **Payroll Bizapps**, không viết lại phần tính thuế TNCN và bảo hiểm.
+
+---
+
+## 7. Thanh toán & hóa đơn (lễ tân can thiệp được bán hàng)
+
+1. Lễ tân mở đơn từ lịch hẹn hoặc kế hoạch điều trị trên **POS / Bảng điều phối**. Lễ tân được thêm sản phẩm bán lẻ và áp ưu đãi trong hạn mức được phân quyền.
+2. Khách thanh toán bằng **QR động** (có sẵn số tiền và mã đơn), **cổng thanh toán** (thẻ, ví) hoặc tiền mặt.
+3. Ngân hàng báo có (webhook hoặc API đối soát), hệ thống **tự ghi nhận thanh toán và tự phát hành HĐĐT** qua HĐĐT Bizapps, rồi gửi hóa đơn qua Zalo/email.
+4. Cuối ca: **Chốt két 4 bước**: tiền mặt + POS + chuyển khoản khớp 100% phần mềm, lễ tân và thu ngân ký biên bản bàn giao (Sign), chênh lệch được cảnh báo về Buồng lái chủ phòng khám.
+
+---
+
+## 8. Hình ảnh & thiết bị: ánh xạ, không lưu file nặng
+
+- Bệnh án lưu **tham chiếu** (UID, link viewer, ảnh thu nhỏ, răng liên quan, người chụp, thời điểm), **không lưu DICOM gốc**.
+- Mức tích hợp theo thiết bị: (1) **DICOMweb/PACS**: truy vấn và mở ảnh trực tiếp; (2) **phần mềm hãng có deep-link**: mở đúng ca từ hồ sơ; (3) **thư mục xuất ảnh**: agent nhỏ tại phòng khám đọc metadata và đẩy liên kết lên ERP.
+- Camera trong miệng: chụp ngay trong Chế độ Tư vấn; chỉ lưu ảnh JPEG nén (Documents).
+
+---
+
+## 9. Tuân thủ pháp lý: hạn bệnh án điện tử 31/12/2026
+
+Hôm nay là 10/10/2026, còn **khoảng 12 tuần**. Đề xuất ưu tiên tuyệt đối gói tuân thủ trong giai đoạn 1:
+- EMR đạt yêu cầu TT 13/2025/TT-BYT: **chữ ký số** (tích hợp CA ký từ xa), lưu trữ, phân quyền, nhật ký truy cập, khóa và sửa có vết, xuất bệnh án.
+- Đơn thuốc: TT 52/2017 và TT 04/2022.
+- HĐĐT: dùng tích hợp sẵn của Bizapps (NĐ 70/2025).
+- Bảo vệ dữ liệu cá nhân: đồng ý của bệnh nhân, che dữ liệu nhạy cảm theo vai trò.
+- Phạm vi hành nghề: **chặn xếp lịch/chỉ định ngoài phạm vi** giấy phép của bác sĩ.
+
+> Các yêu cầu kỹ thuật chi tiết sẽ được đối chiếu với văn bản gốc trong *Thư mục Pháp luật Nha khoa* trước khi chốt đặc tả EMR.
+
+---
+
+## 10. Đóng gói ERP theo 5 phân khúc DMAG
+
+| Gói | Phân khúc (Q-Summit) | Đặc điểm khách | Module trong gói |
+|---|---|---|---|
+| **DMAG Nền tảng** | PK1 · Xây nền · DDA < 40 · 1–2 ghế · < 200 tr/tháng (~4.200 PK) | Thiếu khách, tiền két lẫn ví cá nhân | A1–A4, A6–A8, B5, C3 (nhắc lịch cơ bản), E1 (Lễ tân + Bác sĩ) |
+| **DMAG Khởi sắc** | PK2 · DDA 40–49,5 · 2–4 ghế · 250–550 tr/tháng (~1.300 PK) | Rò rỉ két, lo rủi ro thuế | + A5, B2, B3, B4, C1, C2 cơ bản, D2 |
+| **DMAG Tăng trưởng ★** | PK3 · Chạm trần · DDA 50–74,5 · 4–7 ghế · 0,6–1,3 tỷ (~650 PK) | Chủ ngồi ghế 50–60 giờ/tuần, COGS > 25% | + B1, C1–C4 đầy đủ, D1 (3P), D3 (OKR), D4 (Radar DDA), Chế độ Tư vấn, Buồng lái |
+| **DMAG Doanh nghiệp** | PK4 · DDA 75–84,5 · 6–10+ ghế · 1,4–2,5 tỷ (~220 PK) | Bị chuỗi ép giá vốn | + P&L theo ghế/bác sĩ, mua hàng tập trung qua liên minh DMAG, Studio, API mở |
+| **DMAG Chuỗi** | PK5 · DDA ≥ 85 · 2–10+ cơ sở · > 2,5 tỷ (~100 cơ sở) | Quản trị đa điểm, bài toán định giá | + D5, tổng đài CSKH tập trung, báo cáo hợp nhất, định giá doanh nghiệp |
+
+Mỗi gói là một **module meta** (ví dụ `dmag_pack_growth`) chỉ khai báo `depends`. Khi lên gói chỉ cần cài thêm, dữ liệu giữ nguyên. Radar DDA trong ERP tự gợi ý thời điểm khách nên nâng gói.
+
+---
+
+## 11. Lộ trình đề xuất
+
+| Giai đoạn | Thời gian (dự kiến) | Phạm vi | Đích |
+|---|---|---|---|
+| **GĐ 1 – Tuân thủ & vận hành lõi** | 10/2026 → 12/2026 | A1–A4, A6, A7, A8, B5, E1 (Bàn làm việc Bác sĩ + Bảng điều phối Lễ tân), C3 (nhắc lịch ZNS) | Kịp hạn EMR 31/12/2026; chạy thí điểm 1 phòng khám |
+| **GĐ 2 – Trải nghiệm & tăng trưởng** | Q1/2027 | A5, B1–B4, C1, C2, C4, Chế độ Tư vấn | Hành trình Trước–Trong–Sau, loyalty, tài khoản bệnh nhân |
+| **GĐ 3 – Con người & quản trị** | Q2/2027 | D1–D4, Buồng lái | 3P, OKR tự đo, Radar DDA |
+| **GĐ 4 – Quy mô** | Q3/2027 | D5, gói Doanh nghiệp/Chuỗi, API cho app bệnh nhân | Đóng gói đủ 5 phân khúc |
+
+> GĐ 1 chỉ có khoảng 12 tuần, khá sát. Muốn kịp hạn cần có sớm source/staging Bizapps, đơn vị CA chữ ký số và một phòng khám thí điểm.
+
+---
+
+## 12. Còn cần anh/chị cung cấp hoặc xác nhận
+
+1. **Source hoặc danh sách addons Bizapps** (hoặc đẩy vào repo này / cấp quyền repo), kèm **môi trường staging** để kiểm thử.
+2. **10 trụ cột của Radar DDA** và cách chấm (để `dmag_dda_radar` tự đo đúng).
+3. **Danh sách thiết bị/phần mềm hình ảnh** đang phổ biến ở khách hàng (hãng máy CBCT/panorama, sensor, phần mềm viewer).
+4. **Ngân hàng / cổng thanh toán** muốn dùng cho QR động và đối soát tự động.
+5. **Nhà cung cấp CA chữ ký số** cho bác sĩ.
+6. **Phòng khám thí điểm** cho GĐ 1 (thuộc phân khúc nào).
+7. Khung lương **3P** hiện hành của DMAG/khách hàng (nếu có mẫu) để làm dữ liệu mặc định.
+8. Phê duyệt danh sách module (mục 3), gói (mục 10) và lộ trình (mục 11).
