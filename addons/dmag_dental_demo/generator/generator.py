@@ -360,6 +360,8 @@ class DemoGenerator:
                       'street', 'city', 'email'):
             if fname in company._fields and not company[fname]:
                 vals[fname] = D.COMPANY[fname]
+        if company.name in ('My Company', 'YourCompany', 'Your Company'):
+            vals['name'] = 'Nha khoa DMAG (Demo)'  # tên mặc định của Odoo → tên phòng khám demo (khôi phục khi gỡ)
         vn = self.ref('base.vn')
         if not company.country_id and vn:
             vals['country_id'] = vn.id
