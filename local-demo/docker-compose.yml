@@ -1,0 +1,44 @@
+# DMAG Dental ERP – bản demo chạy riêng trên máy (localhost), không đụng tới Bizapps.
+# Chạy:  ./start.sh   (Windows: start.bat)   → mở http://localhost:8069
+name: dmag-dental-demo
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: postgres
+    volumes:
+      - dmag-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  odoo:
+    image: odoo:17.0
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${DMAG_PORT:-8069}:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+      DMAG_DB: dmag_demo
+    volumes:
+      - ../addons:/mnt/dmag-addons:ro
+      - ./okr:/mnt/okr-addons:ro
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+      - ./entrypoint-demo.sh:/entrypoint-demo.sh:ro
+      - dmag-filestore:/var/lib/odoo
+    entrypoint: ["/bin/bash", "/entrypoint-demo.sh"]
+    restart: unless-stopped
+
+volumes:
+  dmag-db:
+  dmag-filestore:
