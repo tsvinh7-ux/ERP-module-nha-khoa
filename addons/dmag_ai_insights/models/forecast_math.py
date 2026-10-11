@@ -1,0 +1,126 @@
+"""Toán dự báo thuần Python (không cần numpy / statsmodels) – dùng cho AI-16.
+
+* ``holt_winters``: san bằng hàm mũ ba tham số (mức · xu hướng · mùa vụ cộng tính), chọn tham số bằng lưới
+  tối thiểu tổng bình phương sai số dự báo một bước; mùa vụ = chu kỳ tuần làm việc (6 ngày, thứ Hai – thứ Bảy).
+  Thiếu dữ liệu (< 2 chu kỳ) → Holt (mức + xu hướng); quá ngắn → trung bình.
+* ``norm_cdf`` / ``Z80``: khoảng tin cậy 80 % theo phân phối chuẩn.
+Các hàm đều tất định (cùng đầu vào → cùng kết quả) để kiểm thử được.
+"""
+import math
+
+Z80 = 1.2816
+
+
+def mean(values):
+    values = list(values)
+    return sum(values) / len(values) if values else 0.0
+
+
+def stdev(values):
+    values = list(values)
+    if len(values) < 2:
+        return 0.0
+    m = mean(values)
+    return math.sqrt(sum((v - m) ** 2 for v in values) / (len(values) - 1))
+
+
+def quantile(values, q):
+    values = sorted(values)
+    if not values:
+        return 0.0
+    pos = (len(values) - 1) * q
+    lo = int(math.floor(pos))
+    hi = int(math.ceil(pos))
+    return values[lo] + (values[hi] - values[lo]) * (pos - lo)
+
+
+def norm_cdf(x):
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _hw_run(series, season, alpha, beta, gamma):
+    """Chạy Holt-Winters cộng tính; trả (sse, level, trend, seasonals, residuals)."""
+    n = len(series)
+    if season and n >= 2 * season:
+        first = mean(series[:season])
+        second = mean(series[season:2 * season])
+        level = first
+        trend = (second - first) / season
+        seasonals = [series[i] - first for i in range(season)]
+    else:
+        season = 0
+        level = series[0]
+        trend = (series[1] - series[0]) if n > 1 else 0.0
+        seasonals = []
+    sse = 0.0
+    residuals = []
+    start = 1
+    for t in range(start, n):
+        s = seasonals[t % season] if season else 0.0
+        forecast = level + trend + s
+        err = series[t] - forecast
+        residuals.append(err)
+        sse += err * err
+        prev_level = level
+        level = alpha * (series[t] - s) + (1 - alpha) * (level + trend)
+        trend = beta * (level - prev_level) + (1 - beta) * trend
+        if season:
+            seasonals[t % season] = gamma * (series[t] - level) + (1 - gamma) * s
+    return sse, level, trend, seasonals, residuals, season
+
+
+def holt_winters(series, horizon, season=6, damped=0.9):
+    """Dự báo ``horizon`` bước. Trả dict: forecast (list), sigma (độ lệch chuẩn sai số 1 bước), params, method.
+
+    Xu hướng được "hãm" (damped trend, phi = ``damped``) để không ngoại suy quá đà khi dữ liệu ngắn.
+    """
+    series = [float(v) for v in series]
+    n = len(series)
+    if n == 0:
+        return {'forecast': [0.0] * horizon, 'sigma': 0.0, 'method': 'none', 'params': {}}
+    if n < 4:
+        m = mean(series)
+        return {'forecast': [m] * horizon, 'sigma': stdev(series), 'method': 'mean', 'params': {}}
+    grid = [0.1, 0.2, 0.3, 0.5, 0.7]
+    beta_grid = [0.0, 0.05, 0.1, 0.2]
+    use_season = season if n >= 2 * season else 0
+    gamma_grid = [0.05, 0.1, 0.3] if use_season else [0.0]
+    best = None
+    for alpha in grid:
+        for beta in beta_grid:
+            for gamma in gamma_grid:
+                res = _hw_run(series, use_season, alpha, beta, gamma)
+                if best is None or res[0] < best[0] - 1e-9:
+                    best = res + ((alpha, beta, gamma),)
+    sse, level, trend, seasonals, residuals, season_used, params = best
+    forecast = []
+    damp_sum = 0.0
+    for h in range(1, horizon + 1):
+        damp_sum += damped ** h
+        s = seasonals[(n - 1 + h) % season_used] if season_used else 0.0
+        forecast.append(max(0.0, level + damp_sum * trend + s))
+    sigma = math.sqrt(sse / max(1, len(residuals))) if residuals else 0.0
+    return {
+        'forecast': forecast, 'sigma': sigma,
+        'method': 'holt_winters' if season_used else 'holt',
+        'params': {'alpha': params[0], 'beta': params[1], 'gamma': params[2], 'season': season_used, 'phi': damped},
+    }
+
+
+def robust_z(value, values):
+    """Điểm z bền vững (median / MAD) – ít bị chính điểm bất thường kéo lệch."""
+    values = list(values)
+    if len(values) < 3:
+        return 0.0
+    med = quantile(values, 0.5)
+    mad = quantile([abs(v - med) for v in values], 0.5) * 1.4826
+    if mad <= 1e-9:
+        sd = stdev(values)
+        return (value - mean(values)) / sd if sd > 1e-9 else 0.0
+    return (value - med) / mad
+
+
+def iqr_fence(values, k=1.5):
+    """Ngưỡng trên Q3 + k × IQR (Tukey)."""
+    q1, q3 = quantile(values, 0.25), quantile(values, 0.75)
+    return q3 + k * (q3 - q1), q1, q3
