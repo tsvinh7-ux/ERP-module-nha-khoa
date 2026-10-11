@@ -12,57 +12,54 @@
         <field name="binding_type">report</field>
     </record>
 
-    <!-- Sơ đồ răng FDI: hàng răng vĩnh viễn 18–28 / 48–38 và răng sữa 55–65 / 85–75 -->
+    <!-- Sơ đồ răng FDI: hình răng giải phẫu (mặt bên + mặt nhai 5 mặt), nhìn từ phía bác sĩ đối diện bệnh nhân -->
     <template id="emr_tooth_chart">
         <t t-set="chart" t-value="o._emr_tooth_chart()"/>
-        <t t-set="tooth_row_defs" t-value="[('upper_permanent', False), ('lower_permanent', True)]"/>
-        <div class="avoid">
+        <style>
+            .dmag-emr .odo-orient td { font-family: Arial, Helvetica, sans-serif; font-size: 10.5px; font-weight: bold; color: #11346A; padding: 3px 4px; background: #F1F4F9; }
+            .dmag-emr .odo-orient td.muted { font-weight: normal; color: #555; }
+            .dmag-emr .odo-legend { margin-top: 4px; border: 1px solid #C9D3E0; }
+            .dmag-emr .odo-legend td { vertical-align: top; padding: 4px 6px; font-size: 11.5px; line-height: 1.55; }
+            .dmag-emr .odo-legend td.odo-key { width: 84px; text-align: center; border-right: 1px solid #C9D3E0; }
+            .dmag-emr .odo-surf { margin-right: 10px; white-space: nowrap; }
+            .dmag-emr .odo-tag { display: inline-block; min-width: 26px; padding: 0 3px; background: #11346A; color: #fff; font-family: Arial, Helvetica, sans-serif; font-size: 9.5px; font-weight: bold; text-align: center; border-radius: 3px; }
+            .dmag-emr .odo-legend span.sw { display: inline-block; width: 11px; height: 11px; border: 1px solid #555; vertical-align: middle; margin-right: 3px; }
+        </style>
+        <div class="avoid odo-print">
             <div class="sub">Sơ đồ răng (ký hiệu răng theo hệ thống FDI)</div>
-            <table class="tooth" style="margin-top: 3px;">
-                <t t-foreach="tooth_row_defs" t-as="rowdef">
-                    <tr t-att-class="'arch-sep' if rowdef[1] else None">
-                        <t t-foreach="chart['rows'][rowdef[0]]" t-as="code">
-                            <td t-att-class="'mid-gap' if code_index == 8 else None">
-                                <t t-if="not rowdef[1]"><div class="num" t-esc="code"/></t>
-                                <div>
-                                    <t t-foreach="chart['teeth'].get(code, [])" t-as="mk">
-                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
-                                    </t>
-                                </div>
-                                <t t-if="rowdef[1]"><div class="num" t-esc="code"/></t>
-                            </td>
-                        </t>
-                    </tr>
-                </t>
+            <table class="odo-orient">
+                <tr>
+                    <td style="text-align: left;">&#8592; PHẢI BỆNH NHÂN</td>
+                    <td style="text-align: center;" class="muted">Bác sĩ nhìn đối diện bệnh nhân · nét đứt dọc = đường giữa</td>
+                    <td style="text-align: right;">TRÁI BỆNH NHÂN &#8594;</td>
+                </tr>
             </table>
-            <div class="muted" style="margin-top: 4px;">Răng sữa:</div>
-            <table class="tooth">
-                <t t-foreach="[('upper_primary', False), ('lower_primary', True)]" t-as="rowdef">
-                    <tr t-att-class="'arch-sep' if rowdef[1] else None">
-                        <td style="border: none;"/><td style="border: none;"/><td style="border: none;"/>
-                        <t t-foreach="chart['rows'][rowdef[0]]" t-as="code">
-                            <td t-att-class="'mid-gap' if code_index == 5 else None">
-                                <t t-if="not rowdef[1]"><div class="num" t-esc="code"/></t>
-                                <div>
-                                    <t t-foreach="chart['teeth'].get(code, [])" t-as="mk">
-                                        <span class="mk" t-attf-style="color: #{mk['color']};"><t t-esc="mk['key']"/><t t-if="mk['layer'] == 'planned'">*</t><t t-if="mk['layer'] == 'done'">✓</t></span>
-                                    </t>
-                                </div>
-                                <t t-if="rowdef[1]"><div class="num" t-esc="code"/></t>
-                            </td>
+            <t t-out="chart['svg']"/>
+            <table class="odo-legend">
+                <tr>
+                    <td class="odo-key" rowspan="2">
+                        <t t-out="chart['key_svg']"/>
+                        <div class="muted" style="font-size: 9.5px; line-height: 1.2;">Ví dụ: răng 16<br/>nhìn từ mặt nhai</div>
+                    </td>
+                    <td>
+                        <b>Mặt răng:</b>
+                        <t t-foreach="chart['surface_key']" t-as="sk">
+                            <span class="odo-surf"><span class="odo-tag" t-esc="sk[0]"/> <t t-esc="sk[1]"/> <span class="muted">(<t t-esc="sk[2]"/>)</span></span>
                         </t>
-                        <td style="border: none;"/><td style="border: none;"/><td style="border: none;"/>
-                    </tr>
-                </t>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>Chú giải:</b>
+                        <t t-if="not chart['legend']">Chưa ghi nhận tình trạng răng.</t>
+                        <t t-foreach="chart['legend']" t-as="lg">
+                            <span class="odo-surf"><span class="sw" t-attf-style="background-color: #{lg['color']};"/><b t-esc="lg['key']"/> = <t t-esc="lg['name']"/></span>
+                        </t>
+                        <br/><span class="muted">Dưới số răng: số chú giải + mặt răng (ví dụ 1MO = tình trạng 1 ở mặt gần và mặt nhai) · dấu * = chỉ định / kế hoạch (vẽ gạch chéo, nét đứt) · dấu ✓ = đã điều trị.</span>
+                        <t t-if="not chart['include_primary']"><br/><span class="muted">Răng sữa: không có ghi nhận.</span></t>
+                    </td>
+                </tr>
             </table>
-            <div class="legend muted" style="margin-top: 4px;">
-                <b>Chú giải:</b>
-                <t t-if="not chart['legend']">Chưa ghi nhận tình trạng răng.</t>
-                <t t-foreach="chart['legend']" t-as="lg">
-                    <span style="margin-right: 10px; white-space: nowrap;"><span class="sw" t-attf-style="background-color: #{lg['color']};"/><b t-esc="lg['key']"/> = <t t-esc="lg['name']"/></span>
-                </t>
-                <span style="white-space: nowrap;">· dấu * = chỉ định / kế hoạch điều trị · dấu ✓ = đã điều trị</span>
-            </div>
         </div>
     </template>
 

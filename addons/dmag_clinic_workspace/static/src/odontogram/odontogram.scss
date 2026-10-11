@@ -31,12 +31,12 @@ $odo-root-line: #B9A88E;
 .o-odo-svg { display: block; width: 100%; height: auto; margin: 0 auto; user-select: none; touch-action: manipulation; overflow: visible; }
 
 // hướng dẫn định hướng
-.o-odo-caption { font-size: 10.5px; font-weight: 700; fill: #8C9AAF; letter-spacing: .2px; }
+.o-odo-caption { font-size: 11.5px; font-weight: 700; fill: #8C9AAF; letter-spacing: .2px; }
 .o-odo-block-title { font-size: 11px; font-weight: 800; fill: $odo-navy; letter-spacing: .6px; }
 .o-odo-band { fill: #F4F7FB; }
 .o-odo-plane { stroke: #C9D4E2; stroke-width: 1; }
-.o-odo-arch { font-size: 10px; font-weight: 800; fill: $odo-navy; letter-spacing: .5px; }
-.o-odo-band-text { font-size: 10px; font-weight: 600; fill: #8C9AAF; }
+.o-odo-arch { font-size: 10.5px; font-weight: 800; fill: $odo-navy; letter-spacing: .5px; }
+.o-odo-band-text { font-size: 11px; font-weight: 600; fill: #8C9AAF; }
 .o-odo-midline { stroke: #AFBDD0; stroke-width: 1.2; stroke-dasharray: 3 4; }
 
 // một răng
@@ -108,10 +108,10 @@ $odo-root-line: #B9A88E;
     border: 1px solid $odo-line; border-radius: 12px; background: #FBFCFE;
 }
 .o-odo-legend-key { flex: none; text-align: center; }
-.o-odo-key-svg { width: 92px; height: 80px; display: block; }
+.o-odo-key-svg { width: 86px; height: 100px; display: block; margin: 0 auto; }
 .o-odo-key-region { fill: #FFFFFF; stroke: $odo-region-line; stroke-width: 1; &.is-center { fill: #F6F8FB; } }
-.o-odo-key-letter { font-size: 10px; font-weight: 800; fill: $odo-navy; text-anchor: middle; }
-.o-odo-key-dir { font-size: 7.5px; fill: $odo-muted; text-anchor: middle; }
+.o-odo-key-letter { font-size: 9px; font-weight: 800; fill: $odo-navy; text-anchor: middle; }
+.o-odo-key-dir { font-size: 7px; fill: $odo-muted; text-anchor: middle; }
 .o-odo-key-caption { font-size: 10.5px; color: $odo-muted; line-height: 1.25; }
 .o-odo-legend-main { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .o-odo-legend-row { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: $odo-text; }
@@ -122,6 +122,9 @@ $odo-root-line: #B9A88E;
 }
 .o-odo-legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: $odo-muted; }
 .o-odo-legend-icon { width: 15px; height: 15px; flex: none; }
+.o-odo-legend-item.is-layer { color: $odo-text; font-weight: 600; }
+.o-odo-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: $odo-blue; margin: 0 2px; }
+.o-odo-plan-overlay { stroke: none; pointer-events: none; }
 
 // ---------------------------------------------------------------- khung phóng to 1 răng
 .o-zoom { margin-top: 10px; padding-top: 10px; border-top: 1px solid #EEF2F7; }

@@ -50,6 +50,12 @@ thanh toán, chatter đều khớp thực tế. Hạt giống ngẫu nhiên cố
    đã xác nhận, đã đến, đang điều trị, hoàn tất chờ thu tiền); vài ngày tới có lịch hẹn.
 8. Bảng lương 3P **tháng trước – Giám đốc đã duyệt**, tháng này – nháp; bảng kê hoa hồng tháng trước đã chốt.
 9. OKR: nếu đã cài ``dmag_okr_dental`` + OKR Scale thì tạo thêm chu kỳ / mục tiêu / KR mẫu.
+10. **Mục tiêu kinh doanh** (``dmag_dental_goals``) do Giám đốc demo đặt và chốt: tháng trước, tháng này, quý, năm
+    (doanh thu, thực thu, lợi nhuận gộp, khách mới, ca implant, ca chỉnh nha mới, tỷ lệ chốt, thời gian chờ, NPS,
+    tỷ lệ đến khám), mức mục tiêu = thực tế tháng trước của dữ liệu demo + 10–20 %; mục tiêu riêng từng bác sĩ
+    (doanh thu chia theo tỷ trọng, tỷ lệ chốt, ca implant / chỉnh nha); nhóm theo 3 Objective ("Tăng trưởng doanh
+    thu bền vững", "Mở rộng dịch vụ giá trị cao", "Trải nghiệm không đau, không chờ"); một đề xuất của Quản lý cho
+    tháng sau đang chờ Giám đốc chốt. Mở **Nha khoa › Điều hành mục tiêu** bằng ``giamdoc.demo``.
 
 Tài khoản demo
 ==============

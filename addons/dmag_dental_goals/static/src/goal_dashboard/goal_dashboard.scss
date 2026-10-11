@@ -138,8 +138,8 @@ $goal-cost: #8FA3BF;
     display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .dmag-funnel-bar { display: flex; align-items: center; gap: 8px; min-width: 0;
     > div { height: 22px; border-radius: 0 4px 4px 0; flex: none; max-width: 70%;
-        &.is-step0 { background: $dmag-navy; } &.is-step1 { background: #1F5FA8; } &.is-step2 { background: $dmag-blue; }
-        &.is-step3 { background: #5AAEF2; } &.is-step4 { background: #86B6EF; } }
+        &.is-step0 { background: $dmag-navy; } &.is-step1 { background: #184F95; } &.is-step2 { background: #2A78D6; }
+        &.is-step3 { background: #5598E7; } &.is-step4 { background: #86B6EF; } }
     .dmag-funnel-count { font-size: 13px; color: $dmag-muted; white-space: nowrap; b { color: $dmag-text; } } }
 .dmag-funnel-rate { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13px; }
 .dmag-funnel-rate-val { width: 100%; b { color: $dmag-text; font-size: 15px; } }

@@ -95,7 +95,7 @@ export class ToothZoom extends Component {
         const listOrder = [slots.center, "B", "L", "M", "D"];
         const buttons = listOrder.map((s) => {
             const lb = surfaceLabel(s, info);
-            const finding = visual.surfaces[s] || null;
+            const finding = visual.surfaces[s] || visual.planSurfaces[s] || null;
             return { surface: s, tag: lb.tag, name: lb.name, hint: lb.hint, finding, picked: this.props.surfaces.includes(s) };
         });
         const hatch = [...new Set(entries.filter((e) => e.layer === "planned").map((e) => e.color))].map((color) => ({

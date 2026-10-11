@@ -11,6 +11,7 @@ import heapq
 import itertools
 import json
 import logging
+import math
 import random
 import secrets
 import time
@@ -273,6 +274,8 @@ class DemoGenerator:
             self._portal_user()
         with self.section('OKR (nếu đã cài OKR Scale)'):
             self._okr()
+        with self.section('Mục tiêu kinh doanh (Bảng điều hành mục tiêu)'):
+            self._business_targets()
         self._drop_outgoing_mail()
         self.env.flush_all()
         tagged = self._tag(self.watermarks)
@@ -1666,3 +1669,99 @@ class DemoGenerator:
             if hasattr(kr, 'action_dmag_refresh'):
                 kr.action_dmag_refresh()
         self.stats['okr'] = 1
+
+    def _business_targets(self):
+        """Mục tiêu kinh doanh mẫu do Giám đốc đặt & chốt (``dmag_dental_goals``): tháng trước, tháng này, quý, năm;
+        mục tiêu riêng từng bác sĩ; nhóm theo 3 Objective; một đề xuất tháng sau chờ Giám đốc chốt.
+
+        Mức mục tiêu lấy theo số thực tế tháng trước của chính dữ liệu demo (+10–20 %) để bảng điều hành có đủ
+        trạng thái Đúng tiến độ / Chậm / Nguy cơ.
+        """
+        if 'dmag.business.target' not in self.env:
+            return
+        engine = self.env['dmag.goal.engine']
+        company = self.company
+        month = self.today.replace(day=1)
+        last_month = (month - timedelta(days=1)).replace(day=1)
+        quarter = self.today.replace(day=1, month=((self.today.month - 1) // 3) * 3 + 1)
+        year = self.today.replace(month=1, day=1)
+        scope = engine._scope(last_month, month - timedelta(days=1), company)
+
+        def actual(metric, doctor=None):
+            sc = engine._scope(last_month, month - timedelta(days=1), company, doctor) if doctor else scope
+            return engine.compute_metric(metric, sc) or 0.0
+
+        def up(value, step):
+            return max(step, math.ceil(value / step) * step)
+
+        revenue = up(actual('revenue') * 1.12, 10000000) if actual('revenue') else 250000000
+        base = {
+            'revenue': revenue,
+            'collected': up(revenue * 0.9, 10000000),
+            'gross_profit': up(revenue * 0.6, 5000000),
+            'new_patients': up(actual('new_patients') * 1.15, 1) if actual('new_patients') else 12,
+            'implant_cases': max(3, up(actual('implant_cases') * 1.2, 1)),
+            'ortho_new': max(2, up(actual('ortho_new') + 1, 1)),
+            'plan_acceptance': 65.0,
+            'avg_wait': 12.0,
+            'nps': 60.0,
+            'show_up_rate': 88.0,
+        }
+        objectives = {
+            'revenue': 'Tăng trưởng doanh thu bền vững', 'collected': 'Tăng trưởng doanh thu bền vững',
+            'gross_profit': 'Tăng trưởng doanh thu bền vững', 'new_patients': 'Tăng trưởng doanh thu bền vững',
+            'implant_cases': 'Mở rộng dịch vụ giá trị cao', 'ortho_new': 'Mở rộng dịch vụ giá trị cao',
+            'plan_acceptance': 'Mở rộng dịch vụ giá trị cao',
+            'avg_wait': 'Trải nghiệm không đau, không chờ', 'nps': 'Trải nghiệm không đau, không chờ',
+            'show_up_rate': 'Trải nghiệm không đau, không chờ',
+        }
+        owners = {'revenue': 'director', 'collected': 'receptionist', 'gross_profit': 'director',
+                  'new_patients': 'consultant', 'implant_cases': 'doctor', 'ortho_new': 'doctor2',
+                  'plan_acceptance': 'consultant', 'avg_wait': 'manager', 'nps': 'manager', 'show_up_rate': 'receptionist'}
+        notes = {
+            'revenue': 'Lấp ghế chiều 13:30–16:30, gọi lại khách đang cân nhắc kế hoạch. ' + D.SAMPLE,
+            'implant_cases': 'Tư vấn implant trong 48 giờ sau khám, trả góp 0 %. ' + D.SAMPLE,
+            'avg_wait': 'Không xếp chồng 2 ca nặng, nhắn ZNS nhắc giờ hẹn. ' + D.SAMPLE,
+        }
+        vals_list = []
+
+        def add(metric, value, period_type, date_from, doctor=None, objective=True):
+            vals_list.append({
+                'metric': metric, 'target_value': value, 'period_type': period_type, 'date_from': date_from,
+                'company_id': company.id, 'practitioner_id': doctor.id if doctor else False,
+                'objective': objectives.get(metric) if objective else False,
+                'user_id': (doctor.user_id.id if doctor and doctor.user_id else self.users[owners[metric]].id),
+                'note': notes.get(metric, False) if not doctor else False,
+            })
+
+        for date_from in (last_month, month):
+            for metric, value in base.items():
+                add(metric, value, 'month', date_from)
+        sums = ('revenue', 'collected', 'gross_profit', 'new_patients', 'implant_cases', 'ortho_new')
+        for metric in sums:
+            add(metric, base[metric] * 3, 'quarter', quarter, objective=False)
+            add(metric, base[metric] * 12, 'year', year, objective=False)
+        for metric in ('plan_acceptance', 'nps'):
+            add(metric, base[metric], 'quarter', quarter, objective=False)
+        # Mục tiêu riêng từng bác sĩ: chia doanh thu theo tỷ trọng tháng trước
+        doctors = [self.prac[k] for k in ('doctor', 'doctor2') if self.prac.get(k)]
+        shares = {d.id: actual('revenue', d) for d in doctors}
+        total = sum(shares.values()) or 1.0
+        for doctor in doctors:
+            share = shares[doctor.id] / total if sum(shares.values()) else 1.0 / len(doctors)
+            for date_from in (last_month, month):
+                add('revenue', up(revenue * share, 5000000), 'month', date_from, doctor, objective=False)
+                add('plan_acceptance', 65.0, 'month', date_from, doctor, objective=False)
+        if self.prac.get('doctor'):
+            add('implant_cases', base['implant_cases'], 'month', month, self.prac['doctor'], objective=False)
+        if self.prac.get('doctor2'):
+            add('ortho_new', base['ortho_new'], 'month', month, self.prac['doctor2'], objective=False)
+        targets = self.M('dmag.business.target', 'director').create(vals_list)
+        targets.action_confirm()
+        # Đề xuất của Quản lý cho tháng sau – chờ Giám đốc chốt
+        next_month = (month + timedelta(days=32)).replace(day=1)
+        self.M('dmag.business.target', 'manager').create({
+            'metric': 'revenue', 'target_value': up(revenue * 1.05, 10000000), 'period_type': 'month',
+            'date_from': next_month, 'company_id': company.id, 'objective': objectives['revenue'],
+            'user_id': self.users['director'].id, 'note': 'Đề xuất của quản lý – chờ Giám đốc chốt. ' + D.SAMPLE})
+        self.stats['business_targets'] = len(targets) + 1

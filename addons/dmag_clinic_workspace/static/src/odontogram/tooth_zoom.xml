@@ -85,7 +85,7 @@
                     <path t-att-d="m.occ.outline" class="o-odo-outline" t-att-style="m.visual.crown ? 'stroke:' + m.visual.crown.color + ';stroke-width:3.5px' : null"/>
                 </g>
                 <g t-foreach="m.regionLabels" t-as="rl" t-key="rl.surface" pointer-events="none"
-                   t-att-class="'o-zoom-label' + (isPicked(rl.surface) ? ' is-picked' : '') + (m.visual.surfaces[rl.surface] ? ' has-color' : '')">
+                   t-att-class="'o-zoom-label' + (isPicked(rl.surface) ? ' is-picked' : '') + (m.visual.surfaces[rl.surface] or m.visual.planSurfaces[rl.surface] ? ' has-color' : '')">
                     <text t-att-x="rl.x" t-att-y="rl.y - 1" text-anchor="middle" class="o-zoom-tag" t-esc="rl.tag"/>
                     <text t-att-x="rl.x" t-att-y="rl.y + 10" text-anchor="middle" class="o-zoom-short" t-esc="rl.short"/>
                 </g>

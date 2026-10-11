@@ -34,10 +34,12 @@
                         <text t-att-x="block.spanL + 10" t-att-y="block.bandMid + 13" class="o-odo-arch">HÀM DƯỚI</text>
                         <text t-att-x="block.spanR - 10" t-att-y="block.bandMid - 5" class="o-odo-arch" text-anchor="end">HÀM TRÊN</text>
                         <text t-att-x="block.spanR - 10" t-att-y="block.bandMid + 13" class="o-odo-arch" text-anchor="end">HÀM DƯỚI</text>
-                        <text t-att-x="(block.quarterL + L.mid) / 2 - 10" t-att-y="block.bandMid - 5" class="o-odo-band-text" text-anchor="middle">▲ phía khẩu cái · mặt trong (L/P)</text>
-                        <text t-att-x="(block.quarterR + L.mid) / 2 + 10" t-att-y="block.bandMid - 5" class="o-odo-band-text" text-anchor="middle">▲ phía khẩu cái · mặt trong (L/P)</text>
-                        <text t-att-x="(block.quarterL + L.mid) / 2 - 10" t-att-y="block.bandMid + 13" class="o-odo-band-text" text-anchor="middle">▼ phía lưỡi · mặt trong (L)</text>
-                        <text t-att-x="(block.quarterR + L.mid) / 2 + 10" t-att-y="block.bandMid + 13" class="o-odo-band-text" text-anchor="middle">▼ phía lưỡi · mặt trong (L)</text>
+                        <t t-set="palText" t-value="block.narrow ? '▲ khẩu cái (L/P)' : '▲ phía khẩu cái · mặt trong (L/P)'"/>
+                        <t t-set="lingText" t-value="block.narrow ? '▼ lưỡi (L)' : '▼ phía lưỡi · mặt trong (L)'"/>
+                        <text t-att-x="block.bandL" t-att-y="block.bandMid - 5" class="o-odo-band-text" text-anchor="middle" t-esc="palText"/>
+                        <text t-att-x="block.bandR" t-att-y="block.bandMid - 5" class="o-odo-band-text" text-anchor="middle" t-esc="palText"/>
+                        <text t-att-x="block.bandL" t-att-y="block.bandMid + 13" class="o-odo-band-text" text-anchor="middle" t-esc="lingText"/>
+                        <text t-att-x="block.bandR" t-att-y="block.bandMid + 13" class="o-odo-band-text" text-anchor="middle" t-esc="lingText"/>
                         <!-- đường giữa -->
                         <line t-att-x1="L.mid" t-att-x2="L.mid" t-att-y1="block.captionTop + 4" t-att-y2="block.captionBottom - 12" class="o-odo-midline"/>
                     </g>
@@ -179,7 +181,7 @@
 
             <div t-if="props.showLegend" class="o-odo-legend">
                 <div class="o-odo-legend-key">
-                    <svg viewBox="-46 -40 92 80" class="o-odo-key-svg" role="img" aria-label="Ví dụ răng 16 nhìn từ mặt nhai">
+                    <svg viewBox="-36 -42 72 84" class="o-odo-key-svg" role="img" aria-label="Ví dụ răng 16 nhìn từ mặt nhai">
                         <t t-set="kt" t-value="keyTooth"/>
                         <clipPath t-att-id="uid + '-key'"><path t-att-d="kt.occ.outline"/></clipPath>
                         <g t-att-clip-path="'url(#' + uid + '-key)'">
@@ -187,15 +189,15 @@
                         </g>
                         <path t-att-d="kt.occ.center" class="o-odo-key-region is-center"/>
                         <path t-att-d="kt.occ.outline" class="o-odo-outline"/>
-                        <text x="1" y="-14" class="o-odo-key-letter">B</text>
-                        <text x="-1" y="22" class="o-odo-key-letter">L/P</text>
-                        <text x="-18" y="4" class="o-odo-key-letter">D</text>
-                        <text x="19" y="4" class="o-odo-key-letter">M</text>
-                        <text x="0" y="4" class="o-odo-key-letter">O</text>
-                        <text x="0" y="-31" class="o-odo-key-dir">má ↑</text>
-                        <text x="0" y="38" class="o-odo-key-dir">↓ khẩu cái</text>
+                        <text x="1" y="-13" class="o-odo-key-letter">B</text>
+                        <text x="-1" y="20" class="o-odo-key-letter">P</text>
+                        <text x="-16" y="3.5" class="o-odo-key-letter">D</text>
+                        <text x="17" y="3.5" class="o-odo-key-letter">M</text>
+                        <text x="0" y="3.5" class="o-odo-key-letter">O</text>
+                        <text x="0" y="-30" class="o-odo-key-dir">▲ má</text>
+                        <text x="0" y="37" class="o-odo-key-dir">▼ khẩu cái</text>
                     </svg>
-                    <div class="o-odo-key-caption">Ví dụ răng 16<br/>(nhìn từ mặt nhai)</div>
+                    <div class="o-odo-key-caption">Ví dụ: răng 16<br/>nhìn từ mặt nhai</div>
                 </div>
                 <div class="o-odo-legend-main">
                     <div class="o-odo-legend-row">
@@ -204,9 +206,9 @@
                         </span>
                     </div>
                     <div class="o-odo-legend-row">
-                        <span class="o-odo-legend-item"><i class="o-odo-sw" style="--c:#E5484D"/>Hiện trạng: tô đặc</span>
-                        <span class="o-odo-legend-item"><i class="o-odo-sw is-planned" style="--c:#178BEC"/>Kế hoạch: gạch chéo / nét đứt</span>
-                        <span class="o-odo-legend-item"><i class="o-odo-sw" style="--c:#0090FF"/>Đã điều trị: tô đặc</span>
+                        <span class="o-odo-legend-item is-layer"><i class="o-odo-sw" style="--c:#6B7A90"/>Tô đặc: hiện trạng / đã điều trị</span>
+                        <span class="o-odo-legend-item is-layer"><i class="o-odo-sw is-planned" style="--c:#6B7A90"/>Gạch chéo, nét đứt: kế hoạch</span>
+                        <span class="o-odo-legend-item is-layer"><i class="o-odo-dot"/>Răng có việc dự kiến</span>
                         <span t-foreach="legendConditions" t-as="lc" t-key="lc.key" class="o-odo-legend-item">
                             <t t-call="dmag_clinic_workspace.OdontogramSymbol"/>
                             <t t-esc="lc.name"/>

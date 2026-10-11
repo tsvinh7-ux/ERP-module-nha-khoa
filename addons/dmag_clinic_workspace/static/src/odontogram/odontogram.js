@@ -208,10 +208,14 @@ export class Odontogram extends Component {
                 bandMid,
                 bottom: captionBottom + 9,
                 teeth,
-                quarterL: GUTTER + (perSide * PITCH) / 2,
-                quarterR: width - GUTTER - (perSide * PITCH) / 2,
                 spanL: mid - MIDGAP / 2 - set.rows.upper[0].length * PITCH,
                 spanR: mid + MIDGAP / 2 + set.rows.upper[0].length * PITCH,
+                quarterL: mid - MIDGAP / 2 - (set.rows.upper[0].length * PITCH) / 2,
+                quarterR: mid + MIDGAP / 2 + (set.rows.upper[0].length * PITCH) / 2,
+                // dải giữa: chữ đặt giữa phần còn trống sau nhãn "HÀM TRÊN/DƯỚI"
+                bandL: mid - MIDGAP / 2 - (set.rows.upper[0].length * PITCH - 70) / 2,
+                bandR: mid + MIDGAP / 2 + (set.rows.upper[0].length * PITCH - 70) / 2,
+                narrow: set.rows.upper[0].length < 8,
             });
             y = captionBottom + 9 + (sets.length > 1 ? 14 : 0);
         }
@@ -286,7 +290,7 @@ export class Odontogram extends Component {
         this.state.tip = {
             title: `Răng ${tooth.code} – ${tooth.info.name}`,
             surface: lb ? `mặt ${lb.short} (${lb.tag})` : "",
-            hint: lb ? `${lb.name} – ${lb.hint}` : this.interactive ? "Chạm để chọn cả răng" : "",
+            hint: lb ? lb.hint.charAt(0).toUpperCase() + lb.hint.slice(1) : this.interactive ? "Chạm để chọn cả răng" : "",
             lines: this._tipLines(tooth, surface),
             ...this._tipPos(ev),
         };

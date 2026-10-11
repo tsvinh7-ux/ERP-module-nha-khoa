@@ -5,6 +5,8 @@ from odoo.exceptions import AccessError, UserError
 
 from odoo.addons.dmag_dental_base.models.dmag_access import is_director, is_workflow
 
+from .odontogram_svg import SURFACE_KEY, render_chart_svg, render_key_svg
+
 # Trường bệnh án RHM (16/BV1) bổ sung – khóa sau khi bác sĩ ký, như CLINICAL_FIELDS của lõi
 EMR_FIELDS = {
     'referral_source', 'referral_facility', 'referral_diagnosis',
@@ -267,6 +269,7 @@ class DmagDentalVisit(models.Model):
             entries = entries.filtered(lambda e: e.date <= self.signed_at)
         legend = {}
         by_tooth = {}
+        drawn = {}
         for entry in entries:
             cond = entry.condition_id
             if cond.id not in legend:
@@ -277,13 +280,30 @@ class DmagDentalVisit(models.Model):
             mark = dict(legend[cond.id], layer=entry.layer,
                         surfaces=', '.join(entry.surface_ids.mapped('code')))
             by_tooth.setdefault(entry.tooth_id.code, []).append(mark)
+            drawn.setdefault(entry.tooth_id.code, []).append({
+                'color': cond.color or '#178BEC', 'symbol': cond.symbol, 'code': cond.code,
+                'layer': entry.layer, 'surfaces': entry.surface_ids.mapped('code'),
+            })
+        marks = {
+            code: [{'color': m['color'],
+                    'text': m['key'] + m['surfaces'].replace(', ', '')
+                    + ('*' if m['layer'] == 'planned' else '✓' if m['layer'] == 'done' else '')}
+                   for m in items]
+            for code, items in by_tooth.items()
+        }
+        include_primary = any(int(code) >= 50 for code in drawn) or bool(
+            self.patient_id.age and self.patient_id.age < 13)
         rows = {
             'upper_permanent': [str(c) for c in list(range(18, 10, -1)) + list(range(21, 29))],
             'lower_permanent': [str(c) for c in list(range(48, 40, -1)) + list(range(31, 39))],
             'upper_primary': [str(c) for c in list(range(55, 50, -1)) + list(range(61, 66))],
             'lower_primary': [str(c) for c in list(range(85, 80, -1)) + list(range(71, 76))],
         }
-        return {'rows': rows, 'teeth': by_tooth, 'legend': list(legend.values()), 'entries': entries}
+        return {'rows': rows, 'teeth': by_tooth, 'legend': list(legend.values()), 'entries': entries,
+                'include_primary': include_primary,
+                'svg': render_chart_svg(drawn, marks, include_primary=include_primary, uid=f'emr{self.id}x'),
+                'key_svg': render_key_svg(uid=f'emrk{self.id}x'),
+                'surface_key': SURFACE_KEY}
 
     @api.model
     def _emr_fmt_dt(self, value, with_time=True):

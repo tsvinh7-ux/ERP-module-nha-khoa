@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 
 # Thứ tự xóa ưu tiên: chứng từ con trước, danh mục sau. Model không có trong danh sách xóa sau cùng.
 ORDER = [
-    'mail.activity', 'mail.mail',
+    'mail.activity', 'mail.mail', 'dmag.business.target',
     'dmag.pay3p.line', 'dmag.pay3p.sheet', 'dmag.kpi.result', 'dmag.competency.assessment.line',
     'dmag.competency.assessment',
     'dmag.commission.line', 'dmag.commission.statement',

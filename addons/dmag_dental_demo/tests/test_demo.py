@@ -208,3 +208,22 @@ class TestDemoLogin(HttpCase):
         desk = self._call('dmag.dental.visit', 'get_doctor_desk')
         self.assertTrue(desk['practitioner'])
         self.assertTrue(desk['all_visits'])
+
+    def test_director_goal_dashboard_rpc(self):
+        """Giám đốc demo mở Bảng điều hành mục tiêu: có mục tiêu đã chốt, Objective, mục tiêu theo bác sĩ."""
+        Target = self.env['dmag.business.target']
+        self.assertTrue(Target.search_count([('state', '=', 'confirmed'), ('practitioner_id', '!=', False)]))
+        self.assertTrue(Target.search_count([('state', '=', 'draft')]))
+        self.assertTrue(self.env['ir.model.data'].search_count([
+            ('module', '=', 'dmag_dental_demo'), ('model', '=', 'dmag.business.target')]),
+            'Mục tiêu demo phải gắn xmlid để gỡ module là xóa sạch')
+        self.authenticate('giamdoc.demo', D.PASSWORD)
+        data = self._call('dmag.goal.dashboard', 'get_goal_dashboard', ['month'])
+        self.assertTrue(data['can_edit_targets'])
+        revenue = data['north_star'][0]
+        self.assertEqual(revenue['target_source'], 'target')
+        self.assertGreater(revenue['actual'], 0)
+        self.assertEqual(len(data['okr']['target_objectives']), 3)
+        self.assertTrue(any(d['revenue']['target'] for d in data['people']['doctors']))
+        quarter = self._call('dmag.goal.dashboard', 'get_goal_dashboard', ['quarter'])
+        self.assertEqual(quarter['north_star'][0]['target_source'], 'target')

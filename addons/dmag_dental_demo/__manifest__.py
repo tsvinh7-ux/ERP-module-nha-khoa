@@ -23,6 +23,7 @@
         'dmag_dental_compliance',
         'dmag_hr_3p',
         'dmag_dental_commission',
+        'dmag_dental_goals',
     ],
     'data': [
         'security/ir.model.access.csv',

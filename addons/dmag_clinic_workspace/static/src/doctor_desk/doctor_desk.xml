@@ -89,7 +89,7 @@
                                     <button t-att-class="state.dentition === 'primary' ? 'is-on' : ''" t-on-click="() => this.state.dentition = 'primary'">Răng sữa</button>
                                 </div>
                                 <label class="dmag-toggle"><input type="checkbox" t-model="state.showPlanned"/> Hiện lớp kế hoạch</label>
-                                <span class="dmag-hint">Chạm số răng / chân răng để chọn cả răng · chạm từng mặt (trên hình mặt nhai hoặc thân răng) để chọn mặt răng · rê chuột để xem tên</span>
+                                <span class="dmag-hint">Chạm số răng để chọn cả răng · chạm từng mặt để chọn mặt răng · rê chuột để xem tên</span>
                             </div>
                             <Odontogram entries="state.ws.chart" dentition="state.dentition" selection="state.selection"
                                         showPlanned="state.showPlanned"
