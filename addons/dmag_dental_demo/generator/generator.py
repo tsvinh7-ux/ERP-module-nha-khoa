@@ -1674,7 +1674,7 @@ class DemoGenerator:
         """Mục tiêu kinh doanh mẫu do Giám đốc đặt & chốt (``dmag_dental_goals``): tháng trước, tháng này, quý, năm;
         mục tiêu riêng từng bác sĩ; nhóm theo 3 Objective; một đề xuất tháng sau chờ Giám đốc chốt.
 
-        Mức mục tiêu lấy theo số thực tế tháng trước của chính dữ liệu demo (+10–20 %) để bảng điều hành có đủ
+        Mức mục tiêu lấy theo nhịp 30 ngày gần nhất của chính dữ liệu demo (+10–20 %) để bảng điều hành có đủ
         trạng thái Đúng tiến độ / Chậm / Nguy cơ.
         """
         if 'dmag.business.target' not in self.env:
@@ -1685,10 +1685,13 @@ class DemoGenerator:
         last_month = (month - timedelta(days=1)).replace(day=1)
         quarter = self.today.replace(day=1, month=((self.today.month - 1) // 3) * 3 + 1)
         year = self.today.replace(month=1, day=1)
-        scope = engine._scope(last_month, month - timedelta(days=1), company)
+        # Cơ sở: nhịp 30 ngày gần nhất của dữ liệu demo (≈ một tháng), không phải tháng trước (lịch sử demo mới
+        # bắt đầu nên tháng trước thấp hơn nhịp hiện tại).
+        base_from, base_to = self.today - timedelta(days=30), self.today - timedelta(days=1)
+        scope = engine._scope(base_from, base_to, company)
 
         def actual(metric, doctor=None):
-            sc = engine._scope(last_month, month - timedelta(days=1), company, doctor) if doctor else scope
+            sc = engine._scope(base_from, base_to, company, doctor) if doctor else scope
             return engine.compute_metric(metric, sc) or 0.0
 
         def up(value, step):
@@ -1739,10 +1742,10 @@ class DemoGenerator:
                 add(metric, value, 'month', date_from)
         sums = ('revenue', 'collected', 'gross_profit', 'new_patients', 'implant_cases', 'ortho_new')
         for metric in sums:
-            add(metric, base[metric] * 3, 'quarter', quarter, objective=False)
+            add(metric, base[metric] * 3, 'quarter', quarter)
             add(metric, base[metric] * 12, 'year', year, objective=False)
         for metric in ('plan_acceptance', 'nps'):
-            add(metric, base[metric], 'quarter', quarter, objective=False)
+            add(metric, base[metric], 'quarter', quarter)
         # Mục tiêu riêng từng bác sĩ: chia doanh thu theo tỷ trọng tháng trước
         doctors = [self.prac[k] for k in ('doctor', 'doctor2') if self.prac.get(k)]
         shares = {d.id: actual('revenue', d) for d in doctors}

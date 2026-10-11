@@ -207,7 +207,7 @@
                             <h2>3. KPI vận hành theo hành trình khách hàng</h2>
                             <span class="dmag-ws-sub">Tỷ lệ chuyển đổi từng bước so với mục tiêu · bấm để xem danh sách</span>
                         </div>
-                        <div class="dmag-goal-two">
+                        <div class="dmag-goal-stack">
                             <div class="dmag-panel dmag-funnel">
                                 <div class="dmag-panel-title">Phễu khách hàng trong kỳ</div>
                                 <div t-foreach="d.funnel.steps" t-as="step" t-key="step.key" class="dmag-funnel-row is-link" t-on-click="() => this.open(step.action)">
@@ -216,7 +216,7 @@
                                         <span t-esc="step.label"/>
                                     </div>
                                     <div class="dmag-funnel-bar">
-                                        <div t-att-style="'width:' + funnelWidth(step) + '%'" t-att-class="'is-step' + step_index"/>
+                                        <div t-att-style="'width:' + (funnelWidth(step) * 0.78) + '%'" t-att-class="'is-step' + step_index"/>
                                         <span class="dmag-funnel-count"><b t-esc="step.count"/> <t t-esc="step.unit"/></span>
                                     </div>
                                     <div class="dmag-funnel-rate">
@@ -239,7 +239,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="dmag-goal-grid is-compact">
+                            <div class="dmag-goal-grid">
                                 <t t-foreach="d.service" t-as="card" t-key="card.key">
                                     <t t-call="dmag_dental_goals.GoalCard"/>
                                 </t>
@@ -339,7 +339,7 @@
                                                             <b t-esc="pct(emp.score)"/>
                                                         </div>
                                                     </td>
-                                                    <td class="dmag-ws-sub"><t t-esc="emp.lines.length"/> chỉ tiêu</td>
+                                                    <td class="dmag-ws-sub"><t t-esc="emp.lines.length"/> chỉ tiêu<t t-if="emp.status === 'provisional'"> · tạm tính đến hôm nay</t></td>
                                                 </tr>
                                                 <tr t-if="state.openEmp[emp.id]" class="dmag-sub-row">
                                                     <td colspan="4">

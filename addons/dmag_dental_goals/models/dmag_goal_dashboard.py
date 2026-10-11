@@ -37,6 +37,20 @@ def _jsonable(value):
     return value
 
 
+def fmt_value(unit, value):
+    """Định dạng số cho câu cảnh báo (kiểu Việt Nam)."""
+    if value is None:
+        return '–'
+    if unit == 'money':
+        if abs(value) >= 1e9:
+            return ('%.2f tỷ' % (value / 1e9)).replace('.', ',')
+        if abs(value) >= 1e6:
+            return ('%.1f tr' % (value / 1e6)).replace('.', ',')
+        return '{:,.0f} ₫'.format(value).replace(',', '.')
+    text = ('%.1f' % value).rstrip('0').rstrip('.').replace('.', ',')
+    return {'pct': text + '%', 'min': text + ' phút', 'score': text + ' điểm'}.get(unit, text)
+
+
 def _clean_domain(domain):
     return [tuple(_jsonable(v) for v in leaf) if isinstance(leaf, (list, tuple)) else leaf for leaf in domain]
 
@@ -188,7 +202,7 @@ class GoalBoard:
                         card['delta_unit'] = '%'
                     else:
                         card['delta'] = round(actual - prev, 1)
-                        card['delta_unit'] = 'đ' if info['unit'] == 'score' else ('′' if info['unit'] == 'min'
+                        card['delta_unit'] = ' điểm' if info['unit'] == 'score' else ('′' if info['unit'] == 'min'
                                                                                   else ' điểm %')
             points = []
             for i in range(TREND_PERIODS - 1, -1, -1):
@@ -466,7 +480,9 @@ class DmagGoalDashboard(models.AbstractModel):
             score = round(emp['weighted'] / emp['weights'], 1) if emp['weights'] else (
                 round(sum(l['achievement'] for l in lines) / len(lines), 1) if lines else 0.0)
             employees.append({'id': emp['id'], 'name': emp['name'], 'profile': emp['profile'], 'score': score,
-                              'status': 'on_track' if score >= 100 else 'behind' if score >= 80 else 'at_risk',
+                              # kỳ đang chạy: KPI cộng dồn chưa đủ kỳ → chỉ "tạm tính", không tô đỏ sớm
+                              'status': ('provisional' if not board.is_past else
+                                         'on_track' if score >= 100 else 'behind' if score >= 80 else 'at_risk'),
                               'lines': lines})
         employees.sort(key=lambda e: (e['profile'], -e['score']))
         profiles = {}
@@ -540,9 +556,15 @@ class DmagGoalDashboard(models.AbstractModel):
             if card['status'] not in ('at_risk', 'missed'):
                 continue
             if card['kind'] == 'sum' and card['forecast_pct'] is not None:
-                detail = 'Dự báo cuối kỳ đạt %s%% mục tiêu.' % round(card['forecast_pct'])
+                detail = 'Thực tế %s / mục tiêu %s – dự báo cuối kỳ %s (%s%% mục tiêu).' % (
+                    fmt_value(card['unit'], card['actual']), fmt_value(card['unit'], card['target']),
+                    fmt_value(card['unit'], card['forecast']), round(card['forecast_pct']))
+                if card['per_day']:
+                    detail += ' Cần thêm %s / ngày làm việc còn lại.' % fmt_value(card['unit'], card['per_day'])
             else:
-                detail = 'Hiện tại %s so với mục tiêu %s.' % (card['actual'], card['target'])
+                detail = 'Hiện tại %s – mục tiêu %s%s.' % (
+                    fmt_value(card['unit'], card['actual']), '≤ ' if card['direction'] == 'lower' else '≥ ',
+                    fmt_value(card['unit'], card['target']))
             todo = {
                 'revenue': 'Lấp ghế trống buổi chiều, gọi lại khách đang cân nhắc kế hoạch.',
                 'collected': 'Rà công nợ, nhắc khách trả góp đến hạn, kiểm tra lượt hoàn tất chưa thu.',
@@ -564,7 +586,7 @@ class DmagGoalDashboard(models.AbstractModel):
             rate = step['rate']
             if rate and rate['status'] == 'at_risk':
                 add('warning', 'Hành trình khách hàng: %s thấp' % rate['short'].lower(),
-                    'Hiện %s%% – mục tiêu %s%%.' % (rate['actual'], rate['target']),
+                    'Hiện %s – mục tiêu ≥ %s.' % (fmt_value('pct', rate['actual']), fmt_value('pct', rate['target'])),
                     {'show_up_rate': 'Gọi / nhắn ZNS xác nhận lịch hẹn ngày mai, gọi lại khách không đến.',
                      'consult_rate': 'Bác sĩ lập kế hoạch điều trị cho mọi khách có chỉ định.',
                      'plan_acceptance': 'Hẹn tư vấn lại khách đang cân nhắc.',
@@ -574,7 +596,7 @@ class DmagGoalDashboard(models.AbstractModel):
         finance = data['finance']
         if finance['overdue']:
             add('warning', 'Công nợ quá hạn %s lượt khám' % finance['overdue_count'],
-                'Tổng %s ₫ đã quá hạn thanh toán.' % '{:,.0f}'.format(finance['overdue']).replace(',', '.'),
+                'Tổng %s đã quá hạn thanh toán.' % fmt_value('money', finance['overdue']),
                 'Lễ tân / thu ngân gọi nhắc khách, ghi chú hẹn thanh toán.', finance['overdue_action'])
         if 'dmag.lab.order' in env:
             late = env['dmag.lab.order'].sudo().search_count([('company_id', 'in', board.companies.ids),
@@ -611,7 +633,8 @@ class DmagGoalDashboard(models.AbstractModel):
         for guard in data['okr']['guardrails']:
             if guard['breached']:
                 add('danger', 'Cầu chì OKR vượt ngưỡng: %s' % guard['name'],
-                    'Giá trị %s%s > ngưỡng %s%s.' % (guard['value'], guard['unit'], guard['threshold'], guard['unit']),
+                    'Giá trị %s%s > ngưỡng %s%s.' % (fmt_value(None, guard['value']), guard['unit'],
+                                                     fmt_value(None, guard['threshold']), guard['unit']),
                     'Dừng đẩy chỉ tiêu liên quan, họp xử lý nguyên nhân (y đức / trải nghiệm khách).',
                     data['okr'].get('guardrail_action'))
         order = {'danger': 0, 'warning': 1, 'info': 2}

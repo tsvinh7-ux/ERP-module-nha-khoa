@@ -224,9 +224,9 @@ class TestGoalAccess(TransactionCase):
     def test_create_but_not_edit_after_confirm(self):
         Target = self.env['dmag.business.target']
         draft = Target.with_user(self.manager).create({'metric': 'revenue', 'target_value': 100000000,
-                                                       'period_type': 'quarter', 'date_from': '2026-11-15'})
-        self.assertEqual(str(draft.date_from), '2026-10-01')  # đưa về đầu quý
-        self.assertEqual(str(draft.date_to), '2026-12-31')
+                                                       'period_type': 'quarter', 'date_from': '2031-11-15'})
+        self.assertEqual(str(draft.date_from), '2031-10-01')  # đưa về đầu quý
+        self.assertEqual(str(draft.date_to), '2031-12-31')
         draft.write({'target_value': 120000000})  # đề xuất còn sửa được
         with self.assertRaises(AccessError):
             draft.action_confirm()  # quản lý không chốt
@@ -240,6 +240,6 @@ class TestGoalAccess(TransactionCase):
         self.assertEqual(draft.target_value, 150000000)
         with self.assertRaises(ValidationError):
             Target.with_user(self.director).create({'metric': 'revenue', 'target_value': 1,
-                                                    'period_type': 'quarter', 'date_from': '2026-10-01'})
+                                                    'period_type': 'quarter', 'date_from': '2031-10-01'})
         with self.assertRaises(ValidationError):
             Target.with_user(self.director).create({'metric': 'plan_acceptance', 'target_value': 120})

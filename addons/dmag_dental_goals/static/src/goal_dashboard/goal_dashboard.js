@@ -17,6 +17,7 @@ const STATUS = {
     no_target: { tone: "muted", icon: "fa-bullseye" },
     no_data: { tone: "muted", icon: "fa-minus-circle" },
     not_started: { tone: "muted", icon: "fa-hourglass-start" },
+    provisional: { tone: "muted", icon: "fa-hourglass-half" },
 };
 const OKR_STATUS = {
     on_track: { label: "Đúng tiến độ", tone: "good" },
