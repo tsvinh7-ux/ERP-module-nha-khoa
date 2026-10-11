@@ -3,7 +3,8 @@
 Doanh thu từng ngày làm việc còn lại của kỳ = phần đã có lịch + phần sẽ phát sinh thêm:
 * **Lịch đã đặt**: Σ giá trị dịch vụ dự kiến của lượt hẹn (hoặc giá trị trung bình / lượt nếu chưa ghi dịch vụ)
   × tỷ lệ đến khám lịch sử × hệ số quy đổi lịch sử (doanh thu thực / giá trị dự kiến của lượt đã đến);
-* **Sẽ phát sinh**: dự báo chuỗi doanh thu ngày (Holt-Winters cộng tính, mùa vụ tuần 6 ngày, xu hướng hãm) ×
+* **Sẽ phát sinh**: dự báo chuỗi doanh thu ngày mở cửa theo Lịch làm việc phòng khám (Holt-Winters cộng tính, mùa vụ
+  tuần = số thứ mở cửa, mặc định 6; ngày nghỉ lễ không tính, xu hướng hãm) ×
   (1 − tỷ trọng doanh thu thường đã có lịch ở cùng khoảng cách ngày) – học từ thời điểm đặt lịch trong lịch sử;
 * **Mùa vụ theo tháng**: chỉ số tháng khi có ≥ 13 tháng lịch sử (chưa đủ → 1,0 và ghi rõ);
 * **Khoảng tin cậy 80 %**: sai số dự báo một bước của mô hình + phương sai nhị thức của việc khách đến / không đến.
@@ -20,7 +21,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError
 
 from odoo.addons.dmag_dental_base.models.dmag_access import is_manager
-from odoo.addons.dmag_dental_goals.models.dmag_goal_metrics import period_bounds, working_days
+from odoo.addons.dmag_dental_goals.models.dmag_goal_metrics import period_bounds
 
 from . import forecast_math as fm
 from .ai_common import vnd
@@ -39,15 +40,20 @@ class DmagAiForecast(models.AbstractModel):
         return fields.Date.context_today(self)
 
     @api.model
+    def _schedule(self):
+        """Lịch làm việc phòng khám (ngày mở cửa, nghỉ lễ) – mùa vụ tuần = số thứ mở cửa trong tuần."""
+        return self.env['dmag.clinic.schedule'].get_info(self.env.company)
+
+    @api.model
     def _daily_history(self, d_from, d_to):
-        """Doanh thu theo ngày làm việc (thứ Hai–thứ Bảy) trong [d_from, d_to] – cùng định nghĩa chỉ số 'revenue'."""
+        """Doanh thu theo ngày mở cửa (Lịch làm việc phòng khám) trong [d_from, d_to] – cùng định nghĩa chỉ số
+        'revenue'."""
         engine = self.env['dmag.goal.engine']
         scope = engine._scope(d_from, d_to, self.env.companies, today=self._today())
         daily = defaultdict(float)
         for proc in scope.procedures:
             daily[scope.local(proc.visit_id.scheduled_start).date()] += proc.amount
-        days = [d_from + timedelta(days=i) for i in range((d_to - d_from).days + 1)]
-        days = [d for d in days if d.weekday() != 6]
+        days = self._schedule().open_days(d_from, d_to)  # ngày mở cửa (thứ nghỉ, nghỉ lễ không tính)
         return days, [daily.get(d, 0.0) for d in days], scope
 
     @api.model
@@ -99,7 +105,7 @@ class DmagAiForecast(models.AbstractModel):
                 continue
             m_to = period_bounds('month', m_from)[1]
             rev = engine.compute_metric('revenue', engine._scope(m_from, m_to, self.env.companies, today=today)) or 0
-            wd = working_days(m_from, m_to) or 1
+            wd = self._schedule().count_open_days(m_from, m_to) or 1
             values[m_from.month].append(rev / wd)
         overall = fm.mean([v for vals in values.values() for v in vals]) or 1.0
         return {m: fm.mean(v) / overall for m, v in values.items()}, months
@@ -116,12 +122,13 @@ class DmagAiForecast(models.AbstractModel):
             hist_from = hist_to
         days, series, scope = self._daily_history(hist_from, hist_to)
         stats = self._booking_stats(scope)
-        all_future = [d for d in (today + timedelta(days=i) for i in range(max(0, (m_to - today).days + 1)))
-                      if d.weekday() != 6]
+        schedule = self._schedule()
+        all_future = schedule.open_days(today, m_to) if m_to >= today else []
         while len(series) > 12 and series[0] == 0.0:  # bỏ các ngày trước khi có hoạt động
             series = series[1:]
         capped, spike_rate, spike_var, spike_cap = fm.split_spikes(series)
-        hw = fm.holt_winters(capped, len(all_future) + 1, season=6)
+        # mùa vụ tuần = số ngày mở cửa trong tuần (mặc định 6: Thứ 2 – Thứ 7)
+        hw = fm.holt_winters(capped, len(all_future) + 1, season=max(1, len(schedule.open_weekdays())))
         step = {d: i for i, d in enumerate(all_future)}
         future = [d for d in all_future if d >= m_from]
         seasonal, months_hist = self._monthly_index(today)

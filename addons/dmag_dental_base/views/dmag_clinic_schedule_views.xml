@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_clinic_schedule_form" model="ir.ui.view">
+        <field name="name">dmag.clinic.schedule.form</field>
+        <field name="model">dmag.clinic.schedule</field>
+        <field name="arch" type="xml">
+            <form string="Lịch làm việc phòng khám" create="0" delete="0">
+                <header>
+                    <button name="action_reset_default" type="object" string="Đặt lại ca mặc định"
+                            confirm="Thay toàn bộ ca làm việc bằng mặc định (Thứ 2 – Thứ 7: 08:00–12:00, 13:30–20:00; Chủ nhật nghỉ)?"/>
+                    <button name="action_add_holidays_2026" type="object" string="Thêm ngày lễ mẫu 2026"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Lịch làm việc"/></h1>
+                        <div class="text-muted">
+                            Nguồn duy nhất cho giờ trống đặt lịch, kiểm tra đặt lịch ngoài giờ, gợi ý xếp lịch (AI-11),
+                            trợ lý Zalo (AI-07), số ngày làm việc &amp; nhịp mục tiêu, công suất ghế, dự báo (AI-16).
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Tóm tắt tuần">
+                            <field name="weekday_summary" nolabel="1" colspan="2"/>
+                            <field name="hours_text" string="Trợ lý báo khách" readonly="1"/>
+                        </group>
+                        <group string="Quy tắc đặt lịch">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="slot_step"/>
+                            <field name="enforce" widget="radio"/>
+                            <field name="note" placeholder="Ví dụ: Ngày lễ vẫn nhận ca khẩn qua hotline."/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ca làm việc trong tuần" name="shifts">
+                            <field name="line_ids">
+                                <tree editable="bottom" default_order="weekday, hour_from">
+                                    <field name="weekday"/>
+                                    <field name="hour_from" widget="float_time"/>
+                                    <field name="hour_to" widget="float_time"/>
+                                    <field name="name" string="Mô tả" readonly="1"/>
+                                </tree>
+                            </field>
+                            <div class="text-muted small">
+                                Mỗi thứ có thể có một hoặc nhiều ca (ví dụ ca sáng 08:00–12:00 và ca chiều – tối 13:30–20:00).
+                                Thứ không có ca nào = nghỉ. Giờ nghỉ trưa là khoảng giữa hai ca.
+                            </div>
+                        </page>
+                        <page string="Ngày nghỉ lễ / nghỉ đột xuất" name="closures">
+                            <field name="closure_ids">
+                                <tree editable="bottom" decoration-muted="not closed" decoration-warning="to_verify">
+                                    <field name="name"/>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                    <field name="kind"/>
+                                    <field name="closed" widget="boolean_toggle"/>
+                                    <field name="to_verify" widget="boolean_toggle"/>
+                                </tree>
+                            </field>
+                            <div class="text-muted small">
+                                Ngày lễ mẫu năm 2026 có ghi <b>[CẦN XÁC MINH]</b>: kiểm tra lại theo thông báo chính thức
+                                (lịch nghỉ Tết, nghỉ bù) và quyết định mở cửa ngày lễ của phòng khám rồi bỏ đánh dấu
+                                "Cần xác minh". Bỏ "Đóng cửa" nếu phòng khám vẫn làm việc ngày đó.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dmag_clinic_schedule" model="ir.actions.server">
+        <field name="name">Lịch làm việc</field>
+        <field name="model_id" ref="model_dmag_clinic_schedule"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_for_company()</field>
+    </record>
+    <menuitem id="menu_dmag_clinic_schedule" name="Lịch làm việc" parent="menu_dmag_config_clinic"
+              action="action_dmag_clinic_schedule" sequence="5"/>
+</odoo>

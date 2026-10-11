@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="reply_tool_search_services" model="dmag.ai.reply.tool">
+        <field name="name">Tra bảng giá dịch vụ</field><field name="code">search_services</field><field name="sequence">10</field>
+        <field name="description">Giá niêm yết, thời lượng dịch vụ – điền {gia_dich_vu}</field>
+    </record>
+    <record id="reply_tool_get_free_slots" model="dmag.ai.reply.tool">
+        <field name="name">Xem giờ trống</field><field name="code">get_free_slots</field><field name="sequence">20</field>
+        <field name="description">Giờ trống theo Lịch làm việc phòng khám + gợi ý xếp lịch AI-11 – điền {gio_trong}</field>
+    </record>
+    <record id="reply_tool_get_clinic_info" model="dmag.ai.reply.tool">
+        <field name="name">Thông tin phòng khám</field><field name="code">get_clinic_info</field><field name="sequence">30</field>
+        <field name="description">Giờ làm việc, địa chỉ, gửi xe, thanh toán, chuẩn bị trước khám</field>
+    </record>
+    <record id="reply_tool_find_patient_by_phone" model="dmag.ai.reply.tool">
+        <field name="name">Tìm hồ sơ theo SĐT</field><field name="code">find_patient_by_phone</field><field name="sequence">40</field>
+        <field name="description">Chỉ trả có / không + tên gọi để chào</field>
+    </record>
+    <record id="reply_tool_book_appointment" model="dmag.ai.reply.tool">
+        <field name="name">Giữ chỗ lịch hẹn (nháp)</field><field name="code">book_appointment</field><field name="sequence">50</field>
+        <field name="description">Tạo lịch NHÁP chờ lễ tân gọi xác nhận (cần khách đồng ý NĐ 13/2023)</field>
+        <field name="side_effect" eval="True"/>
+    </record>
+    <record id="reply_tool_handoff_to_staff" model="dmag.ai.reply.tool">
+        <field name="name">Chuyển nhân viên</field><field name="code">handoff_to_staff</field><field name="sequence">60</field>
+        <field name="description">Chuyển hội thoại cho nhân viên / bác sĩ</field>
+        <field name="side_effect" eval="True"/>
+    </record>
+</odoo>

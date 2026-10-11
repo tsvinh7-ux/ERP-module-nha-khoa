@@ -9,7 +9,8 @@ from odoo import api, fields, models
 from odoo.addons.dmag_clinic_workspace.models.dmag_workspace import CLOSE_HOUR, OPEN_HOUR
 
 AFTERNOON = (13 * 60 + 30, 16 * 60 + 30)
-PARTS = {'morning': (OPEN_HOUR * 60, 12 * 60), 'afternoon': (12 * 60, 17 * 60), 'evening': (17 * 60, CLOSE_HOUR * 60)}
+# Buổi trong ngày; giờ mở / đóng cửa thật lấy từ Lịch làm việc phòng khám (ctx['shifts'])
+PARTS = {'morning': (0, 12 * 60), 'afternoon': (12 * 60, 17 * 60), 'evening': (17 * 60, 24 * 60)}
 PART_LABEL = {'morning': 'buổi sáng', 'afternoon': 'buổi chiều', 'evening': 'buổi tối'}
 
 
@@ -36,7 +37,7 @@ def rank_slots(slots, ctx, limit=4):
         các giờ cách nhau ≥ 30 phút để có lựa chọn đa dạng.
     """
     duration = ctx.get('duration') or 30
-    open_m, close_m = OPEN_HOUR * 60, CLOSE_HOUR * 60
+    shifts = ctx.get('shifts') or [(OPEN_HOUR * 60, CLOSE_HOUR * 60)]
     names = ctx.get('names') or {}
     loads = ctx.get('doctor_load') or {}
     max_load = max(list(loads.values()) + [1])
@@ -48,12 +49,14 @@ def rank_slots(slots, ctx, limit=4):
         end = start + duration
         if not slot.get('chairs'):
             continue
+        # khoảng hở tính trong ca làm việc chứa khung giờ (không tính giờ nghỉ trưa / sau giờ đóng cửa)
+        open_m, close_m = next(((a, b) for a, b in shifts if a <= start < b), shifts[0])
         # 1) Lấp khoảng trống: chọn ghế làm lịch liền mạch nhất
         best_chair, best_gap_score, best_gap_reason = None, None, None
         for chair in slot['chairs']:
             busy = (ctx.get('chair_busy') or {}).get(chair, [])
-            prev_end = max([e for s, e in busy if e <= start], default=None)
-            next_start = min([s for s, e in busy if s >= end], default=None)
+            prev_end = max([e for s, e in busy if open_m <= e <= start], default=None)
+            next_start = min([s for s, e in busy if end <= s <= close_m], default=None)
             gap_before = start - (prev_end if prev_end is not None else open_m)
             gap_after = (next_start if next_start is not None else close_m) - end
             score, reason = 0.0, None
@@ -129,8 +132,11 @@ class DmagWorkspace(models.AbstractModel):
     @api.model
     def _slot_context(self, day, duration, doctor_id=False, service_ids=None, patient_id=False):
         tz = self._tz()
-        start = self._local_to_utc(day, OPEN_HOUR)
-        end = self._local_to_utc(day, CLOSE_HOUR)
+        info = self._schedule_info()
+        shifts = info.shifts(day) or [(OPEN_HOUR * 60, CLOSE_HOUR * 60)]
+        start = self._local_to_utc(day, shifts[0][0] // 60, shifts[0][0] % 60)
+        last = min(shifts[-1][1], 23 * 60 + 59)
+        end = self._local_to_utc(day, last // 60, last % 60)
         visits = self.env['dmag.dental.visit'].sudo().search([
             ('company_id', 'in', self.env.companies.ids),
             ('state', 'in', ('draft', 'confirmed', 'arrived', 'in_chair')),
@@ -141,6 +147,7 @@ class DmagWorkspace(models.AbstractModel):
             ('role', '=', 'doctor'), ('company_id', 'in', self.env.companies.ids)])
         if doctor_id:
             doctors = doctors.filtered(lambda d: d.id == doctor_id)
+        doctors = doctors.filtered(lambda d: d.works_on(day, info))  # ngày làm việc riêng của bác sĩ
         services = self.env['product.product'].browse(service_ids or [])
         if services:
             doctors = doctors.filtered(lambda d: not d._get_service_blockers(services))
@@ -166,7 +173,9 @@ class DmagWorkspace(models.AbstractModel):
             for key, (ps, pe) in PARTS.items():
                 part_busy[key] += max(0, min(e, pe) - max(s, ps))
         n_chairs = max(len(chairs), 1)
-        utilization = {key: part_busy[key] / float((pe - ps) * n_chairs) for key, (ps, pe) in PARTS.items()}
+        open_minutes = {key: sum(max(0, min(b, pe) - max(a, ps)) for a, b in shifts) for key, (ps, pe) in PARTS.items()}
+        utilization = {key: (part_busy[key] / float(open_minutes[key] * n_chairs)) if open_minutes[key] else 1.0
+                       for key in PARTS}
         pref_minutes, pref_doctor = None, None
         if patient_id:
             past = self.env['dmag.dental.visit'].sudo().search([
@@ -183,7 +192,7 @@ class DmagWorkspace(models.AbstractModel):
             'doctor_load': doctor_load, 'utilization': utilization,
             'target': self.env.company.dmag_ai_chair_target or 0.75,
             'pref_minutes': pref_minutes, 'pref_doctor': pref_doctor, 'names': names,
-            'doctor_ids': doctors.ids,
+            'doctor_ids': doctors.ids, 'shifts': shifts,
         }
 
     @api.model

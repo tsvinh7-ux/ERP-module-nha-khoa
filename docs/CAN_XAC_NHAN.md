@@ -1,7 +1,7 @@
 # DANH SÁCH CẦN ANH/CHỊ XÁC NHẬN TRƯỚC KHI VẬN HÀNH THẬT
 
-> Cập nhật 10/10/2026. Mọi mục dưới đây **đã có mã chạy được với dữ liệu giả lập**. Chỉ cần thông tin / quyết định thật để bật.
-> Ký hiệu: 🔴 bắt buộc trước go-live · 🟡 nên có trước pilot · ⚪ có thể quyết sau.
+> Cập nhật 11/10/2026. Mọi mục dưới đây **đã có mã chạy được với dữ liệu giả lập**. Chỉ cần thông tin / quyết định thật để bật.
+> Ký hiệu: 🔴 bắt buộc trước go-live · 🟡 nên có trước pilot · ⚪ có thể quyết sau · ✅ đã quyết.
 
 ## A. Pháp lý y tế
 
@@ -50,3 +50,13 @@
 - E1 🔴 Cài **wkhtmltopdf 0.12.6 (bản patched qt)** trên server Bizapps để in PDF bệnh án, đơn thuốc, phiếu thu.
 - E2 🔴 Sao lưu CSDL hằng ngày, lưu ngoài máy chủ (TT 13/2025 Đ2).
 - E3 🟡 Thiết bị chẩn đoán hình ảnh: hãng, model, PACS/DICOM hay thư mục chia sẻ (ERP chỉ lưu liên kết, không lưu file nặng).
+
+## F. Quyết định của chủ phòng khám (đã chốt 11/10/2026)
+
+| # | Việc | Quyết định | Đã làm trong ERP |
+|---|---|---|---|
+| F1 ✅ | Đơn thuốc vi phạm quy tắc an toàn (dị ứng, chống chỉ định, > 30 ngày…) | **Chặn trên mọi đường phát hành**; chỉ Giám đốc duyệt vượt, có lý do bằng văn bản và **ký bổ sung chịu trách nhiệm**. | `dmag_ai_clinical`: chặn ở `dmag.prescription.action_issue` (form đơn, Bàn làm việc bác sĩ, đơn thay thế); bác sĩ bấm "Đề nghị Giám đốc duyệt vượt"; Giám đốc "Duyệt vượt & ký chịu trách nhiệm" → ghi người / giờ / lý do / quy tắc bị vượt lên đơn + chatter, gửi ký số MySign nếu đã cấu hình (`docs/screenshots/dec_01*.png`). Bản in đơn thuốc / bệnh án không đổi. |
+| F2 ✅ | Trợ lý Zalo tự trả lời | **Cho tự trả lời nhưng chỉ theo kịch bản hoặc nội dung đã được duyệt** (huấn luyện trước). | `dmag_ai_customer`: "Kịch bản trả lời đã duyệt" (Quản lý soạn, **chỉ Giám đốc duyệt**, duyệt xong bị khóa), 12 kịch bản mẫu; chế độ mặc định **Tự động theo kịch bản đã duyệt** – không khớp / tin cậy thấp / khiếu nại / câu hỏi chuyên môn → nhân viên duyệt; ca khẩn gửi mẫu an toàn cố định. Hộp thư: "Đề xuất thành kịch bản", thống kê tự trả lời / chuyển nhân viên. Còn cần: Giám đốc **đọc lại 12 kịch bản mẫu** (giá, bảo hành, trả góp…) trước khi bật thật. |
+| F3 ✅ | Giờ làm việc dùng ở đâu | **Gắn với lịch làm việc thực tế của phòng khám.** | `dmag_dental_base`: *Nha khoa › Cấu hình › Phòng khám › Lịch làm việc* (ca theo thứ, ngày nghỉ lễ / đột xuất, ngày làm của từng bác sĩ) → giờ trống đặt lịch, chặn đặt ngoài giờ (Quản lý trở lên được đặt), gợi ý xếp lịch, trợ lý Zalo, ngày làm việc / nhịp mục tiêu, công suất ghế, dự báo AI-16, dữ liệu demo. Mặc định Thứ 2 – Thứ 7 08:00–12:00, 13:30–20:00, Chủ nhật nghỉ. Còn cần: **nhập lịch thật** và xác minh ngày lễ 2026 (đang ghi **[CẦN XÁC MINH]**). |
+| F4 ✅ | Nhận dạng giọng nói (AI-01) | **Thử bằng nhận dạng của trình duyệt trước**; đề xuất nhà cung cấp tốt hơn sau khi thí điểm. | Không cần sửa mã: chọn "Trình duyệt" ở *Cấu hình → Trợ lý AI*. Sau 1–2 tuần thí điểm sẽ so sánh FPT.AI / Google Chirp 3 (xem `NGHIEN_CUU_AI.md`). |
+

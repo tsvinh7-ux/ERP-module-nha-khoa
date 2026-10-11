@@ -35,4 +35,14 @@
         <field name="model_id" ref="model_dmag_ai_smile"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="rule_dmag_ai_reply_script_company" model="ir.rule">
+        <field name="name">Kịch bản trả lời: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_reply_script"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_reply_example_company" model="ir.rule">
+        <field name="name">Ví dụ hỏi – đáp: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_reply_example"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

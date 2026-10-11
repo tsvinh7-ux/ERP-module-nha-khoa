@@ -3,7 +3,9 @@
 import { onWillStart, useState } from "@odoo/owl";
 import { patch } from "@web/core/utils/patch";
 import { RxPanel } from "@dmag_clinic_workspace/doctor_desk/rx_panel";
+import { useService } from "@web/core/utils/hooks";
 import { AiMeta, AiConsent, aiCall, aiFeatureOn, loadAiStatus } from "./ai_utils";
+import { RxOverrideDialog } from "./rx_override_dialog";
 
 RxPanel.components = { ...(RxPanel.components || {}), AiMeta, AiConsent };
 
@@ -23,7 +25,8 @@ patch(RxPanel.prototype, {
         super.setup(...arguments);
         this.RX_LEVELS = LEVELS;
         this.aiRx = useState({ status: null, check: null, explain: null, meta: null, consent: null, explaining: false,
-                               ack: false, pending: false });
+                               ack: false, pending: false, blockedAttempt: false, requesting: false });
+        this.dialogService = useService("dialog");
         onWillStart(async () => {
             this.aiRx.status = await loadAiStatus(this.orm);
         });
@@ -49,12 +52,14 @@ patch(RxPanel.prototype, {
             return null;
         }
         const weight = (this.state.draft && Number(this.state.draft.weight)) || 0;
-        const res = await aiCall(this.orm, this.notification, "rx_check", [this.props.visitId, lines, weight]);
+        const rxId = (this.state.draft && this.state.draft.id) || false;
+        const res = await aiCall(this.orm, this.notification, "rx_check", [this.props.visitId, lines, weight, rxId]);
         this.aiRx.check = res;
         return res;
     },
 
     _aiRxChanged() {
+        this.aiRx.blockedAttempt = false;
         this.aiRx.ack = false;
         this.aiRx.pending = false;
         this.aiRx.explain = null;
@@ -85,11 +90,14 @@ patch(RxPanel.prototype, {
 
     async issue() {
         const res = await this.aiRxCheck();
-        if (res && res.blocks) {
-            this.notification.add("Đơn thuốc vi phạm quy tắc an toàn (xem mục CHẶN) – sửa đơn trước khi phát hành.", {
-                type: "danger",
-                title: "An toàn đơn thuốc",
-            });
+        if (res && res.blocks && !res.override_valid) {
+            this.aiRx.blockedAttempt = true;
+            this.notification.add(
+                res.is_director
+                    ? "Đơn thuốc vi phạm quy tắc an toàn – sửa đơn, hoặc bấm “Duyệt vượt & ký chịu trách nhiệm”."
+                    : "Đơn thuốc vi phạm quy tắc an toàn (xem mục CHẶN) – sửa đơn, hoặc “Đề nghị Giám đốc duyệt vượt”.",
+                { type: "danger", title: "An toàn đơn thuốc" }
+            );
             return;
         }
         if (res && res.warns && !this.aiRx.ack) {
@@ -104,6 +112,60 @@ patch(RxPanel.prototype, {
             this.aiRx.check = null;
             this.aiRx.explain = null;
         }
+    },
+
+    get aiRxBlocks() {
+        return ((this.aiRx.check && this.aiRx.check.findings) || []).filter((f) => f.level === "block");
+    },
+
+    /** Bác sĩ: lưu nháp rồi đề nghị Giám đốc duyệt vượt (tạo việc cần làm cho Giám đốc). */
+    async aiRxRequestOverride() {
+        this.aiRx.requesting = true;
+        try {
+            const saved = await this.save();
+            const res = await aiCall(this.orm, this.notification, "rx_request_override", [this.props.visitId, saved.id, ""]);
+            if (res) {
+                this.notification.add(
+                    `Đã gửi đề nghị duyệt vượt tới ${res.directors.join(", ") || "Giám đốc"} – đơn giữ ở trạng thái nháp.`,
+                    { type: "success" }
+                );
+                await this.aiRxCheck();
+            }
+        } finally {
+            this.aiRx.requesting = false;
+        }
+    },
+
+    /** Giám đốc: hộp thoại "Duyệt vượt & ký chịu trách nhiệm" → ghi vết + ký số + phát hành. */
+    aiRxOpenOverride() {
+        this.dialogService.add(RxOverrideDialog, {
+            blocks: this.aiRxBlocks,
+            patient: (this.aiRx.check && this.aiRx.check.patient) || "",
+            doctor: (this.aiRx.check && this.aiRx.check.doctor) || "",
+            onConfirm: async (reason, confirm) => {
+                const saved = await this.save();
+                const res = await this.orm.call("dmag.ai.clinical", "rx_override", [this.props.visitId, saved.id, reason, confirm, true]);
+                if (!res.issued) {
+                    this.notification.add(
+                        `Đã duyệt vượt (ký số: ${(res.esign && res.esign.label) || "—"}). Chưa phát hành vì: ${(res.issue_errors || []).join("; ")} – bổ sung rồi bấm “Phát hành”.`,
+                        { type: "warning", title: "Duyệt vượt an toàn đơn thuốc", sticky: true }
+                    );
+                    this.aiRx.blockedAttempt = false;
+                    await this.aiRxCheck();
+                    return;
+                }
+                this.state.result = res;
+                this.state.draft = null;
+                this.aiRx.check = null;
+                this.aiRx.explain = null;
+                this.aiRx.blockedAttempt = false;
+                this.notification.add(
+                    `Đã duyệt vượt và phát hành đơn ${res.code || ""}. Ký số: ${(res.esign && res.esign.label) || "—"}`,
+                    { type: "warning", title: "Duyệt vượt an toàn đơn thuốc" }
+                );
+                await this.props.onChanged();
+            },
+        });
     },
 
     async aiRxConfirmIssue() {

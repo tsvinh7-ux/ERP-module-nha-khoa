@@ -8,18 +8,37 @@
                     <div>
                         <h1>Hộp thư trợ lý Zalo <span class="dmag-ai-code">AI-07</span></h1>
                         <span class="dmag-ws-sub">
-                            Hội thoại trợ lý chuyển cho người · câu trả lời chờ duyệt ·
-                            <t t-if="state.inbox.reply_mode === 'approve'">chế độ <b>nhân viên duyệt trước khi gửi</b></t>
-                            <t t-else="">chế độ <b>tự động trả lời 24/7</b></t>
+                            Hội thoại trợ lý chuyển cho người · câu trả lời chờ duyệt · chế độ <b t-esc="modeLabel"/>
                         </span>
                     </div>
                 </div>
                 <div class="dmag-ws-actions">
                     <AiBadge mode="state.inbox.mode"/>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openScripts"><i class="fa fa-book me-1" title="Kịch bản"/>Kịch bản đã duyệt</button>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="refresh"><i class="fa fa-refresh me-1" title="Làm mới"/>Làm mới</button>
                     <button class="dmag-btn dmag-btn-primary" t-on-click="openSimulator"><i class="fa fa-mobile me-1" title="Mô phỏng"/>Mô phỏng Zalo</button>
                 </div>
             </header>
+            <div class="dmag-ai-stats" t-if="state.stats">
+                <div class="dmag-ai-stat is-ok"><div class="dmag-ai-stat-v"><t t-esc="state.stats.auto_pct"/>%</div>
+                    <div class="dmag-ai-stat-l">tự trả lời theo kịch bản (<t t-esc="state.stats.auto"/>/<t t-esc="state.stats.total"/> lượt · 30 ngày)</div></div>
+                <div class="dmag-ai-stat is-warning"><div class="dmag-ai-stat-v"><t t-esc="state.stats.escalated_pct"/>%</div>
+                    <div class="dmag-ai-stat-l">chuyển nhân viên duyệt / xử lý (<t t-esc="state.stats.escalated"/> lượt)</div></div>
+                <div class="dmag-ai-stat"><div class="dmag-ai-stat-v"><t t-esc="state.stats.scripts_approved"/></div>
+                    <div class="dmag-ai-stat-l">kịch bản đã duyệt · ngưỡng <t t-esc="state.stats.threshold"/>%</div></div>
+                <div class="dmag-ai-stat"><div class="dmag-ai-stat-v"><t t-esc="state.stats.scripts_draft + state.stats.examples_draft"/></div>
+                    <div class="dmag-ai-stat-l">đề xuất chờ Giám đốc duyệt (<t t-esc="state.stats.scripts_draft"/> kịch bản, <t t-esc="state.stats.examples_draft"/> ví dụ)</div></div>
+                <div class="dmag-ai-unmatched">
+                    <div class="fw-bold mb-1"><i class="fa fa-question-circle me-1" title="Chưa khớp"/>Câu hỏi chưa có kịch bản nhiều nhất</div>
+                    <div t-if="!state.stats.top_unmatched.length" class="dmag-hint">Chưa có – mọi câu hỏi gần đây đều khớp kịch bản.</div>
+                    <div t-foreach="state.stats.top_unmatched" t-as="u" t-key="u_index" class="dmag-ai-unmatched-row">
+                        <span class="dmag-chip" t-esc="u.count + '×'"/>
+                        <span class="dmag-ai-unmatched-q" t-att-title="u.question" t-esc="u.question"/>
+                        <button t-if="u.promotable" class="dmag-link text-nowrap" t-on-click="() => this.promoteScript(u.message_id)">Thành kịch bản</button>
+                        <span t-else="" class="dmag-hint text-nowrap" title="Duyệt / trả lời trong hội thoại trước, rồi đề xuất">chờ nhân viên trả lời</span>
+                    </div>
+                </div>
+            </div>
             <div class="dmag-ai-inbox-grid">
                 <aside class="dmag-ai-inbox-list">
                     <div class="dmag-seg w-100">
@@ -75,6 +94,10 @@
                         </div>
                         <div t-foreach="pendingMessages" t-as="m" t-key="m.id" class="dmag-ai-pending">
                             <div class="dmag-ai-pending-title"><i class="fa fa-hourglass-half me-1" title="Chờ duyệt"/>Câu trả lời của trợ lý đang chờ duyệt</div>
+                            <div t-if="m.decision_note" class="dmag-ai-decision is-warning">
+                                <i class="fa fa-info-circle" title="Vì sao"/>
+                                <div><div class="dmag-ai-decision-title" t-esc="m.decision_label"/><div class="dmag-ai-decision-sub" t-esc="m.decision_note"/></div>
+                            </div>
                             <textarea t-if="state.editing === m.id" class="dmag-input" rows="4" t-model="state.editText"/>
                             <div t-else="" class="dmag-ai-pending-body" t-esc="m.body"/>
                             <div class="d-flex gap-2">
@@ -124,6 +147,25 @@
                                 <span t-if="f.churn_risk" class="dmag-chip is-danger">Nguy cơ rời bỏ</span>
                             </div>
                             <div class="small mt-1" t-esc="f.suggested_action"/>
+                        </div>
+                    </div>
+                    <div class="dmag-panel">
+                        <div class="dmag-panel-title">Huấn luyện trợ lý <span class="dmag-hint ms-auto">Giám đốc duyệt</span></div>
+                        <div t-if="!trainable.length" class="dmag-hint">Câu trả lời nhân viên đã duyệt / đã sửa / tự viết sẽ hiện ở đây để đề xuất thành kịch bản.</div>
+                        <div t-foreach="trainable" t-as="t" t-key="t.id" class="dmag-ai-train-item">
+                            <div class="dmag-ai-train-q"><i class="fa fa-user-o me-1" title="Khách hỏi"/><t t-esc="t.question"/></div>
+                            <div class="dmag-ai-train-a" t-esc="t.body"/>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <t t-if="t.promoted_script">
+                                    <button class="dmag-chip is-ok" t-att-title="t.promoted_script.name" t-on-click="() => this.openScript(t.promoted_script.id)">
+                                        <i class="fa fa-check me-1" title="Đã đề xuất"/><t t-esc="t.promoted_script.state === 'approved' ? 'Đã thành kịch bản' : 'Đã đề xuất · chờ GĐ duyệt'"/></button>
+                                </t>
+                                <button t-else="" class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.promoteScript(t.id)">
+                                    <i class="fa fa-magic me-1" title="Đề xuất"/>Đề xuất thành kịch bản</button>
+                                <span t-if="t.promoted_example" class="dmag-chip is-ok">Đã thêm ví dụ</span>
+                                <button t-elif="t.script and t.confidence >= 40" class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.promoteExample(t)">
+                                    + Ví dụ cho “<t t-esc="t.script.name"/>”</button>
+                            </div>
                         </div>
                     </div>
                     <div class="dmag-panel">

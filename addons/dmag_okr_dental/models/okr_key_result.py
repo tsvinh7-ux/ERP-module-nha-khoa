@@ -5,6 +5,8 @@ import pytz
 
 from odoo import _, api, fields, models
 
+from odoo.addons.dmag_dental_base.models.dmag_clinic_schedule import AFTERNOON_WINDOW
+
 _logger = logging.getLogger(__name__)
 
 DENTAL_METHODS = [
@@ -14,12 +16,11 @@ DENTAL_METHODS = [
     ('dmag_ortho_new', 'Nha khoa: số ca niềng mới'),
     ('dmag_plan_acceptance', 'Nha khoa: tỷ lệ chốt kế hoạch điều trị (%)'),
     ('dmag_referral_revenue', 'Nha khoa: doanh thu từ khách giới thiệu'),
-    ('dmag_afternoon_util', 'Nha khoa: công suất ghế chiều 13:30–16:30 (%)'),
+    ('dmag_afternoon_util', 'Nha khoa: công suất ghế buổi chiều – tối theo lịch làm việc (%)'),
     ('dmag_associate_share', 'Nha khoa: % thủ thuật do bác sĩ phụ thực hiện'),
     ('dmag_material_cost', 'Nha khoa: chi phí vật tư / doanh thu (%)'),
 ]
 DENTAL_KEYS = {key for key, _label in DENTAL_METHODS}
-AFTERNOON = (time(13, 30), time(16, 30))
 ORTHO = 'orthodontic'
 
 
@@ -173,34 +174,25 @@ class OkrKeyResult(models.Model):
         return sum(procs.mapped('amount'))
 
     def _dmag_value_afternoon_util(self, start, end):
+        """Công suất ghế phần giờ mở cửa từ 12:00 (ca chiều – tối) theo Lịch làm việc phòng khám."""
         tz = pytz.timezone(self.env.user.tz or 'Asia/Ho_Chi_Minh')
         chairs = self.env['dmag.dental.chair'].sudo().search([('company_id', '=', self.company_id.id)])
         if not chairs:
             return None
+        info = self.env['dmag.clinic.schedule'].get_info(self.company_id)
         last_day = min(end.date() - timedelta(days=1), fields.Date.context_today(self))
-        days = [start.date() + timedelta(days=i) for i in range((last_day - start.date()).days + 1)]
-        days = [d for d in days if d.weekday() != 6]  # nghỉ Chủ nhật
+        days = info.open_days(start.date(), last_day)
         if not days:
             return None
-        slot = (datetime.combine(days[0], AFTERNOON[1]) - datetime.combine(days[0], AFTERNOON[0])).seconds / 60
-        available = len(days) * len(chairs) * slot
         visits = self.env['dmag.dental.visit'].sudo().search([
             ('company_id', '=', self.company_id.id), ('state', 'not in', ('cancel', 'no_show')),
             ('scheduled_start', '>=', start - timedelta(days=1)), ('scheduled_start', '<', end + timedelta(days=1)),
             ('chair_id', '!=', False)])
-        day_set = set(days)
-        booked = 0.0
-        for visit in visits:
-            local_start = pytz.utc.localize(visit.scheduled_start).astimezone(tz).replace(tzinfo=None)
-            local_end = pytz.utc.localize(visit.scheduled_end or visit.scheduled_start).astimezone(tz).replace(tzinfo=None)
-            day = local_start.date()
-            if day not in day_set:
-                continue
-            win_start = datetime.combine(day, AFTERNOON[0])
-            win_end = datetime.combine(day, AFTERNOON[1])
-            overlap = (min(local_end, win_end) - max(local_start, win_start)).total_seconds() / 60
-            booked += max(0.0, overlap)
-        return round(booked * 100.0 / available, 1) if available else None
+
+        def local(dt):
+            return pytz.utc.localize(dt).astimezone(tz).replace(tzinfo=None)
+        intervals = [(local(v.scheduled_start), local(v.scheduled_end or v.scheduled_start)) for v in visits]
+        return info.chair_utilization(days, len(chairs), intervals, AFTERNOON_WINDOW)
 
     def _dmag_value_associate_share(self, start, end):
         procs = self._dmag_done_procedures(start, end)

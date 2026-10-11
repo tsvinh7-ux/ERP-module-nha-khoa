@@ -13,6 +13,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/res_company_views.xml',
+        'views/dmag_prescription_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="weekday_0" model="dmag.weekday"><field name="name">Thứ 2</field><field name="code">0</field></record>
+    <record id="weekday_1" model="dmag.weekday"><field name="name">Thứ 3</field><field name="code">1</field></record>
+    <record id="weekday_2" model="dmag.weekday"><field name="name">Thứ 4</field><field name="code">2</field></record>
+    <record id="weekday_3" model="dmag.weekday"><field name="name">Thứ 5</field><field name="code">3</field></record>
+    <record id="weekday_4" model="dmag.weekday"><field name="name">Thứ 6</field><field name="code">4</field></record>
+    <record id="weekday_5" model="dmag.weekday"><field name="name">Thứ 7</field><field name="code">5</field></record>
+    <record id="weekday_6" model="dmag.weekday"><field name="name">Chủ nhật</field><field name="code">6</field></record>
+</odoo>

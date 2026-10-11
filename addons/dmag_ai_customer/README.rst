@@ -43,8 +43,48 @@ AI-07 – Trợ lý Zalo OA
 * Webhook: dùng chung ``/dmag/zalo/webhook`` của ``dmag_zalo_zns`` – sự kiện ``user_send_*`` được chuyển cho trợ lý
   (``dmag.zns.webhook.event._dmag_process``). Chế độ Claude: trả lời ở tác vụ nền (cron) để webhook phản hồi nhanh.
 * Gửi trả lời: theo chế độ ZNS của phòng khám (``mock`` ghi nhận giả lập; ``live`` gọi Zalo OA "tin tư vấn";
-  ``bizapps`` gọi ``biz.zalo.oa.send_text_message`` nếu có). Mặc định **nhân viên duyệt trước khi gửi**
-  (Cấu hình → Trợ lý AI); Giám đốc có thể bật "Tự động trả lời 24/7".
+  ``bizapps`` gọi ``biz.zalo.oa.send_text_message`` nếu có). Chế độ trả lời: xem mục "Kịch bản trả lời đã duyệt".
+* Giờ làm việc / ngày nghỉ trợ lý báo khách và giờ trống lấy từ **Lịch làm việc phòng khám** (``dmag.clinic.schedule``,
+  *Nha khoa › Cấu hình › Phòng khám › Lịch làm việc*); ngày nghỉ → báo ngày làm việc gần nhất.
+
+AI-07 – Kịch bản trả lời đã duyệt (quyết định 11/10/2026)
+----------------------------------------------------------
+Chủ phòng khám: *"cho tự trả lời nhưng theo kịch bản hoặc được duyệt training trước"*.
+
+* ``dmag.ai.reply.script`` – **Kịch bản trả lời đã duyệt**: chủ đề / mã ý định, câu hỏi mẫu của khách, từ khóa, **mẫu trả
+  lời** có ô dữ liệu điền từ Odoo (``{gia_dich_vu}`` bảng giá, ``{gio_trong}`` giờ trống 2 ngày làm việc tới,
+  ``{gio_lam_viec}`` / ``{ngay_nghi_sap_toi}`` Lịch làm việc, ``{dia_chi}``, ``{gui_xe}``, ``{thanh_toan}``,
+  ``{chuan_bi}``, ``{hotline}``, ``{ten_khach}``, ``{ten_phong_kham}``), công cụ được phép (``dmag.ai.reply.tool``), cách
+  trả lời (*theo mẫu* / *đặt lịch qua công cụ* / *mẫu an toàn rồi chuyển nhân viên*), cho phép diễn đạt lại nhẹ, ngưỡng
+  riêng, người đề xuất / Giám đốc duyệt / thời điểm duyệt.
+* Quyền: Lễ tân xem; **Quản lý trở lên tạo / sửa bản nháp**; **chỉ Giám đốc duyệt**; kịch bản đã duyệt **bị khóa** (kể cả
+  Giám đốc) – "Mở lại để sửa" (Giám đốc, ghi vết) → trợ lý ngừng dùng tới khi duyệt lại. Duyệt kiểm tra ô dữ liệu cần
+  công cụ đã được phép.
+* 12 kịch bản mẫu tiếng Việt (``models/reply_script_samples.py``, nạp ở trạng thái **nháp** khi cài – nút "Nạp kịch bản
+  mẫu"): giá dịch vụ, giờ mở cửa, địa chỉ / đỗ xe, đặt lịch, đổi / hủy lịch, chuẩn bị trước khám, bảo hành, trả góp,
+  đau sau nhổ răng (mẫu an toàn + chuyển nhân viên), niềng răng, tẩy trắng, khám cho trẻ em. ``dmag_dental_demo`` duyệt
+  chúng bằng tài khoản Giám đốc demo.
+* Chế độ trả lời theo phòng khám (``dmag_ai_zalo_reply_mode``, áp cho Zalo OA và Mô phỏng Zalo):
+
+  - ``approve`` – **Nhân viên duyệt mọi câu** (như trước);
+  - ``script`` – **Tự động theo kịch bản đã duyệt** (MẶC ĐỊNH): kiểm tra an toàn tại chỗ trước (ca khẩn → mẫu an toàn
+    cố định gửi ngay + chuyển người; khiếu nại / muốn gặp người → chuyển người). Sau đó nhận diện ý định – *giả lập*:
+    từ khóa + độ giống câu hỏi mẫu / ví dụ đã duyệt; *Claude*: structured output chỉ được chọn ``script_id`` trong enum
+    các kịch bản đã duyệt (+ ``none``), kèm ``confidence`` và cờ an toàn. Khớp với độ tin cậy ≥ ngưỡng (mặc định 60 %)
+    → tự gửi **đúng mẫu đã duyệt điền dữ liệu thật** (Claude chỉ diễn đạt lại nhẹ khi kịch bản cho phép; lệch bất kỳ con
+    số nào → dùng nguyên mẫu). Kịch bản đặt lịch: luồng giữ chỗ với đúng công cụ được phép, lịch tạo ở trạng thái
+    **nháp** chờ lễ tân xác nhận. Không khớp / tin cậy thấp / câu hỏi chuyên môn → nháp (chỉ công cụ đọc) **chờ nhân
+    viên duyệt**, khách nhận tin báo đã nhận (mẫu cố định, một lần), lễ tân có việc cần làm;
+  - ``auto`` – **Tự động hoàn toàn** (chỉ Giám đốc bật, form hiện cảnh báo).
+* Mỗi câu trả lời lưu quyết định (``decision``: tự gửi theo kịch bản / luồng đặt lịch / mẫu an toàn / chờ duyệt vì
+  không khớp, tin cậy thấp, chuyên môn / khiếu nại / ca khẩn), kịch bản, độ tin cậy, lý do – hiện trên Mô phỏng Zalo
+  ("Khớp kịch bản …" hoặc "Chuyển nhân viên – vì sao") và Hộp thư.
+* **Huấn luyện**: câu trả lời nhân viên đã duyệt / đã sửa / tự viết trong Hộp thư → **"Đề xuất thành kịch bản"** (một
+  chạm, tạo kịch bản nháp có câu hỏi mẫu + câu trả lời, giao việc cho Giám đốc) hoặc **"+ Ví dụ"** (``dmag.ai.reply.example``
+  – hỏi / đáp few-shot gắn kịch bản, Giám đốc duyệt mới dùng cho nhận diện). Đề xuất của lễ tân được tạo bằng quyền hệ
+  thống ở trạng thái nháp (người đề xuất ghi lại).
+* **Thống kê** (đầu Hộp thư, ``get_script_stats``): % tự trả lời, % chuyển nhân viên (30 ngày), số kịch bản đã duyệt /
+  chờ duyệt, các câu hỏi chưa có kịch bản nhiều nhất kèm nút "Thành kịch bản".
 
 AI-08 – Dự báo không đến
 ------------------------
@@ -67,6 +107,15 @@ Thẻ bảng điều phối: "Nguy cơ không đến 72%" + gợi ý gọi xác 
 Thư viện bên thứ ba
 ===================
 ``static/lib/jsqr`` – jsQR 1.4.0 (Apache-2.0), chỉ tải khi trình duyệt không có ``BarcodeDetector``.
+
+Kiểm thử
+========
+``tests/test_reply_scripts.py``: 12 kịch bản mẫu; khớp kịch bản → tự gửi mẫu điền giá / giờ làm việc thật (mô phỏng và
+Zalo); không khớp / chuyên môn → nháp chờ duyệt + tin báo đã nhận một lần; ca khẩn / khiếu nại / mẫu an toàn đau sau nhổ
+răng; kịch bản đặt lịch tạo lịch nháp; kịch bản mở lại không được dùng; quyền (lễ tân không tạo, Quản lý không duyệt,
+Giám đốc duyệt, đã duyệt bị khóa, ô dữ liệu cần công cụ); "Tự động hoàn toàn" chỉ Giám đốc; đề xuất từ hộp thư + ví dụ
+few-shot + thống kê; Claude (client giả): enum ``script_id`` chặt, diễn đạt lại giữ số liệu, lệch số → dùng mẫu, ``none``
+→ nháp chỉ công cụ đọc, cờ khẩn → mẫu an toàn.
 
 Cần xác minh
 ============

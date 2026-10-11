@@ -1,1 +1,2 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_rx_override_wizard_director,dmag.rx.override.wizard director,model_dmag_rx_override_wizard,dmag_dental_base.group_dmag_director,1,1,1,1

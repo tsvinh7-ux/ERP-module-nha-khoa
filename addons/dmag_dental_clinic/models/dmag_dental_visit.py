@@ -3,7 +3,8 @@ from datetime import timedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from odoo.addons.dmag_dental_base.models.dmag_access import check_director, is_director, is_workflow
+from odoo.addons.dmag_dental_base.models.dmag_access import check_director, is_director, is_manager, is_workflow
+from odoo.addons.dmag_dental_base.models.dmag_clinic_schedule import WEEKDAY_SHORT, local_naive
 
 ACTIVE_STATES = ('draft', 'confirmed', 'arrived', 'in_chair')
 PAYMENT_METHODS = [('cash', 'Tiền mặt'), ('transfer', 'Chuyển khoản'), ('card', 'Quẹt thẻ')]
@@ -171,7 +172,11 @@ class DmagDentalVisit(models.Model):
     @api.depends('chair_id', 'doctor_id', 'scheduled_start', 'scheduled_end', 'is_heavy', 'state')
     def _compute_schedule_warning(self):
         for visit in self:
-            visit.schedule_warning = '; '.join(visit._get_schedule_conflicts(soft=True)) or False
+            messages = visit._get_schedule_conflicts(soft=True)
+            hours_issue = visit._dmag_opening_issue() if visit.state in ('draft', 'confirmed') else None
+            if hours_issue:
+                messages.append(_('Ngoài lịch làm việc: %s.', hours_issue))
+            visit.schedule_warning = '; '.join(messages) or False
 
     # ------------------------------------------------------------------ CRUD
     @api.model_create_multi
@@ -182,7 +187,11 @@ class DmagDentalVisit(models.Model):
                 if vals.get('company_id'):
                     seq = seq.with_company(vals['company_id'])
                 vals['name'] = seq.next_by_code('dmag.dental.visit') or '/'
+        notes = [self._dmag_check_opening_vals(vals) for vals in vals_list]
         visits = super().create(vals_list)
+        for visit, note in zip(visits, notes):
+            if note:
+                visit.message_post(body=note)
         visits._dmag_journey_event('booked')
         return visits
 
@@ -195,7 +204,67 @@ class DmagDentalVisit(models.Model):
                 raise UserError(_(
                     'Bệnh án lượt khám %s đã ký và bị khóa. Dùng "Bổ sung bệnh án" '
                     '(quyền Quản lý) để sửa có ghi vết.', ', '.join(locked.mapped('name'))))
-        return super().write(vals)
+        notes = {}
+        if {'scheduled_start', 'doctor_id'} & set(vals):
+            for visit in self:
+                note = visit._dmag_check_opening_vals(dict(vals), visit)
+                if note:
+                    notes[visit.id] = note
+        res = super().write(vals)
+        for visit in self.filtered(lambda v: v.id in notes):
+            visit.message_post(body=notes[visit.id])
+        return res
+
+    # ------------------------------------------------------------------ lịch làm việc phòng khám
+    def _dmag_opening_issue(self, info=None):
+        """Lý do lịch hẹn nằm ngoài Lịch làm việc phòng khám (nghỉ lễ, thứ nghỉ, ngoài ca, bác sĩ nghỉ) hoặc None."""
+        self.ensure_one()
+        if not self.scheduled_start:
+            return None
+        info = info or self.env['dmag.clinic.schedule'].get_info(self.company_id)
+        start = local_naive(self.env, self.scheduled_start)
+        end = local_naive(self.env, self.scheduled_end or self.scheduled_start + timedelta(minutes=30))
+        reason = info.check_interval(start, end)
+        if not reason and self.doctor_id and not self.doctor_id.works_on(start.date(), info):
+            reason = _('bác sĩ %(doc)s không làm việc %(wd)s', doc=self.doctor_id.name,
+                       wd=WEEKDAY_SHORT[start.weekday()])
+        return reason
+
+    def _dmag_check_opening_vals(self, vals, visit=None):
+        """Đặt / dời lịch hẹn TƯƠNG LAI ngoài Lịch làm việc phòng khám (kiểm tra TRƯỚC khi ghi): nhân viên bị chặn;
+        Quản lý trở lên (hoặc chế độ "chỉ cảnh báo") được đặt – trả nội dung ghi chú cho chatter. Lịch đã qua (khách
+        vãng lai, nhập bù) không kiểm tra."""
+        if self.env.context.get('dmag_skip_opening_hours'):
+            return None
+        visit = visit or self.browse()
+        start = vals.get('scheduled_start', visit.scheduled_start)
+        state = vals.get('state', visit.state or 'draft')
+        if not start or state not in ('draft', 'confirmed'):
+            return None
+        start = fields.Datetime.to_datetime(start)
+        if start <= fields.Datetime.now():
+            return None
+        services = visit.service_ids
+        if 'service_ids' in vals:
+            services = self.env['product.product'].browse(
+                self.new({'service_ids': vals['service_ids']}).service_ids.ids)
+        duration = vals.get('duration') or sum(services.mapped('dental_duration')) or visit.duration or 30
+        company = self.env['res.company'].browse(vals.get('company_id')) if vals.get('company_id') else \
+            (visit.company_id or self.env.company)
+        doctor_id = vals.get('doctor_id', visit.doctor_id.id)
+        doctor = self.env['dmag.dental.practitioner'].browse(doctor_id) if doctor_id else None
+        info = self.env['dmag.clinic.schedule'].get_info(company)
+        local_start = local_naive(self.env, start)
+        reason = info.check_interval(local_start, local_start + timedelta(minutes=duration))
+        if not reason and doctor and not doctor.works_on(local_start.date(), info):
+            reason = _('bác sĩ %(doc)s không làm việc %(wd)s', doc=doctor.name, wd=WEEKDAY_SHORT[local_start.weekday()])
+        if not reason:
+            return None
+        if info.enforce == 'block' and not is_manager(self.env):
+            raise UserError(_('Không đặt được lịch hẹn: %(reason)s.\nChọn giờ trong lịch làm việc của phòng khám, hoặc '
+                              'nhờ Quản lý / Giám đốc đặt ngoài giờ.', reason=reason))
+        return _('Lịch hẹn ngoài lịch làm việc phòng khám (%(reason)s) – đặt bởi %(user)s.',
+                 reason=reason, user=self.env.user.name)
 
     def _check_write_allowed(self, vals):
         """Tạo được – không sửa: chặn sửa lượt khám đã có hiệu lực."""

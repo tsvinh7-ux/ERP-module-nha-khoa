@@ -349,6 +349,7 @@ $dmag-radius: 14px;
     &.is-busy-doc { color: $dmag-muted; background: #F3F5F8; text-decoration: line-through; }
     &.is-on { background: $dmag-blue; color: #fff; border-color: $dmag-blue; } }
 .dmag-slot-chairs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; font-weight: 700; color: $dmag-navy; }
+.dmag-day-hours { font-size: 13px; color: $dmag-navy; background: #eef6f4; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; display: inline-block; &.is-closed { background: #fdecec; color: #b42318; } }
 
 .dmag-pay { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .dmag-pay-left, .dmag-pay-right { background: #fff; border: 1px solid $dmag-line; border-radius: 16px; padding: 16px; }

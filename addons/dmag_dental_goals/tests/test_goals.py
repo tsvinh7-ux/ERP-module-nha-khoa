@@ -193,6 +193,32 @@ class TestGoalEngine(TransactionCase):
         self.assertTrue(all(a['todo'] for a in data['alerts']))
         self.assertEqual(self.env.ref('dmag_clinic_workspace.action_dmag_owner_cockpit').tag, 'dmag_goal_dashboard')
 
+    # ------------------------------------------------------------------ lịch làm việc phòng khám
+    def test_working_days_follow_schedule(self):
+        board = GoalBoard(self.env, 'month', D_FROM, D_TO, self.company, date(2025, 3, 15))
+        self.assertEqual((board.wd_total, board.wd_elapsed), (26, 13), 'Mặc định = Thứ 2 – Thứ 7 như trước')
+        # Nghỉ lễ 2 ngày + mở thêm sáng Chủ nhật
+        self.env['dmag.clinic.schedule']._get_for_company(self.company).write({
+            'closure_ids': [(0, 0, {'name': 'Nghỉ bảo trì', 'date_from': date(2025, 3, 3),
+                                    'date_to': date(2025, 3, 4)})],
+            'line_ids': [(0, 0, {'weekday': '6', 'hour_from': 8.0, 'hour_to': 12.0})]})
+        board = GoalBoard(self.env, 'month', D_FROM, D_TO, self.company, date(2025, 3, 15))
+        self.assertEqual(board.wd_total, 26 - 2 + 5)
+        self.assertEqual(board.wd_elapsed, 13 - 2 + 2)
+
+    def test_chair_capacity_follows_shifts(self):
+        schedule = self.env['dmag.clinic.schedule']._get_for_company(self.company)
+        default_am = self.metric('chair_util_am')
+        # Ca sáng ngắn lại 08:00–10:00 → mẫu số giảm một nửa, công suất buổi sáng tăng mạnh
+        schedule.line_ids.filtered(lambda l: l.hour_from < 12).write({'hour_to': 10.0})
+        short_am = self.metric('chair_util_am')
+        self.assertGreater(short_am, default_am * 1.4)
+        # Ngày nghỉ: không tính vào mẫu số, lịch trong ngày nghỉ không tính vào tử số
+        schedule.write({'closure_ids': [(0, 0, {'name': 'Nghỉ', 'date_from': date(2025, 3, 3),
+                                                'date_to': date(2025, 3, 3)})]})
+        self.assertNotAlmostEqual(self.metric('chair_util_am'), short_am, places=1)
+        # Buổi chiều = giờ mở cửa từ 12:00 (mặc định 13:30–20:00) – chưa có lịch chiều
+        self.assertEqual(self.metric('chair_util_pm'), 0.0)
 
 @tagged('post_install', '-at_install')
 class TestGoalAccess(TransactionCase):
@@ -243,3 +269,4 @@ class TestGoalAccess(TransactionCase):
                                                     'period_type': 'quarter', 'date_from': '2031-10-01'})
         with self.assertRaises(ValidationError):
             Target.with_user(self.director).create({'metric': 'plan_acceptance', 'target_value': 120})
+

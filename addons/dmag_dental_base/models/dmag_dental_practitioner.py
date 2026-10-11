@@ -32,6 +32,10 @@ class DmagDentalPractitioner(models.Model):
     image_128 = fields.Image('Ảnh', max_width=128, max_height=128)
     color = fields.Integer('Màu lịch')
     phone = fields.Char('Điện thoại')
+    work_weekday_ids = fields.Many2many(
+        'dmag.weekday', string='Ngày làm việc',
+        help='Để trống = làm việc mọi ngày phòng khám mở cửa (theo Lịch làm việc phòng khám). '
+             'Chọn các thứ nếu bác sĩ chỉ làm một số ngày – đặt lịch / gợi ý giờ trống sẽ theo đó.')
 
     clinical_level_id = fields.Many2one('dmag.clinical.level', string='Bậc lâm sàng', tracking=True)
     scope_ids = fields.Many2many('dmag.practice.scope', string='Phạm vi hành nghề', tracking=True)
@@ -94,6 +98,15 @@ class DmagDentalPractitioner(models.Model):
                 reasons.append(_('%(svc)s yêu cầu %(lvl)s trở lên – %(doc)s chưa đạt.',
                                  svc=product.name, lvl=product.min_clinical_level_id.name, doc=self.name))
         return reasons
+
+    def works_on(self, day, info=None):
+        """Bác sĩ làm việc ngày ``day``: phòng khám mở cửa và (nếu có khai) đúng thứ làm việc của bác sĩ."""
+        self.ensure_one()
+        info = info or self.env['dmag.clinic.schedule'].get_info(self.company_id)
+        if not info.is_open_day(day):
+            return False
+        codes = self.work_weekday_ids.mapped('code')
+        return not codes or day.weekday() in codes
 
     def check_can_perform(self, products):
         for practitioner in self:

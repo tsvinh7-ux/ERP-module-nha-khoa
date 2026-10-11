@@ -3,6 +3,9 @@
     <menuitem id="menu_dmag_ai_customer" name="Trợ lý AI khách hàng" parent="dmag_dental_journey.menu_dmag_cskh" sequence="2"/>
     <menuitem id="menu_dmag_ai_inbox" name="Hộp thư trợ lý Zalo" parent="menu_dmag_ai_customer" action="action_dmag_ai_inbox" sequence="1"/>
     <menuitem id="menu_dmag_ai_simulator" name="Mô phỏng Zalo OA (demo)" parent="menu_dmag_ai_customer" action="action_dmag_ai_zalo_simulator" sequence="2"/>
+    <menuitem id="menu_dmag_ai_reply_script" name="Kịch bản trả lời đã duyệt" parent="menu_dmag_ai_customer" action="action_dmag_ai_reply_script" sequence="3"/>
+    <menuitem id="menu_dmag_ai_reply_example" name="Ví dụ hỏi – đáp (huấn luyện)" parent="menu_dmag_ai_customer" action="action_dmag_ai_reply_example" sequence="4"
+              groups="dmag_dental_base.group_dmag_manager"/>
     <menuitem id="menu_dmag_ai_feedback" name="Phản hồi cần xử lý" parent="menu_dmag_ai_customer" action="action_dmag_ai_feedback" sequence="3"/>
     <menuitem id="menu_dmag_ai_followup" name="Theo dõi sau điều trị" parent="menu_dmag_ai_customer" action="action_dmag_ai_followup" sequence="4"/>
     <menuitem id="menu_dmag_ai_care" name="Nội dung chăm sóc" parent="menu_dmag_ai_customer" action="action_dmag_ai_care_draft" sequence="5"/>

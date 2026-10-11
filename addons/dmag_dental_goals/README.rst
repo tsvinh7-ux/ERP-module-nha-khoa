@@ -43,7 +43,8 @@ Hoàn tất điều trị           Kế hoạch hoàn thành / kế hoạch đ�
 Tái khám đúng hẹn           Khách cũ: đến / (đến + không đến)
 Giới thiệu                  Khách mới có người giới thiệu hoặc nguồn "giới thiệu" / khách mới
 Thời gian chờ               TB (giờ lên ghế − giờ check-in)
-Công suất ghế sáng / chiều  Phút có lịch 08:00–12:00 / 13:30–16:30 ÷ (số ghế × ngày làm việc đã qua × phút khung)
+Công suất ghế sáng / chiều  Phút có lịch trong giờ mở cửa trước / sau 12:00 ÷ (số ghế × phút mở cửa của các ngày
+                            làm việc đã qua) – theo Lịch làm việc phòng khám (mặc định 08:00–12:00 / 13:30–20:00)
 NPS                         % ủng hộ (9–10) − % không hài lòng (0–6)
 Tỷ lệ khiếu nại             Phiếu phàn nàn / lượt hoàn tất
 Ca do bác sĩ phụ            Thủ thuật do bác sĩ bậc 1–2 / tổng thủ thuật
@@ -53,7 +54,8 @@ Giá vốn vật tư + labo       (Vật tư + labo) / doanh thu
 Khung "mục tiêu – thực tế – nhịp độ"
 ====================================
 
-* **% đạt** = thực tế / mục tiêu; **% kỳ đã qua** theo ngày làm việc (thứ Hai – thứ Bảy).
+* **% đạt** = thực tế / mục tiêu; **% kỳ đã qua** theo ngày làm việc của **Lịch làm việc phòng khám**
+  (``dmag.clinic.schedule``: thứ nghỉ, ngày nghỉ lễ / đột xuất không tính; mặc định thứ Hai – thứ Bảy).
 * **Dự báo cuối kỳ** (chỉ số cộng dồn) = thực tế ÷ ngày làm việc đã qua × tổng ngày làm việc của kỳ.
 * **Còn thiếu** = mục tiêu − thực tế; **cần thêm / ngày** = còn thiếu ÷ ngày làm việc còn lại.
 * **Trạng thái**: *Đúng tiến độ* (dự báo ≥ 100 % mục tiêu) · *Chậm* (90–100 %) · *Nguy cơ* (< 90 %) · *Đã đạt* ·

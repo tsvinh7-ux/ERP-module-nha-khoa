@@ -27,6 +27,7 @@ export class AiInbox extends Component {
             reply: "",
             editing: null,
             editText: "",
+            stats: null,
         });
         onWillStart(async () => {
             await this.load();
@@ -42,7 +43,44 @@ export class AiInbox extends Component {
     }
 
     async load() {
-        this.state.inbox = await this.orm.call("dmag.ai.conversation", "get_inbox", [this.state.filter]);
+        const [inbox, stats] = await Promise.all([
+            this.orm.call("dmag.ai.conversation", "get_inbox", [this.state.filter]),
+            this.orm.call("dmag.ai.conversation", "get_script_stats", [30]),
+        ]);
+        this.state.inbox = inbox;
+        this.state.stats = stats;
+    }
+
+    get modeLabel() {
+        return { approve: "nhân viên duyệt mọi câu", script: "tự động theo kịch bản đã duyệt", auto: "tự động hoàn toàn" }[
+            this.state.inbox.reply_mode
+        ] || "";
+    }
+
+    get trainable() {
+        return this.state.thread ? this.state.thread.messages.filter((m) => m.promotable) : [];
+    }
+
+    async promoteScript(messageId) {
+        const res = await this.orm.call("dmag.ai.conversation.message", "action_promote_to_script", [[messageId]]);
+        this.notification.add(`Đã tạo kịch bản nháp “${res.name}” – chờ Giám đốc duyệt.`, { type: "success" });
+        await this.refresh();
+    }
+
+    async promoteExample(msg) {
+        const res = await this.orm.call("dmag.ai.conversation.message", "action_promote_to_example", [[msg.id]], {
+            script_id: msg.script ? msg.script.id : false,
+        });
+        this.notification.add(`Đã thêm ví dụ hỏi – đáp cho “${res.script}” – chờ Giám đốc duyệt.`, { type: "success" });
+        await this.refresh();
+    }
+
+    openScript(id) {
+        return this.action.doAction({ type: "ir.actions.act_window", res_model: "dmag.ai.reply.script", res_id: id, views: [[false, "form"]], target: "current" });
+    }
+
+    openScripts() {
+        return this.action.doAction("dmag_ai_customer.action_dmag_ai_reply_script");
     }
 
     async refresh() {

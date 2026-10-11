@@ -7,7 +7,7 @@
                     <div class="dmag-brand-mark">D</div>
                     <div>
                         <h1>Mô phỏng Zalo OA <span class="dmag-ai-code">AI-07</span></h1>
-                        <span class="dmag-ws-sub">Đóng vai khách nhắn OA · trợ lý tra bảng giá, giờ trống và giữ chỗ thật trong Odoo</span>
+                        <span class="dmag-ws-sub">Đóng vai khách nhắn OA · chế độ <b t-esc="MODE_LABELS[replyMode]"/> · trợ lý chỉ tự gửi khi khớp kịch bản Giám đốc đã duyệt</span>
                     </div>
                 </div>
                 <div class="dmag-ws-actions">
@@ -24,6 +24,7 @@
                         </div>
                     </div>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="() => this.start()"><i class="fa fa-refresh me-1" title="Mới"/>Khách mới</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openScripts"><i class="fa fa-book me-1" title="Kịch bản"/>Kịch bản</button>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="openInbox"><i class="fa fa-inbox me-1" title="Hộp thư"/>Hộp thư lễ tân</button>
                     <button class="dmag-btn dmag-btn-primary" t-on-click="openFrontDesk"><i class="fa fa-columns me-1" title="Bảng điều phối"/>Bảng điều phối</button>
                 </div>
@@ -64,8 +65,8 @@
                 <section class="dmag-ai-trace">
                     <div class="dmag-panel-title">
                         <span><i class="fa fa-cogs me-1" title="Công cụ"/>Bên trong Odoo – trợ lý đã gọi công cụ gì</span>
-                        <span class="dmag-hint" t-if="liveMode">Claude tự chọn công cụ (không ép tool_choice)</span>
-                        <span class="dmag-hint" t-else="">Giả lập: nhận diện ý định → gọi đúng các công cụ thật</span>
+                        <span class="dmag-hint" t-if="liveMode">Claude phân loại ý định CHỈ trong các kịch bản đã duyệt</span>
+                        <span class="dmag-hint" t-else="">Giả lập: so khớp từ khóa / câu mẫu với kịch bản đã duyệt</span>
                     </div>
                     <div t-if="!botTurns.length" class="dmag-empty-sm">
                         Nhắn thử ở điện thoại bên trái. Gợi ý kịch bản demo:
@@ -73,12 +74,35 @@
                             <button t-foreach="DEMO_SCRIPT" t-as="s" t-key="s" class="dmag-phrase" t-on-click="() => this.send(s)" t-esc="s"/>
                         </div>
                     </div>
-                    <article t-foreach="botTurns" t-as="turn" t-key="turn.id" class="dmag-ai-turn">
+                    <article t-foreach="botTurns" t-as="turn" t-key="turn.id" t-att-class="'dmag-ai-turn ' + decisionClass(turn)">
+                        <div t-if="turn.question" class="dmag-ai-turn-q"><i class="fa fa-user-o me-1" title="Khách"/><t t-esc="turn.question"/></div>
+                        <div t-if="turn.decision" t-att-class="'dmag-ai-decision ' + decisionClass(turn)">
+                            <t t-if="turn.auto">
+                                <i class="fa fa-check-circle" title="Tự gửi"/>
+                                <div>
+                                    <div class="dmag-ai-decision-title">
+                                        <t t-if="turn.script">Khớp kịch bản “<t t-esc="turn.script.name"/>”</t>
+                                        <t t-else="" t-esc="turn.decision_label"/>
+                                        <span t-if="turn.confidence" class="dmag-ai-confpct"><t t-esc="turn.confidence"/>%</span>
+                                    </div>
+                                    <div class="dmag-ai-decision-sub"><t t-esc="turn.decision_label"/><t t-if="turn.decision_note"> · <t t-esc="turn.decision_note"/></t></div>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <i t-att-class="'fa ' + (turn.decision === 'emergency' ? 'fa-ambulance' : 'fa-user-circle')" title="Chuyển nhân viên"/>
+                                <div>
+                                    <div class="dmag-ai-decision-title"><t t-esc="turn.decision_label"/>
+                                        <span t-if="turn.state === 'pending'" class="dmag-chip is-warning ms-1">Nháp chờ duyệt – khách chưa thấy</span></div>
+                                    <div class="dmag-ai-decision-sub" t-esc="turn.decision_note"/>
+                                </div>
+                            </t>
+                        </div>
                         <div class="dmag-ai-turn-head">
                             <span class="dmag-ai-turn-time" t-esc="turn.time"/>
                             <span class="dmag-ai-turn-reply" t-esc="turn.body.split('\n')[0]"/>
                             <AiBadge mode="turn.simulated ? 'simulate' : 'live'" estimated="turn.estimated_cost_vnd" cost="turn.cost_vnd"/>
                         </div>
+                        <div t-if="turn.state === 'pending'" class="dmag-ai-draft"><b>Nháp gửi lễ tân duyệt:</b> <t t-esc="turn.body"/></div>
                         <div t-if="!turn.trace.length" class="dmag-ai-step is-none">Không cần gọi công cụ.</div>
                         <div t-foreach="turn.trace" t-as="step" t-key="step_index" t-att-class="'dmag-ai-step' + (step.error ? ' is-error' : '')">
                             <t t-set="meta" t-value="toolMeta(step)"/>

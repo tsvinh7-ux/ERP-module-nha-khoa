@@ -54,9 +54,14 @@
                         <button t-foreach="days" t-as="d" t-key="d.iso" t-att-class="'dmag-day' + (state.date === d.iso ? ' is-on' : '')" t-on-click="() => this.setDate(d.iso)" t-esc="d.label"/>
                         <input type="date" class="dmag-input mb-0" t-att-value="state.date" t-on-change="(ev) => this.setDate(ev.target.value)"/>
                     </div>
+                    <div t-if="state.dayInfo" t-att-class="'dmag-day-hours' + (state.dayInfo.open ? '' : ' is-closed')">
+                        <i t-att-class="'fa me-1 ' + (state.dayInfo.open ? 'fa-clock-o' : 'fa-ban')" title="Lịch làm việc"/>
+                        <t t-if="state.dayInfo.open"><t t-esc="state.dayInfo.weekday"/>: làm việc <b t-esc="state.dayInfo.text"/></t>
+                        <t t-else=""><t t-esc="state.dayInfo.weekday"/>: <b>phòng khám nghỉ</b><t t-if="state.dayInfo.closure"> – <t t-esc="state.dayInfo.closure"/></t></t>
+                    </div>
                     <div t-if="state.loadingSlots" class="text-muted small py-3">Đang tìm giờ trống…</div>
                     <t t-else="">
-                        <div t-if="!state.slots.length" class="dmag-empty-sm">Không còn giờ trống trong ngày này.</div>
+                        <div t-if="!state.slots.length" class="dmag-empty-sm"><t t-if="state.dayInfo and !state.dayInfo.open">Ngày nghỉ theo lịch làm việc phòng khám – chọn ngày khác.</t><t t-else="">Không còn giờ trống trong ngày này.</t></div>
                         <div t-foreach="[['Buổi sáng', morningSlots], ['Buổi chiều – tối', afternoonSlots]]" t-as="grp" t-key="grp[0]" class="dmag-slot-group" t-if="grp[1].length">
                             <div class="dmag-slot-label" t-esc="grp[0]"/>
                             <div class="dmag-slots">

@@ -12,3 +12,9 @@ access_dmag_ai_followup_user,dmag.ai.followup receptionist,model_dmag_ai_followu
 access_dmag_ai_followup_manager,dmag.ai.followup manager,model_dmag_ai_followup,dmag_dental_base.group_dmag_manager,1,1,1,1
 access_dmag_ai_smile_user,dmag.ai.smile receptionist,model_dmag_ai_smile,dmag_dental_base.group_dmag_receptionist,1,1,1,0
 access_dmag_ai_smile_manager,dmag.ai.smile manager,model_dmag_ai_smile,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_reply_tool_user,dmag.ai.reply.tool receptionist,model_dmag_ai_reply_tool,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_reply_tool_director,dmag.ai.reply.tool director,model_dmag_ai_reply_tool,dmag_dental_base.group_dmag_director,1,1,1,1
+access_dmag_ai_reply_script_user,dmag.ai.reply.script receptionist,model_dmag_ai_reply_script,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_reply_script_manager,dmag.ai.reply.script manager,model_dmag_ai_reply_script,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_reply_example_user,dmag.ai.reply.example receptionist,model_dmag_ai_reply_example,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_reply_example_manager,dmag.ai.reply.example manager,model_dmag_ai_reply_example,dmag_dental_base.group_dmag_manager,1,1,1,1

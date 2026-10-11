@@ -26,6 +26,7 @@
                         <group string="Chuyên môn">
                             <field name="clinical_level_id"/>
                             <field name="scope_ids" widget="many2many_tags"/>
+                            <field name="work_weekday_ids" widget="many2many_checkboxes"/>
                         </group>
                     </group>
                     <group string="Giấy phép hành nghề">

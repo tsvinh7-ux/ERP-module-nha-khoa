@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.RxOverrideDialog">
+        <Dialog title="'Duyệt vượt &amp; ký chịu trách nhiệm'" size="'lg'" contentClass="'dmag-dialog dmag-rx-override'">
+            <div class="dmag-rxo-head">
+                <i class="fa fa-gavel" title="Duyệt vượt"/>
+                <div>
+                    <div class="fw-bold">Đơn thuốc vi phạm quy tắc an toàn cố định</div>
+                    <div class="small text-muted">
+                        <t t-if="props.patient">Bệnh nhân <b t-esc="props.patient"/></t>
+                        <t t-if="props.doctor"> · BS kê đơn <t t-esc="props.doctor"/></t>
+                        · chỉ Giám đốc được duyệt vượt
+                    </div>
+                </div>
+            </div>
+            <div class="dmag-rxo-label">Quy tắc bị vượt (<t t-esc="props.blocks.length"/>)</div>
+            <ul class="dmag-rxo-rules">
+                <li t-foreach="props.blocks" t-as="f" t-key="f_index">
+                    <span class="dmag-ai-level is-block"><i class="fa fa-ban me-1" title="CHẶN"/>CHẶN</span>
+                    <span><b t-esc="f.title"/> – <t t-esc="f.drug"/>: <t t-esc="f.message"/></span>
+                </li>
+            </ul>
+            <label class="dmag-rxo-label" for="dmag_rxo_reason">Lý do duyệt vượt <span class="text-danger">*</span></label>
+            <textarea id="dmag_rxo_reason" class="dmag-input dmag-rxo-reason" rows="4" t-model="state.reason"
+                      placeholder="Ví dụ: Đã hỏi lại bệnh nhân và người nhà – phản ứng trước đây là buồn nôn, không phải dị ứng. Theo dõi tại phòng khám 30 phút sau liều đầu."/>
+            <div class="small text-muted mb-2">
+                Tối thiểu <t t-esc="MIN_REASON"/> ký tự (hiện <t t-esc="state.reason.trim().length"/>). Lý do, người duyệt,
+                thời điểm và các quy tắc bị vượt được ghi vào đơn thuốc (chỉ đọc) và nhật ký trao đổi.
+            </div>
+            <label class="dmag-rxo-confirm">
+                <input type="checkbox" t-model="state.confirm"/>
+                <span>Tôi đã xem xét lợi ích / nguy cơ, <b>ký bổ sung và chịu trách nhiệm</b> về quyết định phát hành
+                    đơn thuốc này. Hệ thống gửi yêu cầu ký số (nếu phòng khám đã cấu hình ký số).</span>
+            </label>
+            <div t-if="state.error" class="alert alert-danger mt-2 mb-0" t-esc="state.error"/>
+            <t t-set-slot="footer">
+                <button class="dmag-btn dmag-btn-ghost" t-on-click="props.close">Hủy</button>
+                <button class="dmag-btn dmag-btn-danger" t-att-disabled="!canSubmit" t-on-click="submit">
+                    <span t-if="state.saving" class="dmag-ai-spinner"/><i t-else="" class="fa fa-gavel me-1" title="Duyệt vượt"/>
+                    Duyệt vượt, ký &amp; phát hành
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

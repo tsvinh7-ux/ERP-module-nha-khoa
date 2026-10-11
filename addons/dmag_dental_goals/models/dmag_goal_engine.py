@@ -16,10 +16,13 @@ import pytz
 
 from odoo import api, fields, models
 
+from odoo.addons.dmag_dental_base.models.dmag_clinic_schedule import AFTERNOON_WINDOW, MORNING_WINDOW
+
 from .dmag_goal_metrics import METRICS
 
-MORNING = (time(8, 0), time(12, 0))
-AFTERNOON = (time(13, 30), time(16, 30))
+# Buổi sáng / chiều = phần giờ mở cửa trước / sau 12:00 theo Lịch làm việc phòng khám (dmag.clinic.schedule)
+MORNING = MORNING_WINDOW
+AFTERNOON = AFTERNOON_WINDOW
 SHOWED = ('arrived', 'in_chair', 'done')
 PRESENTED = ('presented', 'accepted', 'in_progress', 'done', 'cancel')
 ACCEPTED = ('accepted', 'in_progress', 'done')
@@ -61,6 +64,15 @@ class GoalScope:
 
     def doctor_domain(self, field='doctor_id'):
         return [(field, '=', self.doctor.id)] if self.doctor else []
+
+    @property
+    def schedule(self):
+        """Lịch làm việc phòng khám (ngày mở cửa, ca) – của công ty đầu tiên trong phạm vi."""
+        return self.cached('schedule', lambda: self.env['dmag.clinic.schedule'].get_info(
+            self.companies[:1] or self.env.company))
+
+    def open_days(self, date_from=None, date_to=None):
+        return self.schedule.open_days(date_from or self.date_from, date_to or self.date_to)
 
     @property
     def elapsed_to(self):
@@ -261,28 +273,18 @@ class DmagGoalEngine(models.AbstractModel):
         return round(sum(visits.mapped('wait_minutes')) / len(visits), 1)
 
     def _chair_util(self, s, window):
+        """Công suất ghế trong ``window`` (phút trong ngày) chỉ tính giờ MỞ CỬA của các ngày làm việc đã qua."""
         chairs = s.M('dmag.dental.chair').search([('company_id', 'in', s.companies.ids)])
         last_day = s.elapsed_to
         if not chairs or last_day < s.date_from:
             return None
-        days = {s.date_from + timedelta(days=i) for i in range((last_day - s.date_from).days + 1)}
-        days = {d for d in days if d.weekday() != 6}
+        days = s.open_days(s.date_from, last_day)
         if not days:
             return None
-        slot = (datetime.combine(s.date_from, window[1]) - datetime.combine(s.date_from, window[0])).seconds / 60
-        available = len(days) * len(chairs) * slot
-        if s.doctor:
-            available = len(days) * slot  # một bác sĩ: tối đa một ghế tại một thời điểm
-        booked = 0.0
-        for visit in s.visits.filtered(lambda v: v.state not in ('cancel', 'no_show') and v.chair_id):
-            start = s.local(visit.scheduled_start)
-            end = s.local(visit.scheduled_end or visit.scheduled_start)
-            if start.date() not in days:
-                continue
-            win_start = datetime.combine(start.date(), window[0])
-            win_end = datetime.combine(start.date(), window[1])
-            booked += max(0.0, (min(end, win_end) - max(start, win_start)).total_seconds() / 60)
-        return round(booked * 100.0 / available, 1) if available else None
+        intervals = [(s.local(v.scheduled_start), s.local(v.scheduled_end or v.scheduled_start))
+                     for v in s.visits.filtered(lambda v: v.state not in ('cancel', 'no_show') and v.chair_id)]
+        # một bác sĩ: tối đa một ghế tại một thời điểm
+        return s.schedule.chair_utilization(days, 1 if s.doctor else len(chairs), intervals, window)
 
     def _metric_chair_util_am(self, s):
         return self._chair_util(s, MORNING)

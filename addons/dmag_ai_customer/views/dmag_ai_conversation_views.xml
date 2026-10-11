@@ -62,6 +62,10 @@
                                     <field name="role"/>
                                     <field name="body"/>
                                     <field name="state"/>
+                                    <field name="decision" optional="show"/>
+                                    <field name="script_id" optional="show"/>
+                                    <field name="match_confidence" widget="percentage" optional="hide"/>
+                                    <field name="decision_note" optional="hide"/>
                                     <field name="visit_id"/>
                                     <field name="estimated_cost_vnd" optional="hide"/>
                                 </tree>

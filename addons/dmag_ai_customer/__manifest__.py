@@ -20,8 +20,10 @@
         'security/dmag_ai_customer_security.xml',
         'security/ir.model.access.csv',
         'data/dmag_ai_customer_data.xml',
+        'data/dmag_ai_reply_tool_data.xml',
         'data/ir_cron_data.xml',
         'views/dmag_ai_conversation_views.xml',
+        'views/dmag_ai_reply_script_views.xml',
         'views/dmag_ai_feedback_views.xml',
         'views/dmag_ai_care_views.xml',
         'views/dmag_ai_followup_views.xml',
@@ -45,5 +47,6 @@
             'dmag_ai_customer/static/src/portal/portal_ai.js',
         ],
     },
+    'post_init_hook': 'post_init_hook',
     'installable': True,
 }

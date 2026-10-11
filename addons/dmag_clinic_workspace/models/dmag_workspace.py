@@ -6,6 +6,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
+# Giới hạn ngoài cùng (dự phòng) – giờ làm việc thật lấy từ Lịch làm việc phòng khám (dmag.clinic.schedule)
 OPEN_HOUR = 8
 CLOSE_HOUR = 20
 SLOT_STEP = 15
@@ -111,40 +112,59 @@ class DmagWorkspace(models.AbstractModel):
 
     # ------------------------------------------------------------------ slots
     @api.model
-    def get_free_slots(self, date, doctor_id=False, duration=30):
-        """Khung giờ trống trong ngày (giờ địa phương) theo bác sĩ và ghế.
+    def _schedule_info(self):
+        return self.env['dmag.clinic.schedule'].get_info(self.env.company)
 
+    @api.model
+    def get_day_info(self, date):
+        """Ngày mở cửa / nghỉ và các ca (Lịch làm việc phòng khám) cho hộp thoại đặt lịch."""
+        return self.env['dmag.clinic.schedule'].get_day_info(date)
+
+    @api.model
+    def get_free_slots(self, date, doctor_id=False, duration=30):
+        """Khung giờ trống trong ngày (giờ địa phương) theo Lịch làm việc phòng khám, bác sĩ và ghế.
+
+        Chỉ trả các giờ nằm TRỌN trong một ca làm việc (không vắt qua giờ nghỉ trưa / giờ đóng cửa); ngày nghỉ lễ,
+        thứ nghỉ → rỗng. Bác sĩ có ngày làm việc riêng mà không làm ngày này → ``doctor_free`` = False.
         Trả về [{'time': 'HH:MM', 'chairs': [chair_id…], 'doctor_free': bool, 'afternoon': bool}]
-        – ưu tiên hiển thị khung chiều (13:30–16:30) để lấp ghế trống.
+        – ``afternoon`` đánh dấu khung chiều (13:30–16:30) cần lấp ghế.
         """
         day = fields.Date.from_string(date)
         duration = int(duration or 30)
-        start = self._local_to_utc(day, OPEN_HOUR)
-        end = self._local_to_utc(day, CLOSE_HOUR)
+        info = self._schedule_info()
+        shifts = info.shifts(day)
+        if not shifts:
+            return []
+        step = info.slot_step or SLOT_STEP
+        start = self._local_to_utc(day, shifts[0][0] // 60, shifts[0][0] % 60)
+        end = self._local_to_utc(day, min(shifts[-1][1], 23 * 60 + 59) // 60, min(shifts[-1][1], 23 * 60 + 59) % 60)
         visits = self.env['dmag.dental.visit'].search([
             ('state', 'in', ('draft', 'confirmed', 'arrived', 'in_chair')),
             ('scheduled_start', '<', end), ('scheduled_end', '>', start),
         ])
         chairs = self.env['dmag.dental.chair'].search([])
+        doctor = self.env['dmag.dental.practitioner'].browse(doctor_id) if doctor_id else None
+        doctor_works = not doctor or doctor.works_on(day, info)
         now = fields.Datetime.now()
         slots = []
-        cursor = start
-        while cursor + timedelta(minutes=duration) <= end:
-            slot_end = cursor + timedelta(minutes=duration)
-            overlapping = visits.filtered(lambda v: v.scheduled_start < slot_end and v.scheduled_end > cursor)
-            busy_chairs = set(overlapping.mapped('chair_id').ids)
-            free_chairs = [c.id for c in chairs if c.id not in busy_chairs]
-            doctor_free = not doctor_id or not overlapping.filtered(lambda v: v.doctor_id.id == doctor_id)
-            local = pytz.utc.localize(cursor).astimezone(self._tz())
-            if cursor > now and free_chairs:
-                minutes = local.hour * 60 + local.minute
-                slots.append({
-                    'time': local.strftime('%H:%M'),
-                    'chairs': free_chairs,
-                    'doctor_free': bool(doctor_free),
-                    'afternoon': 13 * 60 + 30 <= minutes < 16 * 60 + 30,
-                })
-            cursor += timedelta(minutes=SLOT_STEP)
+        for shift_start, shift_end in shifts:
+            minute = shift_start
+            while minute + duration <= shift_end:
+                cursor = self._local_to_utc(day, minute // 60, minute % 60)
+                slot_end = cursor + timedelta(minutes=duration)
+                overlapping = visits.filtered(lambda v: v.scheduled_start < slot_end and v.scheduled_end > cursor)
+                busy_chairs = set(overlapping.mapped('chair_id').ids)
+                free_chairs = [c.id for c in chairs if c.id not in busy_chairs]
+                doctor_free = doctor_works and (
+                    not doctor_id or not overlapping.filtered(lambda v: v.doctor_id.id == doctor_id))
+                if cursor > now and free_chairs:
+                    slots.append({
+                        'time': '%02d:%02d' % (minute // 60, minute % 60),
+                        'chairs': free_chairs,
+                        'doctor_free': bool(doctor_free),
+                        'afternoon': 13 * 60 + 30 <= minute < 16 * 60 + 30,
+                    })
+                minute += step
         return slots
 
     @api.model

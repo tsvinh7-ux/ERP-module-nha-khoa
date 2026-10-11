@@ -6,12 +6,19 @@ import { useService } from "@web/core/utils/hooks";
 import { AiBadge, formatVnd, summarizeTool, TOOL_LABELS } from "../components/ai_badge";
 
 const DEMO_SCRIPT = [
-    "Chào phòng khám",
     "Cạo vôi răng giá bao nhiêu ạ?",
-    "Cho em đặt lịch cạo vôi chiều nay",
-    "Mấy giờ mở cửa vậy?",
+    "Phòng khám mở cửa mấy giờ vậy?",
+    "Có chỗ đậu ô tô không ạ?",
+    "Cho em đặt lịch cạo vôi chiều mai",
+    "Bên mình có xuất hóa đơn cho công ty không?",
+    "Răng em bị ê buốt khi uống nước lạnh, có sao không ạ?",
     "Răng em sưng to và chảy máu không cầm",
 ];
+const MODE_LABELS = {
+    approve: "Nhân viên duyệt mọi câu",
+    script: "Tự động theo kịch bản đã duyệt",
+    auto: "Tự động hoàn toàn",
+};
 
 /** AI-07 – Mô phỏng Zalo OA: chủ phòng khám đóng vai khách, xem AI gọi công cụ thật và lịch xuất hiện trên bảng điều phối. */
 export class ZaloSimulator extends Component {
@@ -29,6 +36,7 @@ export class ZaloSimulator extends Component {
         this.summarizeTool = summarizeTool;
         this.formatVnd = formatVnd;
         this.DEMO_SCRIPT = DEMO_SCRIPT;
+        this.MODE_LABELS = MODE_LABELS;
         this.state = useState({
             thread: null,
             status: { mode: "simulate" },
@@ -47,12 +55,36 @@ export class ZaloSimulator extends Component {
         onMounted(() => this.scroll());
     }
 
-    get chatMessages() {
+    get allMessages() {
         return this.state.thread ? this.state.thread.messages : [];
     }
 
+    /** Điện thoại của khách: không thấy câu trả lời đang chờ nhân viên duyệt / đã bỏ. */
+    get chatMessages() {
+        return this.allMessages.filter((m) => !["pending", "discarded"].includes(m.state));
+    }
+
+    /** Mỗi lượt trợ lý xử lý (câu trả lời, mẫu an toàn, tin báo đã nhận) – mới nhất trước. */
     get botTurns() {
-        return this.chatMessages.filter((m) => m.role === "bot").slice().reverse();
+        return this.allMessages
+            .filter((m) => m.role === "bot" || (m.role === "system" && m.decision && m.decision !== "ack"))
+            .slice()
+            .reverse();
+    }
+
+    get replyMode() {
+        return (this.state.thread && this.state.thread.reply_mode) || "script";
+    }
+
+    decisionClass(turn) {
+        if (turn.decision === "emergency") {
+            return "is-danger";
+        }
+        return turn.auto ? "is-ok" : turn.escalated ? "is-warning" : "is-info";
+    }
+
+    openScripts() {
+        return this.action.doAction("dmag_ai_customer.action_dmag_ai_reply_script");
     }
 
     get lastQuick() {

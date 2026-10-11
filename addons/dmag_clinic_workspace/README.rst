@@ -15,3 +15,9 @@ Giao diện vận hành cho người không quen Odoo (tablet-first, nhận di�
   bệnh nhân tự chọn → lập hợp đồng; in bản tóm tắt.
 * **Bảng điều hành mục tiêu** (chủ phòng khám): màn hình và mục tiêu kinh doanh nằm ở module
   ``dmag_dental_goals``; module này giữ hành động ``action_dmag_owner_cockpit`` (đường dẫn cũ vẫn mở được).
+* **Giờ trống đặt lịch theo Lịch làm việc phòng khám** (``dmag.clinic.schedule`` của ``dmag_dental_base``):
+  ``dmag.workspace.get_free_slots`` chỉ trả giờ nằm trọn trong một ca (không vắt qua nghỉ trưa / giờ đóng cửa), ngày
+  nghỉ lễ / thứ nghỉ → rỗng, bác sĩ không làm ngày đó → ``doctor_free`` = False; bước khung giờ theo cấu hình.
+  Hộp thoại *Đặt lịch* hiện giờ làm việc của ngày (hoặc "phòng khám nghỉ – lý do", ``get_day_info``). Đặt / dời lịch
+  tương lai ngoài giờ: lễ tân / bác sĩ bị chặn, Quản lý trở lên đặt được (ghi chatter) – kiểm tra nằm ở
+  ``dmag.dental.visit`` (``dmag_dental_clinic``) nên áp cho mọi đường đặt lịch.

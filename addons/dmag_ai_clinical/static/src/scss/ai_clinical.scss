@@ -248,3 +248,36 @@ $ai-grad: linear-gradient(135deg, $ai-purple, $ai-blue);
 }
 .dmag-ai-vital-label { font-weight: 600; }
 .dmag-ai-box.is-lower .dmag-ai-box-label { top: auto; bottom: -20px; }
+
+// AI-03 – chặn mọi đường phát hành / Giám đốc duyệt vượt
+.dmag-ai-rx-override {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; padding: 8px 10px;
+    border-radius: 10px; background: #fff; border: 1px dashed #F5B5B7; font-size: 13px; color: $ai-text;
+    &.is-attention { border-style: solid; border-color: $ai-danger; box-shadow: 0 0 0 3px rgba(229, 72, 77, .12); }
+    &.is-ok { border: 1px solid #F7D9A6; background: #FFF9EE; display: block; }
+    .fa-lock, .fa-gavel { color: $ai-danger; }
+    &.is-ok .fa-gavel { color: #B26B00; }
+}
+.dmag-btn.dmag-btn-danger {
+    background: $ai-danger; color: #fff; border: 1px solid $ai-danger;
+    &:hover:not(:disabled) { background: darken($ai-danger, 6%); }
+    &:disabled { opacity: .5; }
+}
+.dmag-rx-override {
+    .dmag-rxo-head {
+        display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; margin-bottom: 12px;
+        background: #FFF5F5; border: 1px solid #F5B5B7;
+        > .fa { font-size: 22px; color: $ai-danger; }
+    }
+    .dmag-rxo-label { display: block; font-weight: 700; font-size: 13px; margin: 8px 0 4px; color: $ai-text; }
+    .dmag-rxo-rules {
+        list-style: none; margin: 0 0 6px; padding: 0;
+        li { display: flex; gap: 8px; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #F1F3F7; }
+    }
+    .dmag-rxo-reason { width: 100%; resize: vertical; min-height: 96px; }
+    .dmag-rxo-confirm {
+        display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px;
+        background: #FFF9EE; border: 1px solid #F7D9A6; font-size: 13px; cursor: pointer;
+        input { margin-top: 3px; width: 16px; height: 16px; flex: none; }
+    }
+}

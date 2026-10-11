@@ -39,6 +39,7 @@ export class BookingDialog extends Component {
             confirm: true,
             saving: false,
             loadingSlots: false,
+            dayInfo: null,
         });
         this.days = [0, 1, 2, 3, 4, 5, 6].map((o) => {
             const d = new Date();
@@ -111,7 +112,12 @@ export class BookingDialog extends Component {
     async loadSlots() {
         this.state.loadingSlots = true;
         this.state.time = "";
-        this.state.slots = await this.orm.call("dmag.workspace", "get_free_slots", [this.state.date, this.state.doctorId, this.duration]);
+        const [slots, dayInfo] = await Promise.all([
+            this.orm.call("dmag.workspace", "get_free_slots", [this.state.date, this.state.doctorId, this.duration]),
+            this.orm.call("dmag.workspace", "get_day_info", [this.state.date]),
+        ]);
+        this.state.slots = slots;
+        this.state.dayInfo = dayInfo;
         this.state.loadingSlots = false;
     }
 

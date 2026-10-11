@@ -24,6 +24,25 @@
                     <div class="dmag-ai-explain-title"><AiMeta meta="aiRx.meta"/> Giải thích dễ hiểu</div>
                     <div class="dmag-ai-pre" t-esc="aiRx.explain"/>
                 </div>
+                <div t-if="aiRx.check.blocks and aiRx.check.override_valid" class="dmag-ai-rx-override is-ok">
+                    <i class="fa fa-gavel me-1" title="Duyệt vượt"/>
+                    <b>Giám đốc <t t-esc="aiRx.check.override.user"/> đã duyệt vượt</b> lúc <t t-esc="aiRx.check.override.date"/>
+                    – lý do: <t t-esc="aiRx.check.override.reason"/>. Đơn được phát hành theo duyệt vượt (có ghi vết).
+                </div>
+                <div t-elif="aiRx.check.blocks" t-att-class="'dmag-ai-rx-override' + (aiRx.blockedAttempt ? ' is-attention' : '')">
+                    <div class="flex-grow-1">
+                        <b><i class="fa fa-lock me-1" title="Khóa"/>Không phát hành được</b> – vi phạm quy tắc an toàn trên mọi đường phát hành.
+                        <t t-if="aiRx.check.is_director"> Là Giám đốc, anh/chị có thể duyệt vượt kèm lý do và ký bổ sung chịu trách nhiệm.</t>
+                        <t t-elif="aiRx.check.override_requested"> Đã đề nghị Giám đốc duyệt vượt – chờ Giám đốc xử lý (hoặc sửa đơn).</t>
+                        <t t-else=""> Sửa đơn, hoặc đề nghị Giám đốc duyệt vượt nếu thật sự cần.</t>
+                    </div>
+                    <button t-if="aiRx.check.is_director" class="dmag-btn dmag-btn-danger dmag-btn-sm" t-att-disabled="state.saving" t-on-click="aiRxOpenOverride">
+                        <i class="fa fa-gavel me-1" title="Duyệt vượt"/>Duyệt vượt &amp; ký chịu trách nhiệm
+                    </button>
+                    <button t-else="" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-att-disabled="aiRx.requesting or aiRx.check.override_requested" t-on-click="aiRxRequestOverride">
+                        <i class="fa fa-paper-plane me-1" title="Đề nghị"/><t t-esc="aiRx.check.override_requested ? 'Đã đề nghị Giám đốc' : 'Đề nghị Giám đốc duyệt vượt'"/>
+                    </button>
+                </div>
                 <div class="d-flex gap-2 mt-2 align-items-center">
                     <button t-if="aiRxExplainOn" class="dmag-btn dmag-ai-btn dmag-btn-sm" t-att-disabled="aiRx.explaining" t-on-click="aiRxExplain">
                         <span t-if="aiRx.explaining" class="dmag-ai-spinner"/><i t-else="" class="fa fa-magic me-1" title="AI"/>AI giải thích

@@ -1,7 +1,8 @@
 """Bảng điều hành mục tiêu – một RPC ``get_goal_dashboard(period_type, date_ref)`` trả về toàn bộ màn hình.
 
 Mọi thẻ đều theo cùng một khung "mục tiêu – thực tế – nhịp độ":
-* % đạt = thực tế / mục tiêu; % kỳ đã qua (theo ngày làm việc thứ Hai–thứ Bảy);
+* % đạt = thực tế / mục tiêu; % kỳ đã qua (theo ngày làm việc của Lịch làm việc phòng khám – thứ nghỉ, nghỉ lễ
+  không tính);
 * dự báo cuối kỳ (chỉ số cộng dồn) = thực tế / ngày làm việc đã qua × tổng ngày làm việc của kỳ;
 * còn thiếu + "cần thêm X / ngày làm việc còn lại";
 * trạng thái: Đúng tiến độ (dự báo ≥ 100% mục tiêu) / Chậm (90–100%) / Nguy cơ (< 90%);
@@ -17,7 +18,7 @@ from odoo.addons.dmag_dental_base.models.dmag_access import is_director, is_mana
 
 from .dmag_goal_engine import ACCEPTED, SHOWED
 from .dmag_goal_metrics import (AFTER_CARE, METRICS, NORTH_STAR, PERIOD_MONTHS, SERVICE, period_bounds,
-                                period_label, period_short_label, shift_period, working_days)
+                                period_label, period_short_label, shift_period)
 
 STATUS_LABELS = {
     'on_track': 'Đúng tiến độ', 'behind': 'Chậm', 'at_risk': 'Nguy cơ', 'achieved': 'Đã đạt',
@@ -65,8 +66,10 @@ class GoalBoard:
         self.d_from, self.d_to = d_from, d_to
         self.companies = companies
         self.today = today
-        self.wd_total = working_days(d_from, d_to)
-        self.wd_elapsed = working_days(d_from, min(today, d_to)) if today >= d_from else 0
+        # ngày làm việc theo Lịch làm việc phòng khám (thứ nghỉ, nghỉ lễ không tính)
+        schedule = env['dmag.clinic.schedule'].get_info(companies[:1] or env.company)
+        self.wd_total = schedule.count_open_days(d_from, d_to)
+        self.wd_elapsed = schedule.count_open_days(d_from, min(today, d_to)) if today >= d_from else 0
         self.wd_left = self.wd_total - self.wd_elapsed
         self.is_past = today > d_to
         self.is_future = today < d_from
@@ -574,7 +577,7 @@ class DmagGoalDashboard(models.AbstractModel):
                 'plan_acceptance': 'Rà các kế hoạch "Đã tư vấn" chưa chốt, hẹn tư vấn lại với bác sĩ.',
                 'gross_profit': 'Rà vật tư phát sinh ngoài định mức và chi phí labo làm lại.',
                 'avg_wait': 'Xem lại xếp lịch: tránh 2 ca nặng trùng giờ, gọi khách đến đúng giờ.',
-                'chair_util_pm': 'Ưu tiên xếp lịch khung 13:30–16:30, ưu đãi khung chiều.',
+                'chair_util_pm': 'Ưu tiên xếp lịch vào ca chiều – tối (theo Lịch làm việc), ưu đãi khung giờ vắng.',
                 'nps': 'Gọi khách chấm điểm thấp, xử lý phàn nàn trong 24 giờ.',
                 'complaint_rate': 'Xử lý phiếu phàn nàn đang mở, họp rút kinh nghiệm.',
                 'cogs_ratio': 'Rà vật tư dùng vượt định mức và labo làm lại.',

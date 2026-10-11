@@ -17,6 +17,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import file_open
 
+from odoo.addons.dmag_dental_base.models.dmag_access import is_director
+
 from . import rx_safety
 from .res_company import FPT_DEFAULT_ENDPOINT, VIETTEL_DEFAULT_ENDPOINT
 
@@ -207,6 +209,7 @@ class DmagAiClinical(models.AbstractModel):
         status = {
             'mode': company.dmag_ai_mode,
             'is_doctor': self._is_doctor(),
+            'is_director': is_director(self.env),
             'features': {code: features.get(code, False) for code in CLINICAL_FEATURES},
             'stt_provider': company.dmag_stt_provider or 'simulate',
             'stt_ready': {'fpt': company.dmag_stt_fpt_key_set, 'viettel': company.dmag_stt_viettel_key_set,
@@ -850,17 +853,58 @@ class DmagAiClinical(models.AbstractModel):
 
     # ================================================================== AI-03 an toàn đơn thuốc
     @api.model
-    def rx_check(self, visit_id, lines, weight=0.0):
-        """Quy tắc cố định (không AI) – chạy kể cả khi AI tắt."""
+    def rx_check(self, visit_id, lines, weight=0.0, prescription_id=False):
+        """Quy tắc cố định (không AI) – chạy kể cả khi AI tắt. Kèm trạng thái duyệt vượt của Giám đốc (nếu có đơn)."""
         visit = self._get_visit(visit_id)
         max_days = self.env['dmag.dental.visit'].get_rx_catalog().get('max_days') or 30
         findings = rx_safety.check_lines(self.env, visit.patient_id, lines, max_days=max_days, weight=_num(weight))
-        return {
+        blocks = [f for f in findings if f['level'] == 'block']
+        res = {
             'findings': findings,
-            'blocks': sum(1 for f in findings if f['level'] == 'block'),
+            'blocks': len(blocks),
             'warns': sum(1 for f in findings if f['level'] == 'warn'),
-            'ok': not any(f['level'] == 'block' for f in findings),
+            'ok': not blocks,
+            'is_director': is_director(self.env),
+            'override': False, 'override_valid': False, 'override_requested': False,
+            'patient': visit.patient_id.name or '', 'doctor': visit.doctor_id.name or '',
         }
+        rx = self._get_rx(visit, prescription_id) if prescription_id else None
+        if rx:
+            Rx = self.env['dmag.prescription']
+            res['override'] = rx._rx_override_dict()
+            res['override_requested'] = bool(rx.rx_override_requested_at)
+            res['override_valid'] = bool(blocks and rx.rx_safety_override
+                                         and rx.rx_override_codes == Rx._rx_block_signature(blocks))
+        return res
+
+    @api.model
+    def _get_rx(self, visit, prescription_id):
+        rx = self.env['dmag.prescription'].browse(int(prescription_id or 0)).exists()
+        if not rx or rx.visit_id != visit:
+            raise UserError(_('Đơn thuốc không thuộc lượt khám này.'))
+        return rx
+
+    @api.model
+    def rx_request_override(self, visit_id, prescription_id, note=''):
+        """Bác sĩ: "Đề nghị Giám đốc duyệt vượt" (tạo việc cần làm cho Giám đốc)."""
+        visit = self._get_visit(visit_id)
+        return self._get_rx(visit, prescription_id).action_request_override(note)
+
+    @api.model
+    def rx_override(self, visit_id, prescription_id, reason, confirm=False, issue=True):
+        """Giám đốc: "Duyệt vượt & ký chịu trách nhiệm" – lý do bắt buộc, ghi vết, ký số bổ sung (nếu có)."""
+        visit = self._get_visit(visit_id)
+        rx = self._get_rx(visit, prescription_id)
+        res = rx.action_director_override(reason, confirm=confirm, issue=False)
+        if issue:
+            errors = rx._get_issue_errors()
+            if errors:
+                # duyệt vượt đã lưu; đơn còn thiếu thông tin TT 26 → bác sĩ bổ sung rồi phát hành
+                res.update(issued=False, issue_errors=errors)
+                return res
+            res.update(visit.issue_prescription(rx.id))
+            res['issued'] = True
+        return res
 
     @api.model
     def ai03_explain(self, visit_id, lines, weight=0.0):

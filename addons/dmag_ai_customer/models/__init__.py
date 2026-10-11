@@ -2,6 +2,7 @@ from . import text_utils
 from . import cccd
 from . import res_company
 from . import dmag_ai_reception
+from . import dmag_ai_reply_script
 from . import dmag_ai_conversation
 from . import dmag_ai_feedback
 from . import dmag_ai_noshow

@@ -23,6 +23,7 @@ import pytz
 from dateutil.relativedelta import relativedelta
 
 from odoo import SUPERUSER_ID, fields
+from odoo.exceptions import UserError, ValidationError
 
 from . import data as D
 
@@ -220,12 +221,40 @@ class DemoGenerator:
             self.at(when)
             self.try_('Sự kiện %s' % getattr(func, '__name__', func), func, *args)
 
+    @property
+    def clinic_schedule(self):
+        """Lịch làm việc phòng khám (dmag.clinic.schedule) – lịch sử chỉ sinh vào ngày / giờ mở cửa."""
+        if getattr(self, '_schedule_info', None) is None:
+            self._schedule_info = self.env['dmag.clinic.schedule'].get_info(self.company)
+        return self._schedule_info
+
     def working_days(self, start, end):
         day = start
         while day <= end:
-            if day.weekday() != 6:  # Chủ nhật nghỉ
+            if self.clinic_schedule.is_open_day(day):  # thứ nghỉ, ngày lễ theo Lịch làm việc phòng khám
                 yield day
             day += timedelta(days=1)
+
+    def open_starts(self, day, step=30, min_len=30):
+        """Các giờ bắt đầu (phút trong ngày) nằm trong ca làm việc của ngày ``day``."""
+        return [m for s, e in self.clinic_schedule.shifts(day) for m in range(s, e - min_len + 1, step)]
+
+    def fit_schedule(self, start, duration):
+        """Dời giờ hẹn (UTC naive) vào trọn một ca làm việc: cùng ca thì kéo sớm lại cho kịp giờ đóng ca, rơi vào giờ
+        nghỉ trưa thì sang đầu ca sau."""
+        local = self.to_local(start).replace(tzinfo=None)
+        day, minute = local.date(), local.hour * 60 + local.minute
+        shifts = self.clinic_schedule.shifts(day)
+        if not shifts or self.clinic_schedule.contains(day, minute, minute + duration):
+            return start
+        for s, e in shifts:
+            if s <= minute < e or minute < s:
+                begin = max(s, min(minute, e - duration))
+                if begin + duration <= e:
+                    return self.local_dt(day, begin // 60, begin % 60)
+        s, e = max(shifts, key=lambda se: se[1] - se[0])
+        begin = max(s, e - duration)
+        return self.local_dt(day, begin // 60, begin % 60)
 
     # ======================================================================== entry point
     def run(self):
@@ -495,6 +524,16 @@ class DemoGenerator:
                     vals['mysign_user_id'] = '0790%08d' % self.rng.randint(10000000, 99999999)
                 prac = Prac.create(vals)
             self.prac[key] = prac
+        # Hồ sơ ký số của Giám đốc (LƯU TRỮ – không hiện trong danh sách bác sĩ / xếp lịch) để "ký bổ sung chịu trách
+        # nhiệm" khi duyệt vượt an toàn đơn thuốc (AI-03) bằng nhà cung cấp ký số giả lập
+        director = self.users['director']
+        if not Prac.with_context(active_test=False).search([('user_id', '=', director.id),
+                                                            ('company_id', '=', self.company.id)], limit=1):
+            vals = {'name': director.name, 'title': 'Giám đốc', 'role': 'doctor', 'user_id': director.id,
+                    'company_id': self.company.id, 'license_number': '000999/HCM-CCHN', 'active': False}
+            if 'mysign_user_id' in Prac._fields:
+                vals['mysign_user_id'] = '079000000999'
+            Prac.create(vals)
         for key in ('doctor', 'doctor2'):
             self.try_('Lấy chứng thư ký số giả lập', self.prac[key].action_fetch_mysign_certificate)
         # Nhân viên CSKH mặc định cho hành trình khách hàng
@@ -816,6 +855,8 @@ class DemoGenerator:
 
     # ======================================================================== visit primitives
     def _book(self, ps, start, codes, doctor_key, chair, reason, plan=False, booked_before=None, confirm=True):
+        duration = sum(self.svc[c].dental_duration or 0 for c in codes) or 30
+        start = self.fit_schedule(start, duration)
         booked_at = start - (booked_before if booked_before is not None
                              else timedelta(days=self.rng.randint(1, 6), hours=self.rng.randint(0, 6)))
         self.at(min(booked_at, start))
@@ -1076,9 +1117,11 @@ class DemoGenerator:
             self.run_events(self.local_dt(day, 7, 0))
             n = rng.randint(*VISITS_PER_DAY)
             todo = self._pick_patients(day, day_idx, n)
-            hour_slots = sorted(rng.sample(range(0, 22), len(todo)))  # nửa giờ từ 8:00 tới 18:30
+            # nửa giờ trong ca làm việc của ngày (Lịch làm việc phòng khám), không quá 18:30
+            starts = [m for m in self.open_starts(day) if m <= 18 * 60 + 30] or self.open_starts(day)
+            hour_slots = sorted(rng.sample(starts, min(len(todo), len(starts))))
             for (ps, kind), slot in zip(todo, hour_slots):
-                start = self.local_dt(day, 8 + slot // 2, 30 * (slot % 2) + rng.choice([0, 0, 5, 10]))
+                start = self.local_dt(day, slot // 60, slot % 60 + rng.choice([0, 0, 5, 10]))
                 self._simulate(ps, kind, start, final=True)
             if day_idx >= len(days) - 6 and 'dmag.cash.closing' in self.env:
                 self.schedule(self.local_dt(day, 19, 40), self._cash_closing, day)
@@ -1568,6 +1611,16 @@ class DemoGenerator:
 
     # ======================================================================== today & future
     def _today_board(self):
+        """Bảng điều phối hôm nay luôn có khách để demo ở MỌI giờ mở máy (kể cả ngoài giờ / ngày nghỉ theo Lịch làm
+        việc) – riêng phần này bỏ qua kiểm tra giờ làm việc; lịch sử và lịch tương lai thì theo đúng lịch."""
+        env = self.env
+        self.env = env(context=dict(env.context, dmag_skip_opening_hours=True))
+        try:
+            return self._today_board_inner()
+        finally:
+            self.env = env
+
+    def _today_board_inner(self):
         rng = self.rng
         now = self.now
         local_now = self.to_local(now)
@@ -1643,21 +1696,34 @@ class DemoGenerator:
         queue = due + others
         for d_idx, day in enumerate(future_days):
             n = [6, 4, 3, 2][d_idx]
-            hours = sorted(rng.sample([8, 9, 10, 11, 14, 15, 16, 17, 18], n))
+            starts = [m for m in self.open_starts(day, step=60) if m <= 18 * 60] or self.open_starts(day, step=60)
+            hours = sorted(rng.sample(starts, min(n, len(starts))))
             chair_cycle = itertools.cycle(range(4))
-            for hour in hours:
+            for minute in hours:
                 if not queue:
                     return
                 ps = queue.pop(0)
-                start = self.local_dt(day, hour, rng.choice([0, 30]))
+                start = self.local_dt(day, minute // 60, minute % 60) + timedelta(minutes=rng.choice([0, 30]))
                 kind = 'treatment' if ps.next_due and ps.todo_lines() else 'return'
                 codes, reason, plan = self._visit_plan(ps, kind)
                 chair = self.chairs[next(chair_cycle)]
                 booked_at = self.now - timedelta(hours=rng.randint(1, 72))
                 self.at(booked_at)
                 state_confirm = d_idx == 0 or rng.random() < 0.5
-                self.try_('Đặt lịch tương lai', self._book, ps, start, codes, ps.doctor_key, chair, reason,
-                          plan, start - booked_at, state_confirm)
+                for shift in (0, 90, 180, None):  # trùng ca nặng / ghế → thử giờ khác trong ngày
+                    if shift is None:
+                        self.try_('Đặt lịch tương lai', self._book, ps, start, codes, ps.doctor_key, chair, reason,
+                                  plan, start - booked_at, state_confirm)
+                        break
+                    begin = start + timedelta(minutes=shift)
+                    try:
+                        with self.env.cr.savepoint():
+                            self._book(ps, begin, codes, ps.doctor_key, chair, reason, plan, begin - booked_at,
+                                       state_confirm)
+                        break
+                    except (UserError, ValidationError):
+                        self.at(booked_at)
+                        continue
         self.at(self.now)
 
     # ======================================================================== post processing
@@ -1900,8 +1966,9 @@ class DemoGenerator:
         company = self.company
         if 'dmag_ai_mode' in company._fields:
             self.remember(company, {'dmag_ai_mode': 'simulate'})
-        if 'dmag_ai_clinic_hours' in company._fields:
-            self.remember(company, {'dmag_ai_clinic_hours': 'Thứ 2 – Thứ 7: 8:00 – 19:00 (nghỉ Chủ nhật)'})
+        if 'dmag_ai_zalo_reply_mode' in company._fields:
+            # chủ phòng khám đã chốt: tự trả lời nhưng CHỈ theo kịch bản đã duyệt
+            self.remember(company, {'dmag_ai_zalo_reply_mode': 'script'})
         if 'dmag_ai_consent' in self.env['res.partner']._fields:
             for key, partner in self.patients.items():
                 if key not in D.AI_NO_CONSENT:
@@ -1926,8 +1993,9 @@ class DemoGenerator:
         """2–4 lịch hôm nay / ngày mai có nguy cơ không đến cao: đặt online từ sớm, chưa xác nhận, từng bỏ hẹn."""
         risky = sorted([ps for ps in self.pstates if not ps.is_child],
                        key=lambda ps: (-ps.noshows, not self._is_online(ps.partner), ps.visits, ps.key))[:3]
-        tomorrow = next(self.working_days(self.today + timedelta(days=1), self.today + timedelta(days=7)))
-        slots = [(tomorrow, 14, 0), (tomorrow, 16, 30), (self.today, 17, 30)]
+        tomorrow = next(self.working_days(self.today + timedelta(days=1), self.today + timedelta(days=14)))
+        today_open = self.clinic_schedule.is_open_day(self.today)
+        slots = [(tomorrow, 14, 0), (tomorrow, 16, 30), (self.today, 17, 30) if today_open else (tomorrow, 17, 30)]
         for ps, (day, hour, minute) in zip(risky, slots):
             start = self.local_dt(day, hour, minute)
             if start <= fields.Datetime.now():
@@ -2011,9 +2079,46 @@ class DemoGenerator:
             if self.try_('Hoàn tiền mẫu', refund):
                 self.stats['ai_refunds'] += 1
 
+    def _ai_reply_scripts(self):
+        """12 kịch bản trả lời mẫu (module dmag_ai_customer nạp ở dạng nháp) – Giám đốc demo đọc và DUYỆT bằng nút thật."""
+        Script = self.env['dmag.ai.reply.script']
+        Script._load_samples(self.company)
+        drafts = Script.search([('company_id', '=', self.company.id), ('state', '=', 'draft'),
+                                ('code', 'not like', 'de_xuat_%')])
+        # kịch bản mẫu nạp lúc cài module (trước khi có dịch vụ demo) → gắn dịch vụ báo giá theo danh mục demo
+        from odoo.addons.dmag_ai_customer.models.reply_script_samples import SAMPLE_SCRIPTS
+        words = {x['code']: x.get('services', []) for x in SAMPLE_SCRIPTS}
+        Product = self.env['product.product']
+        for script in drafts.filtered(lambda x: not x.service_ids and words.get(x.code)):
+            services = Product.browse()
+            for word in words[script.code]:
+                services |= Product.search([('is_dental_service', '=', True), ('name', 'ilike', word)], limit=2)
+            script.service_ids = [(6, 0, services.ids)]
+        drafts.with_user(self.users['director']).with_company(self.company).action_approve()
+        self.stats['ai_reply_scripts'] = len(drafts)
+
+    def _ai_train_from_inbox(self, Conv):
+        """Câu hỏi chưa có kịch bản → nháp chờ duyệt; lễ tân sửa & gửi rồi bấm "Đề xuất thành kịch bản" (chờ GĐ duyệt)."""
+        conv = Conv._get_or_create('zalo', external_user_id='zalo-demo-004', name='Chị Vân (Zalo)', phone='0912777888')
+        conv.receive_customer_message('Bên mình có xuất hóa đơn VAT cho công ty không ạ? Công ty em muốn khám định kỳ '
+                                      'cho nhân viên.')
+        pending = conv.message_line_ids.filtered(lambda m: m.state == 'pending')[:1]
+        if not pending:
+            return False
+        receptionist = self.users['receptionist']
+        msg = pending.with_user(receptionist).with_company(self.company)
+        msg.approve_and_edit('Dạ có ạ. Phòng khám xuất hóa đơn điện tử cho công ty (ghi tên, mã số thuế, địa chỉ khi '
+                             'thanh toán). Với gói khám định kỳ cho nhân viên, quản lý sẽ gọi lại báo giá theo số '
+                             'lượng trong hôm nay ạ.')
+        msg.action_promote_to_script()
+        self.stats['ai_conversations'] += 1
+        return True
+
     def _ai_customer_samples(self):
         """Tình huống mẫu cho các tính năng của ``dmag_ai_customer`` (nếu đã cài) – gọi hàm của chính module đó."""
         env = self.env
+        if 'dmag.ai.reply.script' in env:
+            self.try_('Kịch bản trả lời đã duyệt', self._ai_reply_scripts)
         if 'dmag.ai.conversation' in env and hasattr(env['dmag.ai.conversation'], '_get_or_create'):
             Conv = env['dmag.ai.conversation'].with_company(self.company)
             # Tin nhắn Zalo OA thật (đường webhook): câu trả lời của trợ lý chờ lễ tân duyệt; ca khẩn / khiếu nại chuyển người
@@ -2025,6 +2130,7 @@ class DemoGenerator:
                     return conv
                 if self.try_('Hội thoại Zalo mẫu', chat):
                     self.stats['ai_conversations'] += 1
+            self.try_('Huấn luyện trợ lý từ hộp thư', self._ai_train_from_inbox, Conv)
             if hasattr(Conv, 'simulator_start'):
                 Sim = Conv.with_user(self.users['receptionist'])
                 def simulate():

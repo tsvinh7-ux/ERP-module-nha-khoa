@@ -8,6 +8,7 @@
 Nguyên tắc: không chẩn đoán, không báo giá ngoài bảng giá, khiếu nại / ca khẩn → chuyển nhân viên ngay.
 """
 import json
+import re
 from datetime import timedelta
 
 from odoo import _, api, fields, models
@@ -154,6 +155,22 @@ QUY TẮC BẮT BUỘC
 """
 
 WEEKDAY_VI = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật']
+PLACEHOLDER_SUB = re.compile(r'\{([a-z_]+)\}')
+
+CLASSIFY_PROMPT = """Bạn là bộ PHÂN LOẠI ý định tin nhắn Zalo gửi {clinic}. KHÔNG trả lời khách.
+Chỉ chọn MỘT kịch bản trong danh sách đã được Giám đốc duyệt dưới đây nếu tin nhắn mới nhất của khách rõ ràng thuộc
+kịch bản đó; nếu không chắc, hỏi nhiều ý khác nhau, hoặc không thuộc kịch bản nào → "none".
+- safety = "emergency" nếu có dấu hiệu khẩn (chảy máu không cầm, sưng lan, sốt cao, khó thở, chấn thương);
+  "complaint" nếu khách phàn nàn / bực bội; "medical" nếu hỏi chẩn đoán / dùng thuốc / tình trạng bệnh; còn lại "normal".
+- confidence: 0..1, chỉ ≥ 0.8 khi rất rõ ràng.
+
+DANH SÁCH KỊCH BẢN ĐÃ DUYỆT
+{catalog}
+"""
+
+REPHRASE_PROMPT = """Diễn đạt lại NHẸ câu trả lời đã được phòng khám duyệt dưới đây cho tự nhiên, thân thiện (xưng "em",
+gọi "anh/chị"). BẮT BUỘC giữ nguyên mọi con số, giá, giờ, ngày, địa chỉ, số điện thoại, tên dịch vụ; KHÔNG thêm thông tin
+mới, không thêm lời khuyên y khoa, không bớt ý. Trả về JSON {"text": "..."}."""
 
 
 class DmagAiReception(models.AbstractModel):
@@ -203,6 +220,15 @@ class DmagAiReception(models.AbstractModel):
             return {'date': date, 'slots': [], 'message': 'Chỉ nhận đặt lịch từ hôm nay đến 90 ngày tới.'}
         services = self.env['product.product'].sudo().browse([int(s) for s in service_ids or []]).exists()
         duration = sum(services.mapped('dental_duration')) or 30
+        info = self.env['dmag.clinic.schedule'].get_info(self.env.company)
+        if not info.is_open_day(day):
+            closure = info.closure(day)
+            nxt = info.next_open_days(day + timedelta(days=1), 2)
+            return {'date': date, 'weekday': WEEKDAY_VI[day.weekday()], 'slots': [], 'closed': True,
+                    'message': 'Phòng khám nghỉ %s%s. Ngày làm việc gần nhất: %s.' % (
+                        WEEKDAY_VI[day.weekday()], (' (%s)' % closure) if closure else '',
+                        ', '.join('%s %s' % (WEEKDAY_VI[d.weekday()], d.strftime('%d/%m')) for d in nxt)),
+                    'next_open_dates': [d.isoformat() for d in nxt]}
         res = self.env['dmag.workspace'].sudo().get_slot_suggestions(
             date, False, duration, services.ids, False, part_of_day, limit=6)
         slots = res.get('suggestions') or []
@@ -302,8 +328,11 @@ class DmagAiReception(models.AbstractModel):
     def tool_get_clinic_info(self, topic='all'):
         company = self.env.company.sudo()
         address = ', '.join(x for x in [company.street, company.street2, company.city] if x) or company.name
+        schedule = self.env['dmag.clinic.schedule'].sudo()._get_for_company(company)
+        hours = schedule._info().weekly_text()
+        extra = ' '.join(x for x in [schedule.note, company.dmag_ai_clinic_hours] if x)
         info = {
-            'clinic': company.name, 'hours': company.dmag_ai_clinic_hours, 'address': address,
+            'clinic': company.name, 'hours': hours + ('. ' + extra if extra else ''), 'address': address,
             'hotline': company.phone or '', 'parking': company.dmag_ai_parking_info,
             'payment': company.dmag_ai_payment_info, 'preparation': company.dmag_ai_preparation_info,
         }
@@ -321,7 +350,18 @@ class DmagAiReception(models.AbstractModel):
                                                 'ca khẩn: gọi hotline.'}
 
     @api.model
-    def _handlers(self, conversation):
+    def _handlers(self, conversation, allowed=None):
+        """Hàm xử lý công cụ. ``allowed`` (tập mã công cụ) giới hạn công cụ dùng được – công cụ khác trả lỗi
+        "không được phép" (dùng khi soạn nháp chờ duyệt / luồng kịch bản)."""
+        handlers = self._all_handlers(conversation)
+        if allowed is None:
+            return handlers
+        denied = {name: (lambda i, name=name: {'error': 'Công cụ %s không được phép trong kịch bản này.' % name})
+                  for name in handlers if name not in allowed}
+        return dict(handlers, **denied)
+
+    @api.model
+    def _all_handlers(self, conversation):
         return {
             'search_services': lambda i: self.tool_search_services(i.get('query', '')),
             'get_free_slots': lambda i: self.tool_get_free_slots(i['date'], i.get('service_ids'), i.get('part_of_day', 'any')),
@@ -332,8 +372,8 @@ class DmagAiReception(models.AbstractModel):
         }
 
     @api.model
-    def get_tools(self):
-        return [dict(t) for t in TOOLS]
+    def get_tools(self, allowed=None):
+        return [dict(t) for t in TOOLS if allowed is None or t['name'] in allowed]
 
     @api.model
     def _system_prompt(self):
@@ -344,20 +384,23 @@ class DmagAiReception(models.AbstractModel):
 
     # ------------------------------------------------------------------ simulated responder
     @api.model
-    def simulate_reply(self, conversation, text):
-        """Bộ trả lời giả lập: ý định theo từ khóa → gọi công cụ thật → câu trả lời + gợi ý trả lời nhanh."""
+    def simulate_reply(self, conversation, text, allowed_tools=None):
+        """Bộ trả lời giả lập: ý định theo từ khóa → gọi công cụ thật → câu trả lời + gợi ý trả lời nhanh.
+
+        ``allowed_tools``: chỉ cho gọi các công cụ này (soạn nháp chờ duyệt: chỉ công cụ đọc)."""
         trace = []
 
         def call(name, payload, fn):
             try:
                 out = fn()
-                trace.append({'tool': name, 'input': payload, 'output': out, 'error': False})
+                trace.append({'tool': name, 'input': payload, 'output': out,
+                              'error': bool(isinstance(out, dict) and out.get('error'))})
                 return out
             except UserError as e:
                 trace.append({'tool': name, 'input': payload, 'output': {'error': str(e)}, 'error': True})
                 return {'error': str(e)}
 
-        handlers = self._handlers(conversation)
+        handlers = self._handlers(conversation, allowed_tools)
         state = conversation._sim_state()
         folded = fold(text)
         today = fields.Date.context_today(self)
@@ -486,6 +529,10 @@ class DmagAiReception(models.AbstractModel):
                     slots = res.get('slots') or []
                 if not slots:
                     state['date'] = False
+                    if res.get('closed'):
+                        nxt = res.get('next_open_dates') or []
+                        return out('Dạ %s Anh/chị chọn ngày khác giúp em nhé?' % res.get('message', ''),
+                                   [self._fmt_date(d) for d in nxt] or ['Ngày mai'])
                     return out('Dạ ngày %s đã kín lịch hoặc ngoài thời gian nhận đặt. Anh/chị chọn ngày khác giúp em nhé?'
                                % self._fmt_date(payload['date']), ['Ngày mai', 'Thứ 7'])
                 state['slots'] = [s['time'] for s in slots[:4]]
@@ -581,6 +628,162 @@ class DmagAiReception(models.AbstractModel):
             if item.get('tool') == 'get_free_slots' and isinstance(item.get('output'), dict):
                 return [s['time'] for s in item['output'].get('slots', [])[:4]]
         return []
+
+    # ------------------------------------------------------------------ kịch bản đã duyệt
+    @api.model
+    def safety_precheck(self, text):
+        """Kiểm tra an toàn TẠI CHỖ trước mọi kịch bản: 'emergency' | 'complaint' | 'human_request' | None."""
+        folded = fold(text)
+        if match_words(text, EMERGENCY_WORDS):
+            return 'emergency'
+        if has_any(folded, COMPLAINT_WORDS):
+            return 'complaint'
+        if has_any(folded, ['gặp nhân viên', 'gặp người', 'nói chuyện với người', 'tư vấn viên', 'gặp bác sĩ',
+                            'gặp quản lý']):
+            return 'human_request'
+        return None
+
+    @api.model
+    def is_medical_question(self, text):
+        return has_any(fold(text), MEDICAL_WORDS)
+
+    @api.model
+    def _render_script(self, script, conversation, text):
+        """Điền mẫu trả lời đã duyệt bằng dữ liệu THẬT (qua đúng các công cụ được phép).
+
+        :return: ``{'text', 'trace', 'quick', 'missing'}`` – ``missing``: ô không điền được (vd. chưa có giá).
+        """
+        trace = []
+        allowed = set(script.tool_ids.mapped('code'))
+        handlers = self._handlers(conversation, allowed) if conversation else self._all_handlers(None)
+        needed = set(re.findall(r'\{([a-z_]+)\}', script.answer_template or ''))
+        values, missing, quick = {}, [], []
+        company = (conversation.company_id if conversation else self.env.company).sudo()
+
+        def call(name, payload):
+            out = handlers[name](payload) if name in handlers else {'error': 'Không có công cụ %s' % name}
+            trace.append({'tool': name, 'input': payload, 'output': out,
+                          'error': bool(isinstance(out, dict) and out.get('error'))})
+            return out if isinstance(out, dict) else {}
+
+        partner = conversation.partner_id if conversation and conversation.partner_id else None
+        values['ten_phong_kham'] = company.name
+        values['hotline'] = company.phone or 'của phòng khám'
+        values['ten_khach'] = ('%s %s' % ('anh' if partner.gender == 'male' else 'chị' if partner.gender == 'female'
+                                          else 'anh/chị', given_name(partner.name))) if partner else 'anh/chị'
+        info_keys = {'dia_chi', 'gui_xe', 'gio_lam_viec', 'thanh_toan', 'chuan_bi', 'ngay_nghi_sap_toi'}
+        if needed & info_keys:
+            info = call('get_clinic_info', {'topic': 'all'})
+            values.update({'dia_chi': info.get('address') or '', 'gui_xe': info.get('parking') or '',
+                           'gio_lam_viec': info.get('hours') or '', 'thanh_toan': info.get('payment') or '',
+                           'chuan_bi': info.get('preparation') or ''})
+            schedule = self.env['dmag.clinic.schedule'].get_info(company)
+            today = fields.Date.context_today(self)
+            upcoming = [(d_from, d_to, name) for d_from, d_to, name in schedule.closures
+                        if d_to >= today and d_from <= today + timedelta(days=30)]
+            values['ngay_nghi_sap_toi'] = ('Lịch nghỉ sắp tới: %s.' % '; '.join(
+                '%s %s' % (d_from.strftime('%d/%m') + ('–' + d_to.strftime('%d/%m') if d_to != d_from else ''),
+                           name.replace('[CẦN XÁC MINH]', '').strip()) for d_from, d_to, name in upcoming)
+                if upcoming else '')
+        if 'gia_dich_vu' in needed:
+            query = self._detect_service(fold(text)) if text else False
+            found = []
+            if query:
+                found = call('search_services', {'query': query}).get('services') or []
+                if found:
+                    folded = fold(text)
+                    best = max(found, key=lambda svc: sum(1 for w in fold(svc['name']).split()
+                                                          if len(w) > 1 and w in folded.split()))
+                    found = [best] + [svc for svc in found if svc is not best]
+            if not found and script.service_ids:
+                for product in script.service_ids[:4]:
+                    res = call('search_services', {'query': product.name}).get('services') or []
+                    found += [svc for svc in res if svc['id'] == product.id][:1]
+            if found:
+                values['gia_dich_vu'] = '\n'.join('• %s: %s' % (svc['name'], svc['price_text']) for svc in found[:4])
+            else:
+                values['gia_dich_vu'] = '• (chưa có giá niêm yết – bác sĩ tư vấn sau khi khám)'
+                missing.append('gia_dich_vu')
+        if 'gio_trong' in needed:
+            schedule = self.env['dmag.clinic.schedule'].get_info(company)
+            today = fields.Date.context_today(self)
+            parts = []
+            for day in schedule.next_open_days(today, 3, horizon=30):
+                res = call('get_free_slots', {'date': day.isoformat(), 'service_ids': script.service_ids.ids[:1],
+                                              'part_of_day': 'any'})
+                times = [slot['time'] for slot in (res.get('slots') or [])][:4]
+                if times:
+                    label = 'hôm nay' if day == today else 'ngày mai' if day == today + timedelta(days=1) else \
+                        '%s %s' % (WEEKDAY_VI[day.weekday()], day.strftime('%d/%m'))
+                    parts.append('%s %s' % (label, ', '.join(times)))
+                    quick += times[:2] if not quick else []
+                if len(parts) >= 2:
+                    break
+            values['gio_trong'] = '; '.join(parts) if parts else 'hiện đã kín lịch, lễ tân sẽ báo giờ trống sớm nhất'
+            if not parts:
+                missing.append('gio_trong')
+        body = PLACEHOLDER_SUB.sub(lambda m: str(values.get(m.group(1), m.group(0))), script.answer_template or '')
+        body = re.sub(r'\n{3,}', '\n\n', body).strip()
+        quick = [q.strip() for q in (script.quick_replies or '').split('|') if q.strip()] or quick
+        return {'text': body, 'trace': trace, 'quick': quick, 'missing': missing}
+
+    @api.model
+    def classify_live(self, conversation, text, scripts):
+        """Chế độ Claude: phân loại ý định CHẶT trong danh sách kịch bản đã duyệt (schema enum mã kịch bản + độ tin cậy).
+
+        Trả ``{'script_id', 'confidence', 'safety', 'reason', 'res'}`` – ``script_id`` 0 nếu không khớp.
+        """
+        enum = [str(s.id) for s in scripts] + ['none']
+        catalog = []
+        for script in scripts:
+            examples = script.example_ids.filtered(lambda e: e.state == 'approved')[:3].mapped('question')
+            samples = [l.strip() for l in (script.sample_questions or '').splitlines() if l.strip()][:5]
+            catalog.append('- id %s · %s (%s): ví dụ khách hỏi: %s' % (
+                script.id, script.name, script.code, ' | '.join(samples + examples)))
+        system = CLASSIFY_PROMPT.format(clinic=conversation.company_id.name, catalog='\n'.join(catalog))
+        schema = {
+            'type': 'object',
+            'properties': {
+                'script_id': {'type': 'string', 'enum': enum,
+                              'description': 'id kịch bản khớp ý định tin nhắn MỚI NHẤT của khách, hoặc "none"'},
+                'confidence': {'type': 'number', 'description': '0..1 – mức chắc chắn tin nhắn thuộc kịch bản này'},
+                'safety': {'type': 'string', 'enum': ['normal', 'emergency', 'complaint', 'medical']},
+                'reason': {'type': 'string', 'description': 'Một câu lý do ngắn cho nhân viên'},
+            },
+            'required': ['script_id', 'confidence', 'safety', 'reason'], 'additionalProperties': False,
+        }
+        history = conversation._history_for_ai(limit=6)
+        user_text = text
+        if history and history[-1]['role'] == 'user':
+            user_text = history.pop()['content'] + '\n' + text
+        res = self.env['dmag.ai'].sudo().run(
+            'AI-07', system, user_text, history=history, schema=schema, record=conversation,
+            patient=conversation.partner_id if conversation.partner_id.is_patient else None,
+            pii=[conversation.phone] if conversation.phone else None, max_tokens=600)
+        data = res.get('data') or {}
+        sid = data.get('script_id')
+        script_id = int(sid) if sid and sid != 'none' and sid.isdigit() and int(sid) in scripts.ids else 0
+        try:
+            confidence = max(0.0, min(1.0, float(data.get('confidence') or 0.0)))
+        except (TypeError, ValueError):
+            confidence = 0.0
+        return {'script_id': script_id, 'confidence': confidence if script_id else 0.0,
+                'safety': data.get('safety') or 'normal', 'reason': data.get('reason') or '', 'res': res}
+
+    @api.model
+    def rephrase_live(self, conversation, approved_text):
+        """Diễn đạt lại NHẸ câu trả lời đã duyệt; nếu lệch bất kỳ con số nào (giá, giờ, SĐT…) → dùng nguyên mẫu."""
+        schema = {'type': 'object', 'properties': {'text': {'type': 'string'}}, 'required': ['text'],
+                  'additionalProperties': False}
+        try:
+            res = self.env['dmag.ai'].sudo().run('AI-07', REPHRASE_PROMPT, approved_text, schema=schema,
+                                                 record=conversation, max_tokens=800)
+        except UserError:
+            return approved_text, None
+        text = ((res.get('data') or {}).get('text') or '').strip()
+        if not text or sorted(re.findall(r'\d+', text)) != sorted(re.findall(r'\d+', approved_text)):
+            return approved_text, res
+        return text, res
 
     @api.model
     def dumps(self, value):

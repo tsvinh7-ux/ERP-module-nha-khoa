@@ -43,7 +43,8 @@ thích** (qua cổng AI, chỉ gửi số liệu thống kê, không tên bệnh
 AI-16 – Dự báo doanh thu & vật tư (tại chỗ)
 ===========================================
 Doanh thu ngày còn lại = lịch đã đặt × tỷ lệ đến khám × hệ số quy đổi giá trị + phần sẽ phát sinh (Holt-Winters cộng
-tính tự cài bằng Python, mùa vụ tuần 6 ngày, xu hướng hãm; ca lớn đột biến tách riêng theo ngưỡng Tukey) – trừ phần
+tính tự cài bằng Python, chuỗi ngày MỞ CỬA theo Lịch làm việc phòng khám – mùa vụ tuần = số thứ mở cửa (mặc định 6),
+ngày nghỉ lễ / đột xuất không tính; xu hướng hãm; ca lớn đột biến tách riêng theo ngưỡng Tukey) – trừ phần
 thường đã đặt trước nếu lịch sử cho biết; mùa vụ tháng khi có ≥ 13 tháng; khoảng tin cậy 80 %; xác suất đạt mục
 tiêu. Vật tư 30 ngày = max(nhịp tiêu hao, lịch hẹn × định mức + kế hoạch tồn × năng suất) so với tồn kho → gợi ý đặt.
 

@@ -62,9 +62,11 @@ METRICS = {
                    'Trung bình (giờ lên ghế − giờ check-in) của lượt đã điều trị.', direction='lower',
                    default=15.0),
     'chair_util_am': _m('Công suất ghế buổi sáng', 'service', 'rate', 'pct',
-                        'Phút ghế có lịch 08:00–12:00 / (số ghế × ngày làm việc đã qua × 240 phút).'),
+                        'Phút ghế có lịch trong giờ mở cửa trước 12:00 / (số ghế × phút mở cửa buổi sáng của các ngày làm việc '
+                        'đã qua) – theo Lịch làm việc phòng khám (mặc định 08:00–12:00).'),
     'chair_util_pm': _m('Công suất ghế buổi chiều', 'service', 'rate', 'pct',
-                        'Phút ghế có lịch 13:30–16:30 / (số ghế × ngày làm việc đã qua × 180 phút).',
+                        'Phút ghế có lịch trong giờ mở cửa từ 12:00 / (số ghế × phút mở cửa buổi chiều – tối của các ngày làm '
+                        'việc đã qua) – theo Lịch làm việc phòng khám (mặc định 13:30–20:00).',
                         default=65.0),
     'nps': _m('NPS sau điều trị', 'service', 'rate', 'score',
               '% khách ủng hộ (9–10 điểm) − % khách không hài lòng (0–6 điểm), thang −100…100.', default=50.0),
@@ -123,7 +125,11 @@ def period_short_label(period_type, start):
 
 
 def working_days(date_from, date_to):
-    """Số ngày làm việc (thứ Hai – thứ Bảy, nghỉ Chủ nhật) trong [date_from, date_to]."""
+    """Số ngày thứ Hai – thứ Bảy trong [date_from, date_to] (hàm thuần, giữ để tương thích).
+
+    Màn hình / dự báo dùng ``env['dmag.clinic.schedule'].get_info().count_open_days()`` – theo Lịch làm việc phòng
+    khám (thứ nghỉ, ngày lễ).
+    """
     if not date_from or not date_to or date_to < date_from:
         return 0
     days = (date_to - date_from).days + 1
