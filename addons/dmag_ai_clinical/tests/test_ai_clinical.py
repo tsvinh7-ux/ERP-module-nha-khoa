@@ -285,7 +285,10 @@ class TestAiClinical(TransactionCase):
             for line in option['lines']:
                 self.assertIn(line['product_id'], catalog)
         optimal = next(o for o in res['options'] if o['tier'] == 'optimal')
-        self.assertTrue(any(l['product_id'] == self.svc_implant.id and l['teeth'] == ['16'] for l in optimal['lines']))
+        # Răng 16 mất → phương án tối ưu có một dịch vụ nhóm implant trong bảng giá (CSDL có thể có nhiều loại trụ)
+        Product = self.env['product.product']
+        self.assertTrue(any(Product.browse(l['product_id']).dental_category == 'implant' and l['teeth'] == ['16']
+                            for l in optimal['lines']))
         self.assertTrue(res['patient_explanation'])
         self.assertEqual(self.env['dmag.treatment.plan'].search_count([('patient_id', '=', self.patient.id)]),
                          plans_before, 'Gợi ý không tự tạo kế hoạch')
