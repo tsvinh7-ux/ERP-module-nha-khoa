@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="feature_ai_00" model="dmag.ai.feature">
+        <field name="code">AI-00</field>
+        <field name="name">Nền tảng AI: ẩn danh, nhật ký, ngân sách</field>
+        <field name="audience">platform</field>
+        <field name="source">hybrid</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Cổng gọi AI chung, ẩn danh dữ liệu, nhật ký, trần chi phí, đồng ý của bệnh nhân.</field>
+    </record>
+    <record id="feature_ai_01" model="dmag.ai.feature">
+        <field name="code">AI-01</field>
+        <field name="name">Ghi bệnh án bằng giọng nói</field>
+        <field name="audience">doctor</field>
+        <field name="source">hybrid</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Giọng nói → chữ (FPT.AI / Viettel AI / trình duyệt) → AI điền mẫu 16/BV1, bác sĩ duyệt rồi ký.</field>
+    </record>
+    <record id="feature_ai_02" model="dmag.ai.feature">
+        <field name="code">AI-02</field>
+        <field name="name">Kiểm tra bệnh án trước khi ký, gợi ý ICD-10</field>
+        <field name="audience">doctor</field>
+        <field name="source">hybrid</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Quy tắc bắt buộc (tại chỗ) + AI đối chiếu mô tả – chẩn đoán – sơ đồ răng.</field>
+    </record>
+    <record id="feature_ai_03" model="dmag.ai.feature">
+        <field name="code">AI-03</field>
+        <field name="name">An toàn đơn thuốc</field>
+        <field name="audience">doctor</field>
+        <field name="source">hybrid</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Quy tắc cố định chặn dị ứng / tương tác / liều; AI giải thích dễ hiểu.</field>
+    </record>
+    <record id="feature_ai_04" model="dmag.ai.feature">
+        <field name="code">AI-04</field>
+        <field name="name">Tóm tắt hồ sơ 30 giây</field>
+        <field name="audience">doctor</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Tiền sử, dị ứng, lần khám gần nhất, kế hoạch dở dang, công nợ.</field>
+    </record>
+    <record id="feature_ai_05" model="dmag.ai.feature">
+        <field name="code">AI-05</field>
+        <field name="name">Gợi ý kế hoạch điều trị + lời giải thích cho khách</field>
+        <field name="audience">doctor</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Từ sơ đồ răng → các phương án, thứ tự, số buổi; bản giải thích không thuật ngữ.</field>
+    </record>
+    <record id="feature_ai_06" model="dmag.ai.feature">
+        <field name="code">AI-06</field>
+        <field name="name">Hỗ trợ đọc phim X-quang (minh họa)</field>
+        <field name="audience">doctor</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Gợi ý vùng nghi tổn thương – CHỈ minh họa, chưa phải thiết bị y tế được cấp phép.</field>
+    </record>
+    <record id="feature_ai_07" model="dmag.ai.feature">
+        <field name="code">AI-07</field>
+        <field name="name">Trợ lý Zalo OA 24/7 (đặt lịch)</field>
+        <field name="audience">front</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Trả lời câu hỏi thường gặp, tra giờ trống, đặt lịch vào Odoo, chuyển người khi cần.</field>
+    </record>
+    <record id="feature_ai_08" model="dmag.ai.feature">
+        <field name="code">AI-08</field>
+        <field name="name">Dự báo khách không đến</field>
+        <field name="audience">front</field>
+        <field name="source">local</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Mô hình thống kê học trên lịch sử của phòng khám – chạy tại chỗ, không gửi dữ liệu.</field>
+    </record>
+    <record id="feature_ai_09" model="dmag.ai.feature">
+        <field name="code">AI-09</field>
+        <field name="name">Phân loại phản hồi &amp; khiếu nại</field>
+        <field name="audience">front</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Chủ đề, mức độ, cảm xúc, gợi ý xử lý; cảnh báo khách nguy cơ rời bỏ.</field>
+    </record>
+    <record id="feature_ai_10" model="dmag.ai.feature">
+        <field name="code">AI-10</field>
+        <field name="name">Nhập bệnh nhân từ CCCD (mã QR)</field>
+        <field name="audience">front</field>
+        <field name="source">local</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Đọc mã QR trên CCCD gắn chip – tại chỗ, không cần AI, không gửi dữ liệu.</field>
+    </record>
+    <record id="feature_ai_11" model="dmag.ai.feature">
+        <field name="code">AI-11</field>
+        <field name="name">Gợi ý xếp lịch thông minh</field>
+        <field name="audience">front</field>
+        <field name="source">local</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Thuật toán tối ưu khung giờ trống, ưu tiên buổi chiều – tại chỗ.</field>
+    </record>
+    <record id="feature_ai_12" model="dmag.ai.feature">
+        <field name="code">AI-12</field>
+        <field name="name">Soạn nội dung chăm sóc cá nhân hóa</field>
+        <field name="audience">front</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Kịch bản gọi hỏi thăm, tin OA theo ca điều trị (ZNS vẫn dùng mẫu đã đăng ký).</field>
+    </record>
+    <record id="feature_ai_13" model="dmag.ai.feature">
+        <field name="code">AI-13</field>
+        <field name="name">Hỏi đáp số liệu điều hành</field>
+        <field name="audience">manager</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Hỏi bằng tiếng Việt, AI tra bộ chỉ số (chỉ đọc) và trả lời kèm số liệu.</field>
+    </record>
+    <record id="feature_ai_14" model="dmag.ai.feature">
+        <field name="code">AI-14</field>
+        <field name="name">Bản tin điều hành hằng tuần</field>
+        <field name="audience">manager</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Chỉ tiêu lệch, nguyên nhân, 3 việc nên làm tuần tới.</field>
+    </record>
+    <record id="feature_ai_15" model="dmag.ai.feature">
+        <field name="code">AI-15</field>
+        <field name="name">Phát hiện bất thường</field>
+        <field name="audience">manager</field>
+        <field name="source">local</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Giảm giá, hoa hồng, sửa/hủy chứng từ, công nợ bất thường – thống kê tại chỗ.</field>
+    </record>
+    <record id="feature_ai_16" model="dmag.ai.feature">
+        <field name="code">AI-16</field>
+        <field name="name">Dự báo doanh thu &amp; vật tư</field>
+        <field name="audience">manager</field>
+        <field name="source">local</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="False"/>
+        <field name="description">Dự báo theo xu hướng + lịch hẹn – tại chỗ.</field>
+    </record>
+    <record id="feature_ai_17" model="dmag.ai.feature">
+        <field name="code">AI-17</field>
+        <field name="name">Trợ lý trên cổng bệnh nhân</field>
+        <field name="audience">patient</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Giải thích kế hoạch, đơn thuốc, hướng dẫn chăm sóc bằng lời dễ hiểu.</field>
+    </record>
+    <record id="feature_ai_18" model="dmag.ai.feature">
+        <field name="code">AI-18</field>
+        <field name="name">Theo dõi sau điều trị</field>
+        <field name="audience">patient</field>
+        <field name="source">hybrid</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Hỏi đau / chảy máu / sưng sau 24–72 giờ; bất thường → báo bác sĩ.</field>
+    </record>
+    <record id="feature_ai_19" model="dmag.ai.feature">
+        <field name="code">AI-19</field>
+        <field name="name">Mô phỏng nụ cười (minh họa)</field>
+        <field name="audience">patient</field>
+        <field name="source">api_llm</field>
+        <field name="model">claude-opus-5-5</field>
+        <field name="sends_patient_data" eval="True"/>
+        <field name="description">Minh họa ý tưởng thẩm mỹ – giai đoạn sau sẽ dùng nhà cung cấp chuyên ngành.</field>
+    </record>
+</odoo>

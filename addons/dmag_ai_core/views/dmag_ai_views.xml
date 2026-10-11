@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cấu hình AI của phòng khám (trên công ty hiện tại) -->
+    <record id="view_company_form_dmag_ai" model="ir.ui.view">
+        <field name="name">res.company.form.dmag.ai</field>
+        <field name="model">res.company</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <form string="Trợ lý AI">
+                <sheet>
+                    <div class="oe_title"><h1>Trợ lý AI – <field name="name" readonly="1" class="d-inline"/></h1></div>
+                    <div class="alert alert-info" role="status" invisible="dmag_ai_mode != 'simulate'">
+                        Đang ở <b>chế độ giả lập</b>: mọi tính năng AI chạy với kết quả mẫu, không gọi AI thật, không tốn phí.
+                        Nhập khóa API Claude và chọn "Claude API" để dùng AI thật.
+                    </div>
+                    <group>
+                        <group string="Kết nối">
+                            <field name="dmag_ai_mode" widget="radio"/>
+                            <field name="dmag_ai_api_key" password="True" groups="dmag_dental_base.group_dmag_director,base.group_system"/>
+                            <field name="dmag_ai_key_set"/>
+                            <field name="dmag_ai_zdr"/>
+                        </group>
+                        <group string="Kiểm soát">
+                            <field name="dmag_ai_monthly_budget"/>
+                            <field name="dmag_ai_usd_rate"/>
+                            <field name="dmag_ai_require_consent"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dmag_ai_settings" model="ir.actions.server">
+        <field name="name">Trợ lý AI</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="state">code</field>
+        <field name="code">action = {
+    'type': 'ir.actions.act_window', 'name': 'Trợ lý AI', 'res_model': 'res.company',
+    'res_id': env.company.id, 'view_mode': 'form',
+    'views': [(env.ref('dmag_ai_core.view_company_form_dmag_ai').id, 'form')], 'target': 'current',
+}</field>
+    </record>
+
+    <!-- Tính năng AI -->
+    <record id="view_dmag_ai_feature_tree" model="ir.ui.view">
+        <field name="name">dmag.ai.feature.tree</field>
+        <field name="model">dmag.ai.feature</field>
+        <field name="arch" type="xml">
+            <tree string="Tính năng AI" editable="bottom" create="0" delete="0">
+                <field name="code" readonly="1"/>
+                <field name="name" readonly="1"/>
+                <field name="audience" readonly="1"/>
+                <field name="source" readonly="1"/>
+                <field name="model"/>
+                <field name="effort"/>
+                <field name="sends_patient_data" readonly="1"/>
+                <field name="log_count"/>
+                <field name="cost_month_vnd"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_ai_feature" model="ir.actions.act_window">
+        <field name="name">Tính năng AI</field>
+        <field name="res_model">dmag.ai.feature</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- Nhật ký AI -->
+    <record id="view_dmag_ai_log_tree" model="ir.ui.view">
+        <field name="name">dmag.ai.log.tree</field>
+        <field name="model">dmag.ai.log</field>
+        <field name="arch" type="xml">
+            <tree string="Nhật ký AI" create="0" delete="0" decoration-danger="status in ('error', 'refusal', 'budget')">
+                <field name="create_date" string="Thời điểm"/>
+                <field name="feature_id"/>
+                <field name="user_id"/>
+                <field name="patient_id"/>
+                <field name="mode"/>
+                <field name="model"/>
+                <field name="status"/>
+                <field name="input_tokens" sum="Tổng"/>
+                <field name="output_tokens" sum="Tổng"/>
+                <field name="cost_vnd" sum="Tổng"/>
+                <field name="estimated_cost_vnd" sum="Tổng"/>
+                <field name="duration_ms"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_ai_log_form" model="ir.ui.view">
+        <field name="name">dmag.ai.log.form</field>
+        <field name="model">dmag.ai.log</field>
+        <field name="arch" type="xml">
+            <form string="Nhật ký AI" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="feature_id"/><field name="user_id"/><field name="patient_id"/>
+                            <field name="res_model"/><field name="res_id"/><field name="create_date" string="Thời điểm"/>
+                        </group>
+                        <group>
+                            <field name="mode"/><field name="model"/><field name="status"/>
+                            <field name="input_tokens"/><field name="output_tokens"/><field name="cache_read_tokens"/>
+                            <field name="tool_calls"/><field name="cost_usd"/><field name="cost_vnd"/>
+                            <field name="estimated_cost_vnd"/><field name="pseudonymized"/><field name="duration_ms"/>
+                        </group>
+                    </group>
+                    <label for="request_preview"/><field name="request_preview"/>
+                    <label for="response_preview"/><field name="response_preview"/>
+                    <label for="error" invisible="not error"/><field name="error" invisible="not error"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_ai_log_pivot" model="ir.ui.view">
+        <field name="name">dmag.ai.log.pivot</field>
+        <field name="model">dmag.ai.log</field>
+        <field name="arch" type="xml">
+            <pivot string="Chi phí AI">
+                <field name="feature_id" type="row"/>
+                <field name="create_date" interval="month" type="col"/>
+                <field name="cost_vnd" type="measure"/>
+                <field name="estimated_cost_vnd" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="action_dmag_ai_log" model="ir.actions.act_window">
+        <field name="name">Nhật ký &amp; chi phí AI</field>
+        <field name="res_model">dmag.ai.log</field>
+        <field name="view_mode">tree,pivot,form</field>
+    </record>
+
+    <!-- Đồng ý AI trên hồ sơ bệnh nhân -->
+    <record id="view_partner_form_dmag_ai_consent" model="ir.ui.view">
+        <field name="name">res.partner.form.dmag.ai.consent</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="dmag_dental_base.view_partner_form_dmag_patient"/>
+        <field name="arch" type="xml">
+            <field name="data_consent_date" position="after">
+                <field name="dmag_ai_consent"/>
+                <field name="dmag_ai_consent_date" invisible="not dmag_ai_consent"/>
+            </field>
+        </field>
+    </record>
+
+    <menuitem id="menu_dmag_ai_config" name="Trợ lý AI" parent="dmag_dental_base.menu_dmag_config" sequence="80"/>
+    <menuitem id="menu_dmag_ai_settings" name="Cài đặt AI" parent="menu_dmag_ai_config" sequence="1"
+              action="action_dmag_ai_settings" groups="dmag_dental_base.group_dmag_director"/>
+    <menuitem id="menu_dmag_ai_feature" name="Tính năng AI" parent="menu_dmag_ai_config" sequence="2"
+              action="action_dmag_ai_feature"/>
+    <menuitem id="menu_dmag_ai_log" name="Nhật ký &amp; chi phí AI" parent="menu_dmag_ai_config" sequence="3"
+              action="action_dmag_ai_log"/>
+</odoo>

@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_ai_feature_user,dmag.ai.feature user,model_dmag_ai_feature,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_feature_director,dmag.ai.feature director,model_dmag_ai_feature,dmag_dental_base.group_dmag_director,1,1,0,0
+access_dmag_ai_log_user,dmag.ai.log user,model_dmag_ai_log,dmag_dental_base.group_dmag_receptionist,0,0,1,0
+access_dmag_ai_log_manager,dmag.ai.log manager,model_dmag_ai_log,dmag_dental_base.group_dmag_manager,1,0,1,0
+access_res_company_dmag_director,res.company director (cấu hình AI),base.model_res_company,dmag_dental_base.group_dmag_director,1,1,0,0
