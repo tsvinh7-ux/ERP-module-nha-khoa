@@ -1,0 +1,422 @@
+<title>Trợ lý AI DMAG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Bố cục: dải mở đầu → cách vận hành (sơ đồ luồng) → Trung tâm AI → một ngày ở phòng khám → tính năng theo vai trò (tab) → chi phí */
+:root {
+  --bg: #f4f7fb; --surface: #ffffff; --surface-2: #eef3fa; --ink: #0f1f38; --ink-2: #47566e; --line: #d9e2ee;
+  --navy: #11346a; --blue: #178bec; --blue-soft: #e3f0fd;
+  --local: #0f8a6d; --local-soft: #e2f5ef; --vn: #b26b00; --vn-soft: #fdf1dc; --llm: #6b4fd8; --llm-soft: #eeeafd;
+  --warn: #c2410c; --ok: #0f8a6d;
+  --f-display: "Be Vietnam Pro", "Segoe UI", Roboto, Arial, sans-serif;
+  --f-body: "Be Vietnam Pro", "Segoe UI", Roboto, Arial, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b1424; --surface: #111d33; --surface-2: #17263f; --ink: #e8eef8; --ink-2: #a3b1c7; --line: #26375a;
+  --navy: #9cc3ff; --blue: #4aa8ff; --blue-soft: #15304f;
+  --local: #3fcfa6; --local-soft: #113a33; --vn: #f0b54c; --vn-soft: #3a2c10; --llm: #a995ff; --llm-soft: #2a2350;
+  --warn: #ff8a5c; --ok: #3fcfa6; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b1424; --surface: #111d33; --surface-2: #17263f; --ink: #e8eef8; --ink-2: #a3b1c7; --line: #26375a;
+  --navy: #9cc3ff; --blue: #4aa8ff; --blue-soft: #15304f;
+  --local: #3fcfa6; --local-soft: #113a33; --vn: #f0b54c; --vn-soft: #3a2c10; --llm: #a995ff; --llm-soft: #2a2350;
+  --warn: #ff8a5c; --ok: #3fcfa6; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6; margin: 0 }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; color: var(--ink) }
+h1 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.12; font-weight: 800; letter-spacing: -.02em }
+h2 { font-size: clamp(22px, 2.6vw, 28px); font-weight: 750; letter-spacing: -.01em }
+h3 { font-size: 18px; font-weight: 700 }
+p { margin: 0 }
+.muted { color: var(--ink-2) }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--blue) }
+section { display: grid; gap: 18px; margin-top: 56px }
+.code { font-family: var(--f-mono); font-size: 12px; font-weight: 500; padding: 2px 7px; border-radius: 6px; background: var(--navy); color: var(--bg); white-space: nowrap }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap }
+.b-local { background: var(--local-soft); color: var(--local) }
+.b-vn { background: var(--vn-soft); color: var(--vn) }
+.b-llm { background: var(--llm-soft); color: var(--llm) }
+.b-mix { background: var(--blue-soft); color: var(--blue) }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor }
+
+/* Mở đầu */
+.hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: center }
+.hero p.lead { font-size: 17px; color: var(--ink-2); margin-top: 14px; max-width: 58ch }
+.facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 13px }
+.fact b { font-size: 18px; display: block; line-height: 1.2; font-variant-numeric: tabular-nums }
+.shot { display: block; border-radius: 12px; border: 1px solid var(--line); overflow: hidden; background: var(--surface); cursor: zoom-in; padding: 0 }
+.shot img { display: block; width: 100%; height: auto }
+.shot:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px }
+.cap { font-size: 13px; color: var(--ink-2); margin-top: 6px }
+
+/* Luồng vận hành */
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: stretch }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 6px; align-content: start; position: relative }
+.step .n { font-family: var(--f-mono); font-size: 12px; color: var(--blue) }
+.step p { font-size: 13.5px; color: var(--ink-2) }
+.step.gate { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue) }
+.sources { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+.src { border-radius: var(--radius); padding: 16px; display: grid; gap: 8px; border: 1px solid var(--line); background: var(--surface) }
+.src p { font-size: 14px; color: var(--ink-2) }
+.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+.mode { background: var(--surface-2); border-radius: var(--radius); padding: 16px; display: grid; gap: 6px }
+
+/* Trung tâm AI */
+.hub { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start }
+.hub ol { margin: 0; padding-left: 20px; display: grid; gap: 10px }
+.hub li { padding-left: 4px }
+
+/* Một ngày */
+.day { display: grid; gap: 0; border-left: 2px solid var(--line); margin-left: 8px }
+.slot { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; padding: 10px 0 10px 18px; position: relative }
+.slot::before { content: ""; position: absolute; left: -7px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 2px solid var(--blue) }
+.slot time { font-family: var(--f-mono); font-size: 14px; color: var(--navy); padding-top: 2px }
+.slot .what { display: grid; gap: 4px }
+.slot .what span.who { font-size: 12px; color: var(--ink-2) }
+
+/* Tính năng */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding-block: 10px; z-index: 2 }
+.tab { font: inherit; font-weight: 600; font-size: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 7px 14px; cursor: pointer }
+.tab[aria-selected="true"] { background: var(--navy); color: var(--bg); border-color: var(--navy) }
+.tab:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px }
+.feat { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px }
+.feat + .feat { margin-top: 14px }
+.feat .head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
+.feat .body { display: grid; gap: 12px; align-content: start; min-width: 0 }
+.case { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; font-size: 14px }
+.case b { color: var(--navy) }
+.rows { display: grid; gap: 8px; font-size: 14px }
+.rows div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px }
+.rows dt, .rows .k { font-size: 12px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; padding-top: 2px }
+.gallery { display: grid; gap: 10px; min-width: 0 }
+.gallery.two { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+.panel[hidden] { display: none !important }
+
+/* Chi phí */
+.cost { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--surface); border-radius: var(--radius); overflow: hidden }
+.cost th, .cost td { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top }
+.cost th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); background: var(--surface-2) }
+.cost td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
+.cost tr.total td { font-weight: 800 }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius) }
+.decide { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px }
+.decide div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 6px; font-size: 14px }
+.decide b { color: var(--navy) }
+.howto { background: var(--navy); color: var(--bg); border-radius: var(--radius); padding: 20px; display: grid; gap: 10px }
+.howto h2 { color: var(--bg) }
+.howto code { font-family: var(--f-mono); font-size: 13px; background: rgba(127,127,127,.25); padding: 1px 6px; border-radius: 5px }
+.howto ol { margin: 0; padding-left: 20px; display: grid; gap: 6px }
+
+/* Phóng to ảnh */
+.lb { position: fixed; inset: 0; background: rgba(5, 12, 24, .88); display: grid; place-items: center; padding: 16px; z-index: 10 }
+.lb img { max-width: 100%; max-height: 82vh; border-radius: 10px; background: #fff }
+.lb p { color: #e8eef8; font-size: 14px; margin-top: 10px; text-align: center; max-width: 80ch }
+.lb button { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 16px; font: inherit; font-weight: 700; background: #fff; color: #0f1f38; border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer }
+
+@media (max-width: 900px) {
+  .hero, .hub, .feat { grid-template-columns: minmax(0, 1fr) }
+  .flow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) }
+  .sources, .modes { grid-template-columns: minmax(0, 1fr) }
+}
+@media (max-width: 520px) {
+  .flow, .gallery.two { grid-template-columns: minmax(0, 1fr) }
+  .rows div { grid-template-columns: minmax(0, 1fr) }
+}
+@media (prefers-reduced-motion: no-preference) { .shot img { transition: transform .25s } .shot:hover img { transform: scale(1.01) } }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">DMAG Dental ERP · Odoo 17 · bản demo trên localhost</p>
+      <h1>20 trợ lý AI trong phòng khám, chạy trên chính số liệu của phòng khám</h1>
+      <p class="lead">Mỗi tính năng dưới đây là màn hình thật trong bản demo. AI soạn nháp, tra cứu và cảnh báo; bác sĩ, lễ tân, Giám đốc duyệt rồi mới ghi vào hồ sơ hay gửi cho khách. Bấm vào ảnh để phóng to.</p>
+      <div class="facts">
+        <div class="fact"><b>20</b>tính năng AI-00 … AI-19</div>
+        <div class="fact"><b>5</b>chạy tại chỗ, không gửi dữ liệu</div>
+        <div class="fact"><b>15</b>dùng Claude (dữ liệu đã ẩn danh)</div>
+        <div class="fact"><b>≈ 4–5 tr đ</b>/ tháng / phòng khám nếu chạy thật</div>
+        <div class="fact"><b>228/228</b>bài kiểm thử đạt</div>
+      </div>
+    </div>
+    <div>
+      <button class="shot" type="button" data-cap="Trung tâm AI trên bản Docker: chế độ Giả lập, chi phí thật 0 đ, chi phí nếu chạy thật theo nhật ký, tỷ lệ bệnh nhân đồng ý AI, chi phí theo từng tính năng."><img src="img/ai_00_trung_tam_docker.jpg" alt="Trung tâm AI" loading="eager"></button>
+      <p class="cap">Trung tâm AI: mọi tính năng, trạng thái, số lần dùng và chi phí ở một nơi.</p>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-flow">
+    <p class="eyebrow">Cách vận hành</p>
+    <h2 id="h-flow">Mỗi lần dùng AI đi qua cùng một cổng kiểm soát</h2>
+    <div class="flow">
+      <div class="step"><span class="n">1 · Người dùng</span><h3>Bấm một nút AI</h3><p>Ví dụ "AI kiểm tra bệnh án", hoặc khách nhắn Zalo lúc 22:00.</p></div>
+      <div class="step gate"><span class="n">2 · Cổng AI</span><h3>Kiểm tra trước khi gửi</h3><p>Tính năng có bật? Bệnh nhân đã đồng ý AI? Còn ngân sách tháng? Thay họ tên, SĐT, CCCD bằng mã [BN_1]…</p></div>
+      <div class="step"><span class="n">3 · Xử lý</span><h3>Tại chỗ hoặc Claude</h3><p>Quy tắc, thống kê, đọc QR chạy trên máy chủ. Suy luận, tóm tắt, hội thoại gọi Claude; AI chỉ tra/ghi Odoo qua công cụ được phép.</p></div>
+      <div class="step"><span class="n">4 · Nháp</span><h3>Người duyệt</h3><p>Kết quả hiện "AI gợi ý" cạnh "hiện tại". Bác sĩ, lễ tân, Giám đốc chọn áp dụng, sửa hoặc bỏ.</p></div>
+      <div class="step"><span class="n">5 · Nhật ký</span><h3>Truy vết & chi phí</h3><p>Ai dùng, cho hồ sơ nào, bao nhiêu token, bao nhiêu tiền. Không ai sửa hay xóa được nhật ký.</p></div>
+    </div>
+    <div class="sources">
+      <div class="src"><span class="badge b-local"><span class="dot"></span>LOCAL – tại chỗ</span><p>Quy tắc an toàn đơn thuốc, dự báo khách không đến, xếp lịch, phát hiện bất thường, dự báo doanh thu, quét CCCD. <b>Dữ liệu không ra khỏi phòng khám, 0 đ theo lượt.</b></p></div>
+      <div class="src"><span class="badge b-vn"><span class="dot"></span>API trong nước</span><p>Chuyển giọng nói thành chữ khi đọc bệnh án: thử nghiệm bằng giọng nói của Chrome (miễn phí), chạy thật dự kiến FPT.AI sau 1 tuần so sánh.</p></div>
+      <div class="src"><span class="badge b-llm"><span class="dot"></span>Claude API</span><p>Đọc hiểu, tóm tắt, soạn thảo, hội thoại, nhìn ảnh phim. <b>Chỉ nhận văn bản đã ẩn danh</b>, tính phí theo token, có trần chi phí tháng.</p></div>
+    </div>
+    <div class="modes">
+      <div class="mode"><h3>Giả lập (đang bật trong demo)</h3><p class="muted">Không cần khóa API, không tốn phí. Kết quả dựng từ số liệu thật của bản demo; nhật ký ghi "chi phí nếu chạy thật" để hình dung chi phí.</p></div>
+      <div class="mode"><h3>Claude API (AI thật)</h3><p class="muted">Giám đốc dán khóa API ở Cấu hình › Trợ lý AI. Mỗi câu trả lời gắn nhãn "Claude", ghi token và chi phí thật. Quay lại giả lập bất cứ lúc nào.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-hub">
+    <p class="eyebrow">Trung tâm AI</p>
+    <h2 id="h-hub">Nhìn một trang biết AI đang làm gì, tốn bao nhiêu</h2>
+    <div class="hub">
+      <div class="gallery">
+        <button class="shot" type="button" data-cap="Trung tâm AI (toàn trang): 20 thẻ tính năng theo nhóm, mỗi thẻ có nguồn AI, trạng thái, ví dụ thực tế, lợi ích, số lần dùng và nút Thử ngay."><img src="img/ai_00_trung_tam.jpg" alt="Trung tâm AI toàn trang" loading="lazy"></button>
+      </div>
+      <ol>
+        <li><b>Dải đầu trang:</b> chế độ hiện tại (Giả lập / Claude), chi phí AI thật tháng này so với trần 5 triệu, chi phí nếu chạy thật và dự kiến cả tháng, tỷ lệ bệnh nhân đồng ý AI.</li>
+        <li><b>Biểu đồ chi phí theo tính năng:</b> tính năng nào dùng nhiều, tốn bao nhiêu. Trong demo, phân loại phản hồi (AI-09) dùng nhiều nhất.</li>
+        <li><b>20 thẻ tính năng</b> theo nhóm Giám đốc, Bác sĩ, Lễ tân – CSKH, Khách hàng, Nền tảng; lọc theo vai trò người xem.</li>
+        <li><b>Nút "Thử ngay"</b> mở đúng màn hình: Bàn làm việc bác sĩ, Mô phỏng Zalo, Bảng điều hành, cổng bệnh nhân…</li>
+        <li><b>Bật / tắt từng tính năng</b> và chọn mô hình (Opus / Sonnet / Haiku) ở Cấu hình › Trợ lý AI › Tính năng AI.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-day">
+    <p class="eyebrow">Minh họa thực tiễn</p>
+    <h2 id="h-day">Một ngày ở phòng khám có trợ lý AI</h2>
+    <div class="day">
+      <div class="slot"><time>07:00</time><div class="what"><b>Giám đốc mở bản tin tuần (AI-14)</b><span>"8 chỉ tiêu đang lệch – ưu tiên doanh thu dịch vụ". 3 việc tuần này: gọi lại khách đang cân nhắc kế hoạch 34 tr, xác nhận 9 lịch chưa xác nhận, lấp ghế chiều.</span><span class="who">Giám đốc · Claude (một lần gọi / tuần)</span></div></div>
+      <div class="slot"><time>07:30</time><div class="what"><b>Lễ tân thấy 2 lịch "nguy cơ không đến 93%" (AI-08)</b><span>Khách đặt online từ xa, chưa xác nhận, từng bỏ hẹn. Gọi xác nhận trước 9 giờ, nếu hủy thì xếp khách khác vào.</span><span class="who">Lễ tân · tại chỗ</span></div></div>
+      <div class="slot"><time>08:10</time><div class="what"><b>Khách mới quét CCCD (AI-10)</b><span>Đưa QR trên CCCD gắn chip vào camera, hồ sơ điền sẵn họ tên, ngày sinh, số định danh, địa chỉ trong 10 giây.</span><span class="who">Lễ tân · tại chỗ, không AI</span></div></div>
+      <div class="slot"><time>09:30</time><div class="what"><b>Bác sĩ mở hồ sơ, đọc tóm tắt 30 giây (AI-04), rồi đọc bệnh án bằng giọng nói (AI-01)</b><span>"Dị ứng Lidocaine, đang dùng Warfarin". Bác sĩ nói trong lúc khám; AI điền 22 mục 16/BV1, bác sĩ duyệt từng mục.</span><span class="who">Bác sĩ · giọng nói + Claude</span></div></div>
+      <div class="slot"><time>09:55</time><div class="what"><b>Kê đơn: hệ thống chặn Lidocain vì dị ứng (AI-03)</b><span>Quy tắc cố định chặn; AI giải thích dễ hiểu và gợi ý thuốc thay trong danh mục. Nếu cần vượt: Giám đốc duyệt và ký bổ sung chịu trách nhiệm.</span><span class="who">Bác sĩ · tại chỗ + Claude giải thích</span></div></div>
+      <div class="slot"><time>10:05</time><div class="what"><b>AI kiểm tra trước khi ký (AI-02) và gợi ý kế hoạch 2 phương án (AI-05)</b><span>Báo thiếu sinh hiệu, chẩn đoán chưa khớp sơ đồ răng; mã ICD-10 chỉ lấy trong danh mục. Kế hoạch Tối ưu / Cơ bản điền sẵn vào khung lập kế hoạch, kèm lời giải thích cho khách.</span><span class="who">Bác sĩ · Claude</span></div></div>
+      <div class="slot"><time>14:00</time><div class="what"><b>Giám đốc hỏi: "Vì sao khách mới tháng này thấp?" (AI-13)</b><span>AI tra bộ chỉ số: 2 khách mới, kỳ trước 5 (−60%), kênh giới thiệu chưa đóng góp; kèm nút mở danh sách.</span><span class="who">Giám đốc · Claude, chỉ đọc số liệu</span></div></div>
+      <div class="slot"><time>17:30</time><div class="what"><b>CSKH gọi hỏi thăm sau nhổ răng (AI-12, AI-18)</b><span>Kịch bản gọi soạn sẵn theo thủ thuật đã làm. Khách báo đau 8/10 ở mốc 24 giờ, hệ thống giao việc ngay cho bác sĩ phụ trách.</span><span class="who">CSKH · Claude + ngưỡng tại chỗ</span></div></div>
+      <div class="slot"><time>22:15</time><div class="what"><b>Khách nhắn Zalo hỏi giá cạo vôi, đặt lịch chiều mai (AI-07)</b><span>Trợ lý trả lời theo kịch bản đã duyệt, tra giá thật, giữ chỗ lịch nháp; sáng hôm sau lễ tân gọi xác nhận. Khiếu nại hoặc ca khẩn thì chuyển người.</span><span class="who">Khách hàng · Claude theo kịch bản</span></div></div>
+      <div class="slot"><time>Đêm</time><div class="what"><b>Quét bất thường (AI-15) và dự báo (AI-16)</b><span>Phát hiện "công nợ tăng 74% trong 4 tuần", "2 hóa đơn hoàn tiền cùng một người lập". Dự báo tháng 158 tr / mục tiêu 220 tr, xác suất đạt 13%; găng tay sắp hết, gợi ý đặt.</span><span class="who">Hệ thống · tại chỗ</span></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-feat">
+    <p class="eyebrow">Từng tính năng</p>
+    <h2 id="h-feat">Chức năng và tình huống thực tế</h2>
+    <div class="tabs" role="tablist" aria-label="Nhóm tính năng">
+      <button class="tab" role="tab" id="t-doc" aria-controls="p-doc" aria-selected="true">Bác sĩ · AI-01–06</button>
+      <button class="tab" role="tab" id="t-front" aria-controls="p-front" aria-selected="false">Lễ tân – CSKH · AI-07–12</button>
+      <button class="tab" role="tab" id="t-mgr" aria-controls="p-mgr" aria-selected="false">Giám đốc · AI-13–16</button>
+      <button class="tab" role="tab" id="t-pt" aria-controls="p-pt" aria-selected="false">Khách hàng · AI-17–19</button>
+    </div>
+    <div id="p-doc" class="panel" role="tabpanel" aria-labelledby="t-doc"></div>
+    <div id="p-front" class="panel" role="tabpanel" aria-labelledby="t-front" hidden></div>
+    <div id="p-mgr" class="panel" role="tabpanel" aria-labelledby="t-mgr" hidden></div>
+    <div id="p-pt" class="panel" role="tabpanel" aria-labelledby="t-pt" hidden></div>
+  </section>
+
+  <section aria-labelledby="h-dec">
+    <p class="eyebrow">Đã chốt – đang đưa vào hệ thống</p>
+    <h2 id="h-dec">Quyết định của anh/chị</h2>
+    <div class="decide">
+      <div><b>Đơn thuốc vi phạm an toàn</b><span>Chặn ở mọi đường phát hành. Chỉ Giám đốc được vượt, kèm lý do và ký bổ sung chịu trách nhiệm; lưu vết trên đơn.</span></div>
+      <div><b>Trợ lý Zalo tự trả lời</b><span>Chỉ tự gửi khi câu hỏi khớp kịch bản đã duyệt. Câu khác chờ nhân viên duyệt; câu đã duyệt có thể thành kịch bản mới ("huấn luyện").</span></div>
+      <div><b>Lịch làm việc phòng khám</b><span>Ngày mở cửa, ca làm, ngày nghỉ lễ cấu hình theo thực tế; giờ trống, đặt lịch Zalo, tiến độ mục tiêu và công suất ghế đều tính theo lịch này.</span></div>
+      <div><b>Giọng nói</b><span>Thử nghiệm bằng giọng nói của Chrome; sau khi chạy thử, đề xuất nhà cung cấp phù hợp (dự kiến FPT.AI).</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-cost">
+    <p class="eyebrow">Chi phí</p>
+    <h2 id="h-cost">Ước tính khi chạy thật (1 phòng khám ~30 lượt/ngày, Claude Opus 5.5)</h2>
+    <div class="table-wrap">
+      <table class="cost">
+        <thead><tr><th>Tính năng</th><th>Giả định</th><th>USD / tháng</th><th>≈ đồng / tháng</th></tr></thead>
+        <tbody>
+          <tr><td>AI-01 ghi bệnh án (phần điền mẫu)</td><td>780 lượt × 5.000 token vào + 1.500 ra</td><td class="num">~40</td><td class="num">~1,0 tr</td></tr>
+          <tr><td>AI-02 + AI-04 kiểm tra, tóm tắt</td><td>780 × 4.000 vào + 800 ra</td><td class="num">~25</td><td class="num">~0,65 tr</td></tr>
+          <tr><td>AI-07 trợ lý Zalo</td><td>~1.000 hội thoại × 8 lượt, có bộ nhớ đệm</td><td class="num">~60–90</td><td class="num">~1,6–2,3 tr</td></tr>
+          <tr><td>AI-13 + AI-14 hỏi đáp, bản tin</td><td>~300 câu hỏi + 4 bản tin</td><td class="num">~15</td><td class="num">~0,4 tr</td></tr>
+          <tr><td>Còn lại (AI-03, 09, 17, 18…)</td><td></td><td class="num">~20</td><td class="num">~0,5 tr</td></tr>
+          <tr class="total"><td>Tổng Claude API</td><td>chưa gồm giọng nói</td><td class="num">~160–190</td><td class="num">~4–5 tr</td></tr>
+          <tr><td>Giọng nói (FPT.AI, dự kiến)</td><td>~3.900 phút / tháng</td><td class="num"></td><td class="num">~2,5–3,1 tr</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Tỷ giá tạm 26.000 đ/USD. Các tính năng LOCAL không tính phí theo lượt. Vượt trần tháng thì AI tự tạm dừng và báo Giám đốc. Giá FPT.AI lấy từ kết quả tìm kiếm, cần xác minh.</p>
+  </section>
+
+  <section class="howto" aria-labelledby="h-try">
+    <h2 id="h-try">Tự thử trên máy</h2>
+    <ol>
+      <li>Bật Docker Desktop. Trong thư mục <code>local-demo</code> chạy <code>reset.bat</code> (Windows) hoặc <code>./reset.sh</code>, chờ 5–7 phút.</li>
+      <li>Mở <code>http://localhost:8069</code>, đăng nhập <code>giamdoc.demo</code> / <code>demo</code> → Nha khoa › Trợ lý AI › Trung tâm AI → "Thử ngay".</li>
+      <li>Lễ tân <code>letan.demo</code> → Mô phỏng Zalo; bác sĩ <code>bacsi.demo</code> → Bàn làm việc bác sĩ → bệnh nhân Nguyễn Thị Mai.</li>
+      <li>AI thật: Cấu hình › Trợ lý AI › Cài đặt AI → dán khóa Claude, chọn "Claude API".</li>
+    </ol>
+  </section>
+</div>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Ảnh phóng to">
+  <button type="button" id="lb-close">Đóng</button>
+  <div><img id="lb-img" alt=""><p id="lb-cap"></p></div>
+</div>
+
+<script>
+const SRC = {
+  local: ['b-local', 'LOCAL – tại chỗ'], vn: ['b-vn', 'API trong nước'], llm: ['b-llm', 'Claude API'], mix: ['b-mix', 'Kết hợp']
+};
+const FEATURES = {
+  'p-doc': [
+    { code: 'AI-01', name: 'Ghi bệnh án bằng giọng nói', src: ['vn', 'llm'],
+      case: 'Bác sĩ vừa khám vừa nói: <b>"Ê buốt răng hàm dưới khi ăn lạnh hai tuần nay, răng 36 lỗ sâu mặt nhai, thăm có ngà mềm…"</b>',
+      does: 'Chuyển giọng nói thành chữ, rồi điền đúng 22 mục mẫu 16/BV1 và sinh hiệu (mạch, huyết áp, nhiệt độ).',
+      human: 'Hộp duyệt "Hiện tại ↔ AI gợi ý": bác sĩ sửa, tích từng mục, bấm Áp dụng. Chưa bấm thì không ghi gì.',
+      shots: [['ai_01_review.jpg', 'Duyệt bệnh án do AI điền: mỗi mục 16/BV1 có ô AI gợi ý sửa được và ô tích chọn.'], ['ai_01_dictation.jpg', 'Đang đọc: chữ hiện dần theo lời nói.']] },
+    { code: 'AI-02', name: 'Kiểm tra bệnh án trước khi ký', src: ['local', 'llm'],
+      case: 'Bác sĩ bấm "Ký bệnh án" khi <b>chưa ghi sinh hiệu</b> và chẩn đoán K02.1 nhưng sơ đồ răng có răng 46 tổn thương chưa có chẩn đoán.',
+      does: 'Quy tắc pháp lý bắt buộc (CCCD, khám, chẩn đoán…) + AI đối chiếu mô tả ↔ ICD-10 ↔ sơ đồ răng; gợi ý mã ICD-10 chỉ từ danh mục.',
+      human: 'Danh sách vấn đề theo mức độ, nút "+ Thêm" mã ICD. Bác sĩ vẫn có thể "Vẫn ký bệnh án".',
+      shots: [['ai_02_sign_check.jpg', 'Kiểm tra trước khi ký: vấn đề theo mức độ và mã ICD-10 gợi ý.']] },
+    { code: 'AI-03', name: 'An toàn đơn thuốc', src: ['local', 'llm'],
+      case: 'Bệnh nhân <b>dị ứng Lidocaine</b>, bác sĩ thêm Xylocaine Jelly; đơn còn có Amoxicillin và Augmentin cùng hoạt chất.',
+      does: 'Quy tắc cố định: chặn dị ứng (theo họ thuốc), Tetracyclin cho thai phụ / trẻ dưới 8 tuổi, quá 30 ngày; cảnh báo NSAID + chống đông, trùng hoạt chất, thai kỳ, trẻ em. AI giải thích dễ hiểu và gợi ý thuốc thay trong danh mục.',
+      human: 'Mục CHẶN không phát hành được. Cần vượt: Giám đốc ghi lý do và ký bổ sung chịu trách nhiệm.',
+      shots: [['ai_03_rx_blocked.jpg', 'Đơn bị chặn vì dị ứng Lidocain, cảnh báo trùng hoạt chất amoxicillin, AI giải thích.'], ['ai_03_rx_safety.jpg', 'Bảng an toàn đơn thuốc.']] },
+    { code: 'AI-04', name: 'Tóm tắt hồ sơ 30 giây', src: ['llm'],
+      case: 'Bác sĩ mở hồ sơ bệnh nhân quay lại sau 3 tháng, đang dở kế hoạch implant.',
+      does: 'An toàn (dị ứng, cảnh báo, thuốc đang dùng, thai kỳ), tiền sử, 5 lần khám gần nhất, kế hoạch dở dang, công nợ, ghi chú chăm sóc, 3 gợi ý hôm nay.',
+      human: 'Chỉ để đọc; bệnh nhân chưa đồng ý AI thì hiện nút "Bệnh nhân đồng ý".',
+      shots: [['ai_04_summary.jpg', 'Thẻ tóm tắt hồ sơ ngay dưới thông tin bệnh nhân.'], ['ai_04_consent.jpg', 'Bệnh nhân chưa đồng ý AI: hỏi ý kiến trước.']] },
+    { code: 'AI-05', name: 'Gợi ý kế hoạch điều trị 2 phương án', src: ['llm'],
+      case: 'Sơ đồ răng: <b>mất 16, sâu 36, 46</b>, cao răng. Khách muốn biết lựa chọn và chi phí.',
+      does: 'Phương án Tối ưu / Cơ bản, dịch vụ chỉ lấy trong bảng giá, răng, giai đoạn, số buổi; lời giải thích cho khách không thuật ngữ.',
+      human: '"Dùng gợi ý" chỉ điền sẵn khung lập kế hoạch; bác sĩ tự bấm Lưu.',
+      shots: [['ai_05_suggest.jpg', 'Hai phương án AI gợi ý từ sơ đồ răng.'], ['ai_05_builder.jpg', 'Gợi ý đã điền sẵn vào khung lập kế hoạch.']] },
+    { code: 'AI-06', name: 'Hỗ trợ đọc phim (minh họa)', src: ['llm'],
+      case: 'Phim panorama của khách: bác sĩ muốn khoanh vùng nghi ngờ để giải thích với khách.',
+      does: 'Claude nhìn ảnh, trả về răng, mô tả, độ tin cậy, khung vị trí; tô răng nghi ngờ lên sơ đồ.',
+      human: 'Luôn ghi "Chỉ minh họa – không phải thiết bị chẩn đoán được cấp phép". Bác sĩ chọn "Ghi lên sơ đồ" từng phát hiện.',
+      shots: [['ai_06_xray.jpg', 'Đọc phim minh họa: khung vùng nghi ngờ và độ tin cậy (phim mẫu tổng hợp).'], ['ai_06_chart.jpg', 'Răng nghi ngờ tô trên sơ đồ.']] },
+  ],
+  'p-front': [
+    { code: 'AI-07', name: 'Trợ lý Zalo OA 24/7 đặt lịch', src: ['llm'],
+      case: '22:15 khách nhắn: <b>"Cho em hỏi giá cạo vôi, chiều mai còn chỗ không?"</b>',
+      does: 'Tra bảng giá thật, xem giờ trống (đã xếp hạng), xin đồng ý lưu thông tin, giữ chỗ <b>lịch nháp</b> lên Bảng điều phối. Khiếu nại, ca khẩn, câu hỏi chuyên môn: chuyển nhân viên.',
+      human: 'Tự trả lời khi khớp kịch bản đã duyệt; câu khác chờ duyệt ở Hộp thư lễ tân. Lễ tân gọi xác nhận lịch nháp.',
+      shots: [['ai_07_zalo_mo_phong_dat_lich.jpg', 'Mô phỏng Zalo: hội thoại, các công cụ AI đã gọi trong Odoo, lịch vừa giữ chỗ.'], ['ai_07d_hop_thu_le_tan.jpg', 'Hộp thư lễ tân: duyệt, sửa, chuyển người.'], ['ai_07c_zalo_chuyen_nhan_vien.jpg', 'Ca khẩn / khiếu nại được chuyển nhân viên.'], ['ai_07b_bang_dieu_phoi_lich_zalo.jpg', 'Lịch từ Zalo hiện trên Bảng điều phối.']] },
+    { code: 'AI-08', name: 'Dự báo khách không đến', src: ['local'],
+      case: 'Khách mới tự đặt online 12 ngày trước, chưa xác nhận, từng bỏ 1 hẹn.',
+      does: 'Mô hình học trên lịch sử chính phòng khám (AUC 0,82 trên dữ liệu demo); điểm % và lý do trên thẻ lịch hẹn.',
+      human: 'Lễ tân gọi xác nhận hoặc xếp bù. Không gửi dữ liệu ra ngoài.',
+      shots: [['ai_08_du_bao_khong_den.jpg', 'Thẻ lịch hẹn có % nguy cơ không đến và gợi ý.'], ['ai_08b_mo_hinh_khong_den.jpg', 'Mô hình: trọng số, độ chính xác, nút huấn luyện lại.']] },
+    { code: 'AI-09', name: 'Phân loại phản hồi & khiếu nại', src: ['llm', 'local'],
+      case: 'Phiếu NPS 3 điểm: <b>"Chờ 40 phút mới được khám, bác sĩ giải thích nhanh quá."</b>',
+      does: 'Chủ đề, mức độ, cảm xúc, nguy cơ rời bỏ, gợi ý trả lời và việc cần làm. Mức cao tự giao việc.',
+      human: 'Quản lý xử lý theo danh sách sắp theo mức độ.',
+      shots: [['ai_09_phan_hoi_can_xu_ly.jpg', 'Phản hồi cần xử lý, sắp theo mức độ.'], ['ai_09b_phan_hoi_chi_tiet.jpg', 'Chi tiết phân loại và gợi ý trả lời.']] },
+    { code: 'AI-10', name: 'Nhập bệnh nhân từ CCCD', src: ['local'],
+      case: 'Khách mới đến quầy, đưa CCCD gắn chip.',
+      does: 'Quét mã QR (camera, ảnh hoặc dán chuỗi), điền họ tên, ngày sinh, giới tính, số định danh, địa chỉ; báo nếu đã có hồ sơ.',
+      human: 'Lễ tân xem lại rồi lưu. Không dùng AI, không tốn phí.',
+      shots: [['ai_10_quet_cccd.jpg', 'Quét CCCD trong hộp thoại Bệnh nhân mới.']] },
+    { code: 'AI-11', name: 'Gợi ý xếp lịch', src: ['local'],
+      case: 'Đặt lịch cạo vôi 45 phút cho khách quen, thích buổi chiều.',
+      does: 'Chấm điểm giờ trống: lấp khoảng trống ghế, ưu tiên buổi đang thấp công suất, cân tải bác sĩ đủ phạm vi hành nghề, giờ và bác sĩ quen của khách.',
+      human: 'Chip "Gợi ý" trong hộp thoại Đặt lịch; lễ tân chọn.',
+      shots: [['ai_11_goi_y_xep_lich.jpg', 'Gợi ý giờ hẹn trong hộp thoại Đặt lịch.']] },
+    { code: 'AI-12', name: 'Nội dung chăm sóc cá nhân hóa', src: ['llm'],
+      case: 'Khách vừa nhổ răng khôn 38 hôm nay.',
+      does: 'Kịch bản gọi +24 giờ, tin OA, lời dặn chính, dấu hiệu cần báo bác sĩ, dựa trên thủ thuật đã làm và lời dặn của bác sĩ.',
+      human: 'Nhân viên sửa rồi "Duyệt & gửi" / "Ghi nhận đã gọi".',
+      shots: [['ai_12_noi_dung_cham_soc.jpg', 'Kịch bản gọi hỏi thăm sau điều trị.'], ['ai_12b_tin_oa.jpg', 'Tin OA soạn sẵn.']] },
+  ],
+  'p-mgr': [
+    { code: 'AI-13', name: 'Hỏi đáp số liệu điều hành', src: ['llm'],
+      case: 'Giám đốc gõ: <b>"Vì sao khách mới tháng này thấp?"</b>',
+      does: 'AI tra bộ chỉ số (chỉ đọc): 2 khách mới, kỳ trước 5 (−60%), kênh giới thiệu chưa đóng góp; việc nên làm; nút mở danh sách chứng từ. Số khớp Bảng điều hành.',
+      human: 'Chỉ đọc, không sửa dữ liệu, không gửi thông tin bệnh nhân.',
+      shots: [['ai_13_hoi_dap_so_lieu.jpg', 'Hỏi đáp số liệu: câu trả lời có số, nguyên nhân và vết tra cứu.'], ['ai_13_bang_dieu_hanh_hoi_ai.jpg', 'Ngăn hỏi AI ngay trên Bảng điều hành mục tiêu.']] },
+    { code: 'AI-14', name: 'Bản tin điều hành hằng tuần', src: ['llm'],
+      case: '07:00 thứ Hai, bản tin tự soạn và gửi Giám đốc.',
+      does: 'Tuần qua so tuần trước, chỉ tiêu đang lệch, nguyên nhân có thể, 3 việc nên làm có số cụ thể và người phụ trách, điểm sáng.',
+      human: 'Giám đốc đọc, trao đổi trong bản tin, giao việc.',
+      shots: [['ai_14_ban_tin_tuan.jpg', 'Bản tin tuần: 8 chỉ tiêu lệch, nguyên nhân, 3 việc nên làm.']] },
+    { code: 'AI-15', name: 'Phát hiện bất thường', src: ['local'],
+      case: 'Một bác sĩ giảm giá 18/180 ca, đồng nghiệp chỉ 2%; công nợ tăng 74% trong 4 tuần.',
+      does: 'Thống kê tại chỗ: giảm giá, hoa hồng, hủy/hoàn chứng từ đã khóa, hoàn tiền, lệch quỹ, công nợ, vật tư vượt định mức. AI giải thích (tùy chọn).',
+      human: 'Quản lý giải trình → Giám đốc đóng hoặc bác bỏ.',
+      shots: [['ai_15_bat_thuong.jpg', 'Cảnh báo bất thường có điểm thống kê, chứng từ và quy trình xử lý.']] },
+    { code: 'AI-16', name: 'Dự báo doanh thu & vật tư', src: ['local'],
+      case: 'Giữa tháng: liệu có đạt mục tiêu 220 tr?',
+      does: 'Lịch đã đặt × tỷ lệ đến × giá trị + phần sẽ phát sinh (Holt-Winters), khoảng tin cậy 80%, xác suất đạt mục tiêu; nhu cầu vật tư 30 ngày → gợi ý đặt hàng.',
+      human: 'Giám đốc điều chỉnh kế hoạch; kho đặt hàng theo gợi ý.',
+      shots: [['ai_16_du_bao.jpg', 'Dự báo 158 tr / mục tiêu 220 tr, 13% khả năng đạt; găng tay sắp hết.'], ['ai_16_bang_dieu_hanh_dai_ai.jpg', 'Dải AI trên Bảng điều hành.']] },
+  ],
+  'p-pt': [
+    { code: 'AI-17', name: 'Trợ lý trên cổng bệnh nhân', src: ['llm'],
+      case: 'Khách hỏi trên app: <b>"Thuốc Augmentin uống thế nào, sao phải uống đủ 5 ngày?"</b>',
+      does: 'Giải thích kế hoạch, đơn thuốc, lời dặn, lịch hẹn bằng lời dễ hiểu; chỉ xem được dữ liệu của chính mình; ca khẩn hướng dẫn gọi hotline.',
+      human: 'Không chẩn đoán; câu khó chuyển phòng khám.',
+      shots: [['ai_17_tro_ly_cong_benh_nhan.jpg', 'Trợ lý trên cổng bệnh nhân.'], ['ai_17b_tro_ly_don_thuoc.jpg', 'Giải thích đơn thuốc.']] },
+    { code: 'AI-18', name: 'Theo dõi sau điều trị', src: ['local', 'llm'],
+      case: 'Sau nhổ răng khôn, mốc 24 giờ khách trả lời: <b>đau 8/10, chảy máu nhiều</b>.',
+      does: 'Hỏi đau, chảy máu, sưng, sốt ở mốc 24 giờ / 72 giờ qua Zalo hoặc trang điện thoại; ngưỡng tại chỗ + AI đọc phần mô tả.',
+      human: 'Bất thường: giao việc ngay cho bác sĩ phụ trách.',
+      shots: [['ai_18_cau_hoi_theo_doi.jpg', 'Trang câu hỏi theo dõi trên điện thoại.'], ['ai_18c_ket_qua_bao_bac_si.jpg', 'Kết quả bất thường báo bác sĩ.'], ['ai_18b_theo_doi_sau_dieu_tri.jpg', 'Danh sách theo dõi sau điều trị.']] },
+    { code: 'AI-19', name: 'Mô phỏng nụ cười (minh họa)', src: ['local', 'llm'],
+      case: 'Khách cân nhắc tẩy trắng / dán sứ, muốn hình dung trước.',
+      does: 'Ảnh hiện tại | minh họa, thang màu răng; Claude nhận xét bằng chữ và gợi ý dịch vụ từ bảng giá.',
+      human: 'Luôn ghi "Minh họa – không phải cam kết kết quả".',
+      shots: [['ai_19_mo_phong_nu_cuoi.jpg', 'Mô phỏng nụ cười trên cổng bệnh nhân.'], ['ai_19b_mo_phong_nu_cuoi_tu_van.jpg', 'Dùng trong buổi tư vấn.']] },
+  ],
+};
+
+function badge(key) { const [cls, label] = SRC[key]; return `<span class="badge ${cls}"><span class="dot"></span>${label}</span>`; }
+function shot([file, cap]) {
+  return `<div><button class="shot" type="button" data-cap="${cap.replace(/"/g, '&quot;')}"><img src="img/${file}" alt="${cap.replace(/"/g, '&quot;')}" loading="lazy"></button><p class="cap">${cap}</p></div>`;
+}
+for (const [panel, list] of Object.entries(FEATURES)) {
+  document.getElementById(panel).innerHTML = list.map(f => `
+    <article class="feat">
+      <div class="body">
+        <div class="head"><span class="code">${f.code}</span>${f.src.map(badge).join('')}</div>
+        <h3>${f.name}</h3>
+        <div class="case">${f.case}</div>
+        <div class="rows">
+          <div><span class="k">AI làm gì</span><span>${f.does}</span></div>
+          <div><span class="k">Người duyệt</span><span>${f.human}</span></div>
+        </div>
+      </div>
+      <div class="gallery ${f.shots.length > 1 ? 'two' : ''}">${f.shots.map(shot).join('')}</div>
+    </article>`).join('');
+}
+
+const tabs = [...document.querySelectorAll('.tab')];
+function select(tab) {
+  tabs.forEach(t => { const on = t === tab; t.setAttribute('aria-selected', on); document.getElementById(t.getAttribute('aria-controls')).hidden = !on; });
+}
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => select(t));
+  t.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; next.focus(); select(next);
+    }
+  });
+});
+
+const lb = document.getElementById('lb'), lbImg = document.getElementById('lb-img'), lbCap = document.getElementById('lb-cap');
+let lastShot = null;
+document.addEventListener('click', e => {
+  const b = e.target.closest('.shot');
+  if (b) { lastShot = b; const img = b.querySelector('img'); lbImg.src = img.src; lbImg.alt = img.alt; lbCap.textContent = b.dataset.cap || ''; lb.hidden = false; document.getElementById('lb-close').focus(); return; }
+  if (e.target === lb || e.target.id === 'lb-close') { lb.hidden = true; if (lastShot) lastShot.focus(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !lb.hidden) { lb.hidden = true; if (lastShot) lastShot.focus(); } });
+</script>
