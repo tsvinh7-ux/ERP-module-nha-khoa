@@ -111,7 +111,7 @@ class DmagAiBrief(models.Model):
         today = fields.Date.context_today(self)
         an = self.env['dmag.ai.analysis']
         dash = self.env['dmag.goal.dashboard'].sudo().get_goal_dashboard('month')
-        week_to = today - timedelta(days=today.weekday() + 1)  # Chủ nhật vừa qua
+        week_to = today - timedelta(days=(today.weekday() + 1) % 7)  # Chủ nhật gần nhất (hôm nay nếu là Chủ nhật)
         week_from = week_to - timedelta(days=6)
         prev_to, prev_from = week_from - timedelta(days=1), week_from - timedelta(days=7)
         week = []
@@ -126,7 +126,7 @@ class DmagAiBrief(models.Model):
         drivers = []
         seen = set()
         for card in sorted(off, key=lambda c: c['status'] != 'at_risk')[:3]:
-            for drv in an._drivers(card['metric'], d_from, d_to)['drivers'][:4]:
+            for drv in an._drivers(card['metric'], d_from, d_to)['drivers'][:2]:
                 if drv['text'] not in seen:
                     seen.add(drv['text'])
                     drivers.append(dict(drv, metric=card['metric']))
@@ -224,7 +224,9 @@ class DmagAiBrief(models.Model):
             if item.get('per_day'):
                 detail += '; cần thêm %s / ngày làm việc' % item['per_day']
             off_track.append({'metric': item['label'], 'detail': detail + ' – %s.' % item['status'].lower()})
-        causes = [d['text'] for d in facts['drivers'][:4]] or ['Chưa thấy biến động lớn so với cùng kỳ.']
+        labels = {c['metric']: c['label'] for c in off}
+        causes = ['%s – %s' % (labels[d['metric']], d['text']) if d.get('metric') in labels else d['text']
+                  for d in facts['drivers'][:5]] or ['Chưa thấy biến động lớn so với cùng kỳ.']
         actions = []
         if backlog['pending_plans']:
             actions.append({'title': 'Gọi lại %s khách đang cân nhắc kế hoạch' % backlog['pending_plans'],

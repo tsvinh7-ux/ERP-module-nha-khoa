@@ -29,6 +29,20 @@ patch(GoalDashboard.prototype, {
         this.ai.question = typeof question === "string" ? question : "";
         this.ai.chat = !this.ai.chat;
     },
+    /** Câu hỏi gợi ý theo chỉ tiêu đang lệch nhất của kỳ đang xem. */
+    get aiQuestions() {
+        const d = this.state.data;
+        const qs = [];
+        const period = d && d.period.type === "quarter" ? "quý này" : d && d.period.type === "year" ? "năm nay" : "tháng này";
+        const bad = d ? [...d.north_star, ...d.service].filter((c) => ["at_risk", "behind"].includes(c.status)) : [];
+        if (bad.length) {
+            qs.push(`Vì sao ${bad[0].label.toLowerCase()} ${period} ${bad[0].direction === "lower" ? "cao" : "thấp"}?`);
+        } else {
+            qs.push(`Vì sao doanh thu ${period} chậm?`);
+        }
+        qs.push(`Bác sĩ nào có doanh thu cao nhất ${period}?`);
+        return qs;
+    },
     openAiAction(xmlid) {
         this.action.doAction(xmlid);
     },

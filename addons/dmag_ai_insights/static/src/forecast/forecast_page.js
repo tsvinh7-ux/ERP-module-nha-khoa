@@ -43,7 +43,11 @@ export class AiForecastPage extends Component {
     /** Cột doanh thu 6 tháng gần nhất + tháng này (dự báo) – một chuỗi, nhãn ở đỉnh cột. */
     get history() {
         const d = this.state.data;
-        const items = d.history.map((h) => ({ label: h.month, value: h.value, kind: "actual" }));
+        const hist = [...d.history];
+        while (hist.length > 1 && !hist[0].value) {
+            hist.shift(); // bỏ các tháng trước khi phòng khám có số liệu
+        }
+        const items = hist.map((h) => ({ label: h.month, value: h.value, kind: "actual" }));
         items.push({ label: "Tháng này", value: d.revenue.total, low: d.revenue.low, high: d.revenue.high, kind: "forecast" });
         items.push({ label: "Tháng sau", value: d.next_month.total, low: d.next_month.low, high: d.next_month.high, kind: "forecast" });
         const W = 520;

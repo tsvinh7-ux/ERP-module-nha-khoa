@@ -23,6 +23,7 @@ patch(BookingDialog.prototype, {
 
     async loadAiSuggestions() {
         this.aiSlots.loading = true;
+        this.aiSlots.items = [];
         try {
             const res = await this.orm.call("dmag.workspace", "get_slot_suggestions", [this.state.date], {
                 doctor_id: this.state.doctorId || false,

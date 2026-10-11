@@ -228,8 +228,6 @@ class DmagAiHub(models.AbstractModel):
             if mode == 'live':
                 u['live'] += count
         total_all = Log.search_count([('company_id', '=', company.id)])
-        daily = Log._read_group([('company_id', '=', company.id), ('create_date', '>=', month_start)],
-                                ['create_date:day'], ['__count', 'estimated_cost_vnd:sum', 'cost_vnd:sum'])
         allowed = self._audiences_for_user()
         installed = set(env['ir.module.module'].sudo().search([('state', '=', 'installed'),
                                                                ('name', 'like', 'dmag_ai_')]).mapped('name'))
@@ -279,8 +277,6 @@ class DmagAiHub(models.AbstractModel):
             'usd_rate': company.dmag_ai_usd_rate, 'zdr': company.dmag_ai_zdr,
             'require_consent': company.dmag_ai_require_consent,
             'calls_month': sum(f['usage'] for f in features), 'calls_total': total_all,
-            'daily': [{'day': str(day.date()) if day else '', 'count': c, 'estimated': e or 0.0, 'cost': cost or 0.0}
-                      for day, c, e, cost in daily],
             'audiences': [{'key': a[0], 'label': a[1], 'tagline': a[2], 'visible': a[0] in allowed}
                           for a in AUDIENCES],
             'features': features, 'is_manager': is_manager(env), 'is_director': is_director(env),

@@ -93,6 +93,8 @@ $ai-violet: #6E56CF;
 .dmag-ai-mini { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid $ai-line; border-radius: 10px; padding: 7px 10px; font-size: 12.5px;
     &.is-new { border-color: $ai-ok; background: #F0FBF8; box-shadow: 0 0 0 3px rgba(18, 165, 148, .12); } }
 .dmag-ai-mini .dmag-state, .dmag-ai-booking .dmag-state { font-size: 11px; }
+.dmag-ai-mini .dmag-chip, .dmag-ai-mini .dmag-state { white-space: nowrap; margin: 0; flex: none; }
+.dmag-ai-mini > span.flex-grow-1 { min-width: 0; }
 
 // ---------------------------------------------------------------- inbox
 .dmag-ai-inbox .dmag-ws-header h1 { font-size: 20px; margin: 0; color: $ai-navy; font-weight: 800; }

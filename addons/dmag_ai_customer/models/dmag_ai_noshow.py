@@ -133,7 +133,7 @@ class DmagAiNoshowModel(models.Model):
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, index=True)
     trained_at = fields.Datetime('Huấn luyện lúc', default=fields.Datetime.now)
     method = fields.Selection([('logreg', 'Hồi quy logistic (học từ dữ liệu phòng khám)'),
-                               ('heuristic', 'Trọng số kinh nghiệm (chưa đủ dữ liệu)')], required=True)
+                               ('heuristic', 'Trọng số kinh nghiệm (chưa đủ dữ liệu)')], string='Phương pháp', required=True)
     n_samples = fields.Integer('Số lượt học')
     n_noshow = fields.Integer('Số lượt không đến')
     base_rate = fields.Float('Tỷ lệ không đến (%)', digits=(5, 1))

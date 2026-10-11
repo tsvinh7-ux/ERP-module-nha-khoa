@@ -52,6 +52,7 @@
                             <div class="dmag-panel-title">Doanh thu lũy kế tháng <t t-esc="r.month"/> <span class="dmag-ws-sub">Rê chuột để xem từng ngày</span></div>
                             <AiForecastChart data="r"/>
                         </div>
+                        <div class="dmag-goal-stack">
                         <div class="dmag-panel">
                             <div class="dmag-panel-title">Doanh thu theo tháng <span class="dmag-ws-sub">6 tháng gần nhất + dự báo</span></div>
                             <t t-set="hb" t-value="history"/>
@@ -69,6 +70,16 @@
                                 </t>
                             </svg>
                             <div class="dmag-fc-legend"><span><i class="is-actual"/>Thực tế</span><span><i class="is-forecast-bar"/>Dự báo (vạch: khoảng 80%)</span></div>
+                        </div>
+                        <div class="dmag-panel dmag-fc-read">
+                            <div class="dmag-panel-title">Đọc nhanh</div>
+                            <ul>
+                                <li>Giữ nhịp hiện tại, tháng <t t-esc="r.month"/> đạt khoảng <b t-esc="money(r.total)"/><t t-if="r.target"> – <b t-esc="pct(r.prob_target)"/> khả năng vượt mục tiêu <t t-esc="money(r.target)"/></t>.</li>
+                                <li>Lịch đã đặt mới bảo đảm <b t-esc="money(r.booked_part)"/>; phần còn lại <b t-esc="money(r.remaining - r.booked_part)"/> phụ thuộc lịch phát sinh và khách mới.</li>
+                                <li t-if="r.target and r.low &lt; r.target">Kịch bản thấp (<t t-esc="money(r.low)"/>) vẫn hụt mục tiêu – nên lấp ghế chiều và gọi lại khách đang cân nhắc kế hoạch.</li>
+                                <li t-if="state.data.materials.critical">Có <b t-esc="state.data.materials.critical"/> vật tư sắp hết – xem bảng gợi ý đặt hàng bên dưới.</li>
+                            </ul>
+                        </div>
                         </div>
                     </div>
 

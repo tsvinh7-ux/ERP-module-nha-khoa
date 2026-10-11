@@ -51,7 +51,7 @@
             if (!question) {
                 return;
             }
-            add("user", question);
+            const asked = add("user", question);
             const typing = add("bot", "Đang tra hồ sơ của bạn…");
             typing.classList.add("is-typing");
             rpc("/my/dental/assistant/ask", { question, history: history.slice(-8) })
@@ -66,6 +66,7 @@
                     const meta = res.simulated === undefined ? "" :
                         (res.simulated ? "Giả lập" : "Claude") + (res.estimated_cost_vnd ? " · ~" + money(res.estimated_cost_vnd) : "");
                     add("bot", res.answer || "…", meta);
+                    log.scrollTop = Math.max(0, asked.offsetTop - 8); // hiện từ đầu câu trả lời
                     history.push({ role: "user", content: question });
                     history.push({ role: "assistant", content: res.answer || "" });
                 })

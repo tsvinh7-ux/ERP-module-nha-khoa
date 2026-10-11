@@ -129,6 +129,7 @@ SAMPLE_QUESTIONS = [
     'Tỷ lệ khách không đến tháng này?',
     'Dịch vụ nào mang lại doanh thu cao nhất 30 ngày qua?',
     'Khách mới tháng này đến từ nguồn nào?',
+    'Vì sao khách mới tháng này thấp?',
     'NPS tuần này so với tuần trước?',
 ]
 
@@ -409,7 +410,7 @@ class QaToolbox:
                 lines.append('Xếp hạng:')
                 for i, row in enumerate(res['rows'], 1):
                     extra = ' (%s lượt)' % row['cases'] if entity == 'doctor' and row.get('cases') is not None else ''
-                    lines.append('- %s. %s: **%s**%s' % (i, row['name'], row['text'], extra))
+                    lines.append('%s. %s: **%s**%s' % (i, row['name'], row['text'], extra))
                     facts.append({'metric': res['metric'], 'name': row['name'], 'value': row['value']})
                 if entity == 'doctor' and top_metric == 'plan_acceptance':
                     target = self.an._value('plan_acceptance', *resolve_period(period, self.today)[:2])

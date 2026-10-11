@@ -101,14 +101,16 @@ SYSTEM = (
 def classify_local(text, score=None):
     """Bộ phân loại tại chỗ theo từ điển – dùng cho chế độ giả lập và khi bệnh nhân chưa đồng ý AI."""
     folded = fold(text)
-    hits = {topic: sum(1 for w in words if has_any(folded, [w])) for topic, words in LEXICON.items()}
-    neg_text = folded.replace('khong dau', ' ').replace('het dau', ' ').replace('khong lau', ' ')
-    negative = has_any(neg_text, NEGATIVE) or has_any(folded, ['không tốt', 'chưa tốt']) or (score is not None and score <= 6)
-    if not has_any(neg_text, LEXICON['pain']):
+    hits = {topic: len(match_words(text, words)) for topic, words in LEXICON.items()}
+    low = (text or '').lower()
+    neg_text = low.replace('không đau', ' ').replace('hết đau', ' ').replace('không lâu', ' ').replace('không phải chờ', ' ')
+    negative = bool(match_words(neg_text, NEGATIVE)) or has_any(folded, ['không tốt', 'chưa tốt']) \
+        or (score is not None and score <= 6)
+    if not match_words(neg_text, LEXICON['pain']):
         hits_pain_off = True
     else:
         hits_pain_off = False
-    positive = hits['praise'] > 0 and not negative or (score is not None and score >= 9 and not has_any(folded, NEGATIVE))
+    positive = hits['praise'] > 0 and not negative or (score is not None and score >= 9 and not match_words(neg_text, NEGATIVE))
     if hits_pain_off:
         hits['pain'] = 0
     if negative:
@@ -119,14 +121,14 @@ def classify_local(text, score=None):
     red_flags = match_words(text, CRITICAL)
     if red_flags:
         severity = 'critical'
-    elif (score is not None and score <= 3) or (negative and has_any(folded, ['khiếu nại', 'thất vọng', 'quá tệ', 'lừa', 'bực'])):
+    elif (score is not None and score <= 3) or (negative and match_words(text, ['khiếu nại', 'thất vọng', 'quá tệ', 'lừa', 'bực'])):
         severity = 'high'
     elif negative:
         severity = 'medium'
     else:
         severity = 'low'
     sentiment = 'negative' if negative else 'positive' if positive else 'neutral'
-    churn = bool(has_any(folded, CHURN) or (negative and score is not None and score <= 4))
+    churn = bool(match_words(text, CHURN) or (negative and score is not None and score <= 4))
     medical = [w for w in red_flags if w not in ('kiện', 'báo chí', 'sở y tế', 'bóc phốt', '1 sao', 'một sao', 'tố cáo')]
     return {
         'topic': topic, 'severity': severity, 'sentiment': sentiment, 'churn_risk': churn,
@@ -166,7 +168,8 @@ class DmagAiFeedback(models.Model):
     red_flags = fields.Char('Dấu hiệu cần bác sĩ xem')
     suggested_reply = fields.Text('Gợi ý trả lời khách')
     suggested_action = fields.Text('Gợi ý xử lý nội bộ')
-    state = fields.Selection([('new', 'Mới'), ('in_progress', 'Đang xử lý'), ('done', 'Đã xử lý')], default='new',
+    customer_label = fields.Char('Khách', compute='_compute_labels')
+    state = fields.Selection([('new', 'Mới'), ('in_progress', 'Đang xử lý'), ('done', 'Đã xử lý')], string='Trạng thái', default='new',
                              required=True, tracking=True, index=True)
     state_rank = fields.Integer(compute='_compute_ranks', store=True)
     user_id = fields.Many2one('res.users', string='Người xử lý', tracking=True)
@@ -187,6 +190,8 @@ class DmagAiFeedback(models.Model):
         labels = dict(TOPICS)
         for fb in self:
             fb.topic_label = labels.get(fb.topic, '')
+            fb.customer_label = fb.partner_id.name or fb.conversation_id.name or ''
+
 
     # ------------------------------------------------------------------ classification
     def _classify(self, use_ai=True):
@@ -255,7 +260,7 @@ class DmagAiFeedback(models.Model):
         if not self.env['dmag.ai'].is_feature_active('AI-09'):
             return False
         folded = fold(message.body)
-        if not (has_any(folded, NEGATIVE) or match_words(message.body, CRITICAL) or has_any(folded, CHURN)):
+        if not (match_words(message.body, NEGATIVE) or match_words(message.body, CRITICAL) or match_words(message.body, CHURN)):
             return False
         conv = message.conversation_id
         if conv.feedback_ids.filtered(lambda f: f.state != 'done'):

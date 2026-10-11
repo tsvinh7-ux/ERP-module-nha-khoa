@@ -46,8 +46,8 @@
                         <div class="dmag-ai-sysmsg">Bạn đang nhắn với <b>trợ lý tự động</b> của phòng khám. Khiếu nại / ca khẩn sẽ được chuyển nhân viên ngay.</div>
                         <div t-if="state.thread and state.thread.partner" class="dmag-ai-sysmsg">Đang đóng vai: <b t-esc="state.thread.partner.name"/></div>
                         <t t-call="dmag_ai_customer.ChatBubbles">
-                            <t t-set="messages" t-value="messages"/>
-                            <t t-set="perspective" t-value="'customer'"/>
+                            <t t-set="chatLines" t-value="chatMessages"/>
+                            <t t-set="chatPerspective" t-value="'customer'"/>
                         </t>
                         <div t-if="state.sending" class="dmag-ai-bubble-row"><div class="dmag-ai-bubble is-bot is-typing"><span/><span/><span/></div></div>
                         <div t-if="lastQuick.length and !state.sending" class="dmag-ai-quick">

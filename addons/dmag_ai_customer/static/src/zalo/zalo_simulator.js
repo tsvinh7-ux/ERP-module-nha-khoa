@@ -47,18 +47,18 @@ export class ZaloSimulator extends Component {
         onMounted(() => this.scroll());
     }
 
-    get messages() {
+    get chatMessages() {
         return this.state.thread ? this.state.thread.messages : [];
     }
 
     get botTurns() {
-        return this.messages.filter((m) => m.role === "bot").slice().reverse();
+        return this.chatMessages.filter((m) => m.role === "bot").slice().reverse();
     }
 
     get lastQuick() {
-        const bots = this.messages.filter((m) => m.role !== "customer");
+        const bots = this.chatMessages.filter((m) => m.role !== "customer");
         const last = bots[bots.length - 1];
-        const lastAll = this.messages[this.messages.length - 1];
+        const lastAll = this.chatMessages[this.chatMessages.length - 1];
         return last && lastAll && lastAll.id === last.id ? last.quick || [] : [];
     }
 
@@ -105,6 +105,9 @@ export class ZaloSimulator extends Component {
         }
         this.state.sending = true;
         this.state.text = "";
+        if (this.inputRef.el) {
+            this.inputRef.el.value = "";
+        }
         // hiện ngay tin của khách
         this.state.thread.messages.push({ id: "tmp", role: "customer", body: text, time: "", state: "received", trace: [], quick: [] });
         setTimeout(() => this.scroll(), 0);

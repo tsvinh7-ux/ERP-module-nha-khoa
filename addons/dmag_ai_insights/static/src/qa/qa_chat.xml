@@ -81,6 +81,26 @@
             </header>
             <div class="dmag-qa-page">
                 <AiQaChat/>
+                <aside class="dmag-qa-side">
+                    <div class="dmag-panel">
+                        <div class="dmag-panel-title">AI trả lời thế nào?</div>
+                        <ol class="dmag-qa-how">
+                            <li>Hiểu câu hỏi: chỉ số nào, kỳ nào, bác sĩ nào, hỏi giá trị / vì sao / so sánh / xếp hạng.</li>
+                            <li>Tra số liệu bằng 5 công cụ <b>chỉ đọc</b> – cùng bộ máy với Bảng điều hành mục tiêu.</li>
+                            <li>Trả lời có số, kỳ, nguyên nhân và nút <b>Mở danh sách</b> tới chứng từ gốc.</li>
+                        </ol>
+                        <div class="dmag-qa-tools">
+                            <span class="dmag-chip is-info">get_goal_dashboard</span><span class="dmag-chip is-info">metric</span>
+                            <span class="dmag-chip is-info">compare_periods</span><span class="dmag-chip is-info">list_top</span>
+                            <span class="dmag-chip is-info">drill_records</span>
+                        </div>
+                    </div>
+                    <div class="dmag-panel">
+                        <div class="dmag-panel-title">Giả lập hay AI thật?</div>
+                        <p class="dmag-ws-sub mb-1"><b>Giả lập</b>: bộ định tuyến tại chỗ gọi chính các công cụ trên – số liệu thật, không tốn phí, hiểu các mẫu câu thường gặp.</p>
+                        <p class="dmag-ws-sub mb-0"><b>Claude API</b>: hiểu mọi cách hỏi, tự chọn công cụ, lập luận nhiều bước; không gửi thông tin bệnh nhân; mỗi câu ≈ vài trăm đồng.</p>
+                    </div>
+                </aside>
             </div>
         </div>
     </t>

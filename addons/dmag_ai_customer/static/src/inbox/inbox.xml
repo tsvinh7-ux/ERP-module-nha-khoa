@@ -69,8 +69,8 @@
                         </div>
                         <div class="dmag-ai-thread-log" t-ref="log">
                             <t t-call="dmag_ai_customer.ChatBubbles">
-                                <t t-set="messages" t-value="state.thread.messages"/>
-                                <t t-set="perspective" t-value="'staff'"/>
+                                <t t-set="chatLines" t-value="state.thread.messages"/>
+                                <t t-set="chatPerspective" t-value="'staff'"/>
                             </t>
                         </div>
                         <div t-foreach="pendingMessages" t-as="m" t-key="m.id" class="dmag-ai-pending">

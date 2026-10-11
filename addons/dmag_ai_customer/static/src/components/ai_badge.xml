@@ -6,10 +6,10 @@
         </span>
     </t>
 
-    <!-- Bong bóng tin nhắn dùng chung (mô phỏng Zalo & hộp thư) – biến: messages, perspective ('customer'|'staff') -->
+    <!-- Bong bóng tin nhắn dùng chung (mô phỏng Zalo & hộp thư) – biến: chatLines, chatPerspective ('customer'|'staff') -->
     <t t-name="dmag_ai_customer.ChatBubbles">
-        <t t-foreach="messages" t-as="m" t-key="m.id">
-            <t t-set="mine" t-value="perspective === 'customer' ? m.role === 'customer' : ['bot', 'staff'].includes(m.role)"/>
+        <t t-foreach="chatLines" t-as="m" t-key="m.id">
+            <t t-set="mine" t-value="chatPerspective === 'customer' ? m.role === 'customer' : ['bot', 'staff'].includes(m.role)"/>
             <div t-if="m.role === 'system'" class="dmag-ai-sysmsg" t-esc="m.body"/>
             <div t-else="" t-att-class="'dmag-ai-bubble-row' + (mine ? ' is-mine' : '')">
                 <div t-att-class="'dmag-ai-bubble is-' + m.role + (m.state === 'pending' ? ' is-pending' : '') + (m.state === 'discarded' ? ' is-discarded' : '')">
@@ -20,7 +20,7 @@
                     <div class="dmag-ai-bubble-body" t-esc="m.body"/>
                     <div class="dmag-ai-bubble-meta">
                         <t t-esc="m.time"/>
-                        <t t-if="m.role === 'bot' and perspective === 'staff'"> · <t t-esc="m.simulated ? 'Giả lập' : 'Claude'"/></t>
+                        <t t-if="m.role === 'bot' and chatPerspective === 'staff'"> · <t t-esc="m.simulated ? 'Giả lập' : 'Claude'"/></t>
                         <t t-if="m.state === 'pending'"> · <b>Chờ duyệt</b></t>
                         <t t-if="m.state === 'mock_sent'"> · Đã gửi (giả lập)</t>
                         <t t-if="m.state === 'sent'"> · Đã gửi Zalo</t>

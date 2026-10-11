@@ -350,12 +350,12 @@ class DmagAiConversationMessage(models.Model):
     conversation_id = fields.Many2one('dmag.ai.conversation', required=True, ondelete='cascade', index=True)
     company_id = fields.Many2one(related='conversation_id.company_id', store=True, index=True)
     role = fields.Selection([('customer', 'Khách'), ('bot', 'Trợ lý AI'), ('staff', 'Nhân viên'), ('system', 'Hệ thống')],
-                            required=True)
+                            string='Vai trò', required=True)
     body = fields.Text('Nội dung', required=True)
     state = fields.Selection([
         ('received', 'Đã nhận'), ('pending', 'Chờ nhân viên duyệt'), ('ready', 'Hiển thị'),
         ('sent', 'Đã gửi Zalo'), ('mock_sent', 'Đã gửi (giả lập)'), ('failed', 'Gửi lỗi'), ('discarded', 'Bỏ'),
-    ], default='ready', required=True, index=True)
+    ], string='Trạng thái', default='ready', required=True, index=True)
     author_id = fields.Many2one('res.users', string='Nhân viên')
     approved_by_id = fields.Many2one('res.users', string='Người duyệt', readonly=True)
     tool_trace = fields.Text('Công cụ đã gọi (JSON)')

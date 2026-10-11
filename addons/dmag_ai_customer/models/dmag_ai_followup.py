@@ -91,14 +91,14 @@ class DmagAiFollowup(models.Model):
     patient_id = fields.Many2one(related='visit_id.patient_id', store=True, string='Bệnh nhân')
     doctor_id = fields.Many2one(related='visit_id.doctor_id', store=True, string='Bác sĩ phụ trách')
     procedures = fields.Char('Thủ thuật')
-    checkpoint = fields.Selection([('24h', 'Sau 24 giờ'), ('72h', 'Sau 72 giờ')], required=True, default='24h')
+    checkpoint = fields.Selection([('24h', 'Sau 24 giờ'), ('72h', 'Sau 72 giờ')], string='Mốc hỏi', required=True, default='24h')
     due_at = fields.Datetime('Hỏi lúc', required=True, index=True)
     token = fields.Char(required=True, copy=False, index=True, default=lambda self: secrets.token_urlsafe(16),
                         groups='dmag_dental_base.group_dmag_receptionist')
     url = fields.Char('Link trả lời', compute='_compute_url')
     state = fields.Selection([('scheduled', 'Chờ đến giờ'), ('sent', 'Đã gửi câu hỏi'), ('answered', 'Đã trả lời'),
                               ('alert', 'Bất thường – đã báo bác sĩ'), ('closed', 'Đã xử lý'), ('expired', 'Hết hạn')],
-                             default='scheduled', required=True, tracking=True, index=True)
+                             string='Trạng thái', default='scheduled', required=True, tracking=True, index=True)
     channel = fields.Selection([('zalo', 'Zalo OA'), ('portal', 'Cổng bệnh nhân'), ('call', 'Gọi điện')], string='Kênh trả lời')
     sent_note = fields.Char('Gửi qua', readonly=True)
     pain = fields.Integer('Mức đau (0–10)', default=-1)

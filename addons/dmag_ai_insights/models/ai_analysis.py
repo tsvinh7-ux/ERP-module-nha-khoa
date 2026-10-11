@@ -171,7 +171,7 @@ class DmagAiAnalysis(models.AbstractModel):
             out.append({'text': text, 'weight': round(weight, 2), 'kind': kind})
 
         money = metric in ('revenue', 'gross_profit', 'collected')
-        if money or metric in ('new_patients', 'booked', 'implant_cases', 'ortho_new'):
+        if money or metric == 'booked':
             # Lượng khách × giá trị trung bình
             c_done, p_done = len(cur_scope.done_visits), len(prev_scope.done_visits)
             c_rev, p_rev = engine.compute_metric('revenue', cur_scope), engine.compute_metric('revenue', prev_scope)
@@ -237,6 +237,20 @@ class DmagAiAnalysis(models.AbstractModel):
             if pm is not None and pm < 65:
                 add('Ghế buổi chiều mới dùng %s công suất (chuẩn ≥ 65%%) – còn nhiều giờ trống 13:30–16:30.' % fmt(
                     'pct', pm), (65 - pm) * 0.6, 'capacity')
+        if metric in ('implant_cases', 'ortho_new'):
+            cat = 'implant' if metric == 'implant_cases' else 'orthodontic'
+            label = 'implant' if cat == 'implant' else 'chỉnh nha'
+            c, p = engine.compute_metric(metric, cur_scope), engine.compute_metric(metric, prev_scope)
+            add('Số ca %s: %s (cùng kỳ trước %s).' % (label, fmt('count', c), fmt('count', p)), 30, 'service')
+            Plan = self.env['dmag.treatment.plan'].sudo()
+            pending = Plan.search([('company_id', 'in', self._companies().ids), ('state', '=', 'presented'),
+                                   ('option_ids.line_ids.product_id.dental_category', '=', cat)])
+            accepted_todo = self.env['dmag.treatment.plan.line'].sudo().search_count([
+                ('plan_id.company_id', 'in', self._companies().ids), ('state', '=', 'todo'),
+                ('plan_id.state', 'in', ('accepted', 'in_progress')), ('option_id.is_accepted', '=', True),
+                ('product_id.dental_category', '=', cat)])
+            add('%s kế hoạch có %s đang chờ khách quyết định; %s dịch vụ %s đã chốt nhưng chưa làm.' % (
+                len(pending), label, accepted_todo, label), 25, 'pipeline')
         if metric == 'collected':
             moves = self.env['account.move'].sudo().search([
                 ('company_id', 'in', self._companies().ids), ('move_type', '=', 'out_invoice'),
@@ -267,10 +281,47 @@ class DmagAiAnalysis(models.AbstractModel):
         if metric in ('nps', 'complaint_rate') and cur_scope.nps_responses:
             low = cur_scope.nps_responses.filtered(lambda r: r.score <= 6)
             add('%s phiếu chấm 0–6 điểm trên %s phiếu.' % (len(low), len(cur_scope.nps_responses)), 25, 'nps')
-        if metric == 'new_patients' and not doctor:
-            top = self._top('source', 'new_patients', d_from, d_to, limit=3)
-            if top['rows']:
-                add('Nguồn khách mới chính: %s.' % ', '.join('%s (%s)' % (r['name'], int(r['value']))
-                                                            for r in top['rows']), 15, 'source')
+        if metric in ('new_patients', 'referral_rate'):
+            def new_stats(sc):
+                visits = sc.visits.filtered(lambda v: v.is_new_patient and v.state != 'cancel')
+                return len(visits), len(visits.filtered(lambda v: v.state == 'no_show'))
+            (c_book, c_ns), (p_book, p_ns) = new_stats(cur_scope), new_stats(prev_scope)
+            add('Lịch hẹn của khách mới: %s (cùng kỳ trước %s)%s.' % (
+                c_book, p_book, ', %s lượt không đến' % c_ns if c_ns else ''), 30 + abs(c_book - p_book), 'funnel')
+            if not doctor:
+                top = self._top('source', 'new_patients', d_from, d_to, limit=3)
+                if top['rows']:
+                    add('Nguồn khách mới: %s – kênh giới thiệu / Zalo chưa đóng góp nhiều.' % ', '.join(
+                        '%s (%s)' % (r['name'], int(r['value'])) for r in top['rows']), 20, 'source')
+                else:
+                    add('Chưa ghi nhận nguồn khách mới nào trong kỳ – kiểm tra kênh quảng bá / giới thiệu.', 20,
+                        'source')
+            ref = engine.compute_metric('referral_rate', cur_scope)
+            if ref is not None:
+                add('Tỷ lệ khách mới do giới thiệu: %s.' % fmt('pct', ref), 10, 'source')
+        if metric == 'avg_wait':
+            waited = cur_scope.visits.filtered(lambda v: v.checkin_time and v.chair_time and v.state in (
+                'arrived', 'in_chair', 'done'))
+            long = waited.filtered(lambda v: v.wait_minutes > 20)
+            if waited:
+                add('%s/%s lượt phải chờ trên 20 phút.' % (len(long), len(waited)), 30, 'wait')
+                by_doc = defaultdict(list)
+                for v in waited:
+                    by_doc[v.doctor_id.name or '?'].append(v.wait_minutes)
+                worst = max(by_doc.items(), key=lambda kv: sum(kv[1]) / len(kv[1]))
+                add('Chờ lâu nhất ở lịch của %s: trung bình %s phút.' % (
+                    worst[0], fmt('count', sum(worst[1]) / len(worst[1]))), 20, 'wait')
+        if metric in ('chair_util_pm', 'chair_util_am'):
+            pm = cur_scope.visits.filtered(lambda v: v.state not in ('cancel', 'no_show')
+                                           and cur_scope.local(v.scheduled_start).hour >= 12)
+            am = cur_scope.visits.filtered(lambda v: v.state not in ('cancel', 'no_show')
+                                           and cur_scope.local(v.scheduled_start).hour < 12)
+            add('Lịch buổi chiều %s lượt so với buổi sáng %s lượt – khách vẫn dồn buổi sáng.' % (len(pm), len(am)),
+                25, 'capacity')
+        if metric == 'complaint_rate' and cur_scope.nps_responses is not None and 'dmag.nps.response' in self.env:
+            open_c = self.env['dmag.nps.response'].sudo().search_count([
+                ('company_id', 'in', self._companies().ids), ('is_complaint', '=', True),
+                ('complaint_resolved', '=', False)])
+            add('%s phiếu phàn nàn chưa xử lý.' % open_c, 20, 'nps')
         out.sort(key=lambda d: -d['weight'])
         return {'prev_from': p_from, 'prev_to': p_to, 'drivers': out}

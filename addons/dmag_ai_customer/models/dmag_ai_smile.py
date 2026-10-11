@@ -97,14 +97,14 @@ def estimate_shade(img, mask):
     return best, coverage
 
 
-def whiten(img, mask, strength=0.55):
+def whiten(img, mask, strength=0.75):
     """Làm trắng minh họa: giảm ngả vàng, tăng sáng trong vùng mặt nạ."""
     r, g, b = img.split()
-    bright = Image.merge('RGB', (r.point(lambda v: min(255, int(v * 1.06 + 8))),
-                                 g.point(lambda v: min(255, int(v * 1.08 + 10))),
-                                 b.point(lambda v: min(255, int(v * 1.22 + 22)))))
+    bright = Image.merge('RGB', (r.point(lambda v: min(255, int(v * 1.05 + 10))),
+                                 g.point(lambda v: min(255, int(v * 1.09 + 14))),
+                                 b.point(lambda v: min(255, int(v * 1.30 + 34)))))
     desat = ImageOps.grayscale(bright).convert('RGB')
-    target = Image.blend(bright, desat, 0.35)
+    target = Image.blend(bright, desat, 0.45)
     alpha = mask.point(lambda v: int(v * strength))
     return Image.composite(target, img, alpha)
 
@@ -138,14 +138,18 @@ def compose(before, after, shade_now, shade_after, clinic=''):
     canvas.paste(stamp, (pad * 2 + w, head), stamp)
     # thang màu
     y = head + h + 22
-    draw.text((pad, y), 'Thang màu tham khảo (sáng → tối):', fill=(27, 42, 61), font=_font(16))
+    draw.text((pad, y), 'Thang màu tham khảo (sáng – tối):', fill=(27, 42, 61), font=_font(16))
     sw = min(70, (canvas.width - pad * 2 - 300) // len(SHADES))
     for i, (name, color) in enumerate(SHADES):
         x = pad + 300 + i * (sw + 6)
         outline = (229, 72, 77) if i == shade_now else (18, 165, 148) if i == shade_after else (200, 210, 222)
         draw.rounded_rectangle([x, y - 4, x + sw, y + 40], 6, fill=color, outline=outline, width=3 if outline != (200, 210, 222) else 1)
         draw.text((x + 6, y + 44), name, fill=(80, 90, 110), font=_font(14))
-    draw.text((pad, y + 30), '■ đỏ: ước tính hiện tại   ■ xanh: minh họa', fill=(107, 122, 144), font=_font(14))
+    legend = _font(14)
+    draw.rectangle([pad, y + 33, pad + 11, y + 44], fill=(229, 72, 77))
+    draw.text((pad + 16, y + 29), 'ước tính hiện tại', fill=(107, 122, 144), font=legend)
+    draw.rectangle([pad + 140, y + 33, pad + 151, y + 44], fill=(18, 165, 148))
+    draw.text((pad + 156, y + 29), 'minh họa', fill=(107, 122, 144), font=legend)
     return canvas
 
 
@@ -183,7 +187,7 @@ class DmagAiSmile(models.Model):
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, index=True)
     patient_id = fields.Many2one('res.partner', string='Bệnh nhân', required=True, index=True,
                                  domain=[('is_patient', '=', True)])
-    source = fields.Selection([('consult', 'Tư vấn tại phòng khám'), ('portal', 'Bệnh nhân tự tải lên')], default='consult')
+    source = fields.Selection([('consult', 'Tư vấn tại phòng khám'), ('portal', 'Bệnh nhân tự tải lên')], string='Nguồn ảnh', default='consult')
     image_before = fields.Image('Ảnh nụ cười', max_width=1280, max_height=1280, required=True)
     image_result = fields.Image('Ảnh minh họa (ghép đôi)', readonly=True)
     shade_now = fields.Char('Màu ước tính hiện tại', readonly=True)
@@ -194,7 +198,7 @@ class DmagAiSmile(models.Model):
     mode = fields.Char('Chế độ', readonly=True)
     estimated_cost_vnd = fields.Float('Chi phí nếu chạy thật (đ)', digits=(12, 0), readonly=True)
     cost_vnd = fields.Float('Chi phí AI (đ)', digits=(12, 0), readonly=True)
-    state = fields.Selection([('draft', 'Chưa xử lý'), ('done', 'Đã tạo minh họa')], default='draft')
+    state = fields.Selection([('draft', 'Chưa xử lý'), ('done', 'Đã tạo minh họa')], string='Trạng thái', default='draft')
 
     @api.depends('patient_id')
     def _compute_name(self):
@@ -223,7 +227,9 @@ class DmagAiSmile(models.Model):
             else:
                 local_obs.append('Màu răng ước tính khoảng %s trên thang tham khảo%s.'
                                  % (shade_now, ' (hơi ngả vàng)' if sim['shade_now'] and sim['shade_now'] >= 3 else ''))
-                local_obs.append('Ảnh minh họa giả định làm sáng khoảng 2 bậc màu (≈ %s) – mức thực tế tùy men răng.' % shade_after)
+                steps = max((sim['shade_now'] or 0) - (sim['shade_after'] or 0), 1)
+                local_obs.append('Ảnh minh họa giả định làm sáng khoảng %s bậc màu (≈ %s) – mức thực tế tùy men răng, '
+                                 'phục hình cũ không đổi màu khi tẩy trắng.' % (steps, shade_after))
             local_obs.append('Độ đều, khớp cắn, nướu và tình trạng sâu răng cần bác sĩ khám trực tiếp.')
             for words, why in ((('tẩy trắng',), 'Làm sáng màu răng tự nhiên, không mài răng.'),
                                (('cạo vôi', 'lấy cao', 'vệ sinh'), 'Làm sạch mảng bám trước khi làm thẩm mỹ.'),

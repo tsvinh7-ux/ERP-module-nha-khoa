@@ -26,6 +26,8 @@
         'dmag_dental_goals',
         'dmag_ai_core',
         'dmag_ai_insights',
+        'dmag_ai_clinical',
+        'dmag_ai_customer',
     ],
     'data': [
         'security/ir.model.access.csv',

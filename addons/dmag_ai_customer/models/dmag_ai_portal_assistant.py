@@ -3,7 +3,6 @@
 Phạm vi dữ liệu: CHỈ những bệnh nhân người dùng cổng được xem (bản thân, người được giám hộ, thành viên gia đình khi
 là chủ hộ – ``res.partner._dmag_portal_patients``). Mọi công cụ kiểm tra phạm vi ở phía máy chủ.
 """
-import re
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
@@ -59,10 +58,11 @@ SYSTEM = (
 
 
 def plain(text):
+    """Giải thích thuật ngữ đầu tiên gặp trong tên dịch vụ bằng lời dễ hiểu (một chú thích / dòng cho dễ đọc)."""
     out = text or ''
     for term, meaning in PLAIN_TERMS:
-        if term in out.lower() and meaning not in out:
-            out = re.sub('(%s)' % re.escape(term), r'\1 (%s)' % meaning, out, count=1, flags=re.IGNORECASE)
+        if term in out.lower():
+            return '%s (%s)' % (out, meaning)
     return out
 
 

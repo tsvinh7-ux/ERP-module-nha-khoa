@@ -252,6 +252,19 @@ class DmagAiReception(models.AbstractModel):
             partner.write({'data_consent': True})
         services = self.env['product.product'].sudo().browse([int(s) for s in vals.get('service_ids') or []]).exists()
         duration = sum(services.mapped('dental_duration')) or 30
+        # Chống đặt trùng: khách đã có lịch đang chờ trong ngày đó → không tạo thêm, báo lại để khách / lễ tân quyết
+        day = fields.Date.from_string(vals['date'])
+        to_utc = Workspace._local_to_utc
+        same_day = self.env['dmag.dental.visit'].sudo().search([
+            ('patient_id', '=', partner.id), ('state', 'in', ('draft', 'confirmed')),
+            ('scheduled_start', '>=', to_utc(day, 0)), ('scheduled_start', '<', to_utc(day, 23, 59))], limit=1)
+        if same_day:
+            local = fields.Datetime.context_timestamp(self, same_day.scheduled_start)
+            if conversation:
+                conversation.sudo().write({'partner_id': partner.id, 'visit_ids': [(4, same_day.id)]})
+            return {'booked': False, 'existing_visit': same_day.name, 'existing_time': local.strftime('%H:%M'),
+                    'message': 'Khách đã có lịch %s lúc %s ngày %s – không đặt trùng; nếu muốn đổi giờ, chuyển lễ tân.'
+                               % (same_day.name, local.strftime('%H:%M'), local.strftime('%d/%m'))}
         free = self.tool_get_free_slots(vals['date'], services.ids, 'any')
         open_slots = Workspace.get_free_slots(vals['date'], False, duration)
         wanted = (vals.get('time') or '').strip()[:5]
@@ -509,6 +522,11 @@ class DmagAiReception(models.AbstractModel):
                               (' – %s' % ', '.join(res['services'])) if res['services'] else '',
                               (' với BS %s' % res['doctor']) if res['doctor'] else '', res['visit']),
                            ['Địa chỉ', 'Chuẩn bị gì trước khi khám?'])
+            if res.get('existing_visit'):
+                state.update(stage='done', time=False, slots=[])
+                return out('Dạ anh/chị đã có lịch hẹn lúc %s ngày %s (mã %s) rồi ạ. Nếu muốn đổi giờ, em chuyển lễ tân '
+                           'hỗ trợ anh/chị nhé.' % (res['existing_time'], self._fmt_date(state['date']), res['existing_visit']),
+                           ['Gặp nhân viên', 'Địa chỉ'])
             state['time'] = False
             alts = res.get('alternatives') or []
             state['slots'] = alts

@@ -1827,6 +1827,7 @@ class DemoGenerator:
         consent.write({'dmag_ai_consent': True})
         self.stats['ai_consent'] = len(consent)
         self._ai_refunds()
+        self._ai_customer_samples()
         if 'dmag.ai.qa' in self.env:
             qa = self.env['dmag.ai.qa'].with_user(self.users['director']).with_company(company)
             for question in ('Tình hình tháng này ra sao?', 'Vì sao doanh thu tháng này chậm?',
@@ -1876,3 +1877,37 @@ class DemoGenerator:
                 return rev
             if self.try_('Hoàn tiền mẫu', refund):
                 self.stats['ai_refunds'] += 1
+
+    def _ai_customer_samples(self):
+        """Tình huống mẫu cho các tính năng của ``dmag_ai_customer`` (nếu đã cài) – gọi hàm của chính module đó."""
+        env = self.env
+        if 'dmag.ai.conversation' in env and hasattr(env['dmag.ai.conversation'], 'simulator_start'):
+            Conv = env['dmag.ai.conversation'].with_user(self.users['receptionist']).with_company(self.company)
+            scripts = [
+                ('Chị Hồng (Zalo)', '0901234567', ['Phòng khám mở cửa mấy giờ ạ?',
+                                                   'Cạo vôi răng giá bao nhiêu vậy?',
+                                                   'Cho mình đặt lịch cạo vôi chiều mai nhé']),
+                ('Anh Tuấn (Zalo)', '0912888999', ['Răng hàm mình đau nhức cả đêm, sưng má, có khám gấp được không?']),
+            ]
+            for name, phone, messages in scripts:
+                def chat(name=name, phone=phone, messages=messages):
+                    thread = Conv.simulator_start(name=name, phone=phone)
+                    conv = Conv.browse(thread['id']) if isinstance(thread, dict) and thread.get('id') else None
+                    for text in messages if conv else []:
+                        conv.simulator_send(text)
+                    return conv
+                if self.try_('Hội thoại Zalo mẫu', chat):
+                    self.stats['ai_conversations'] += 1
+        if 'dmag.ai.feedback' in env and hasattr(env['dmag.ai.feedback'], 'action_classify_backlog'):
+            self.try_('Phân loại phản hồi', env['dmag.ai.feedback'].with_user(self.users['manager']).with_company(
+                self.company).action_classify_backlog, 30)
+        if 'dmag.ai.portal.assistant' in env and D.PORTAL_PATIENT in self.patients:
+            partner = self.patients[D.PORTAL_PATIENT]
+            self.try_('Trợ lý cổng bệnh nhân', env['dmag.ai.portal.assistant'].ask, partner,
+                      'Vì sao em phải chữa tủy trước khi bọc răng sứ ạ?')
+        if 'dmag.ai.care.draft' in env and hasattr(env['dmag.ai.care.draft'], 'generate_for_visit'):
+            visit = env['dmag.dental.visit'].search([('company_id', '=', self.company.id), ('state', '=', 'done')],
+                                                    order='scheduled_start desc', limit=1)
+            if visit:
+                self.try_('Nội dung chăm sóc', env['dmag.ai.care.draft'].with_user(self.users['consultant'])
+                          .with_company(self.company).generate_for_visit, visit)

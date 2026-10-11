@@ -116,7 +116,10 @@ def robust_z(value, values):
     mad = quantile([abs(v - med) for v in values], 0.5) * 1.4826
     if mad <= 1e-9:
         sd = stdev(values)
-        return (value - mean(values)) / sd if sd > 1e-9 else 0.0
+        if sd > 1e-9:
+            return (value - mean(values)) / sd
+        # mọi giá trị so sánh bằng nhau (vd. đồng nghiệp đều 0): độ lệch tính theo đơn vị của chính dữ liệu
+        return float(value - med)
     return (value - med) / mad
 
 

@@ -91,8 +91,18 @@ class DmagAiCareDraft(models.Model):
             'given': given_name(visit.patient_id.name), 'doctor': visit.doctor_id.name or '',
             'procedures': lines, 'aftercare': aftercare, 'advice': (visit.advice or '').strip(),
             'next_visit': next_text, 'clinic': visit.company_id.name, 'hotline': visit.company_id.phone or '',
+            'when': self._when(visit.done_time or visit.scheduled_start),
+            'treated': bool(procs.filtered(lambda p: p.product_id.dental_category not in ('exam', 'imaging'))),
             'invasive': visit.is_heavy or any(c in ('surgery', 'implant', 'endo') for c in procs.mapped('product_id.dental_category')),
         }
+
+    @api.model
+    def _when(self, dt):
+        if not dt:
+            return 'vừa rồi'
+        day = fields.Datetime.context_timestamp(self, dt).date()
+        delta = (fields.Date.context_today(self) - day).days
+        return 'hôm nay' if delta <= 0 else 'hôm qua' if delta == 1 else 'ngày %s' % day.strftime('%d/%m')
 
     @api.model
     def _simulate(self, facts):
@@ -110,8 +120,8 @@ class DmagAiCareDraft(models.Model):
         points = points[:5] or ['Vệ sinh răng miệng nhẹ nhàng, chải răng 2 lần/ngày', 'Tái khám đúng hẹn']
         warnings = WARNING_DEFAULT if facts['invasive'] else WARNING_DEFAULT[2:]
         script = '\n'.join(filter(None, [
-            '1. Chào hỏi: "Dạ em chào %s %s, em là ... gọi từ %s. Em gọi hỏi thăm %s sau buổi %s hôm qua với BS %s ạ."'
-            % (sal, given, facts['clinic'], sal, procs, facts['doctor'] or 'phụ trách'),
+            '1. Chào hỏi: "Dạ em chào %s %s, em là ... gọi từ %s. Em gọi hỏi thăm %s sau buổi %s %s với BS %s ạ."'
+            % (sal, given, facts['clinic'], sal, procs, ('hôm qua' if facts['when'] == 'hôm nay' else facts['when']), facts['doctor'] or 'phụ trách'),
             '2. Hỏi mức đau: "%s thấy đau ở mức nào, từ 0 (không đau) đến 10 (rất đau) ạ?" – ghi điểm vào hệ thống; '
             '≥ 7 điểm: báo ngay bác sĩ.' % sal_cap,
             '3. Hỏi dấu hiệu: còn chảy máu không? có sưng không? có sốt không? ăn uống được chưa?',
@@ -122,11 +132,12 @@ class DmagAiCareDraft(models.Model):
             '7. Cảm ơn: "Cảm ơn %s đã tin tưởng %s. Có gì bất thường %s cứ gọi hoặc nhắn Zalo cho phòng khám nhé ạ!"'
             % (sal, facts['clinic'], sal),
         ]))
-        message = ('%s %s ơi, %s cảm ơn %s đã đến %s hôm qua.\n'
+        message = ('%s %s ơi, %s cảm ơn %s đã đến %s %s.\n'
                    'Sau buổi %s, %s nhớ giúp phòng khám:\n%s\n'
                    'Nếu %s thấy %s, hãy gọi ngay %s nhé.%s\nChúc %s mau khỏe!'
-                   % (sal_cap, given, facts['clinic'], sal, 'điều trị' if facts['invasive'] else 'khám', procs, sal,
-                      '\n'.join('• %s' % p for p in points[:3]), sal, warnings[0].lower(), facts['hotline'] or 'phòng khám',
+                   % (sal_cap, given, facts['clinic'], sal, 'điều trị' if facts['treated'] else 'khám', facts['when'], procs, sal,
+                      '\n'.join('• %s' % p for p in points[:3]), sal, warnings[0][:1].lower() + warnings[0][1:],
+                      facts['hotline'] or 'phòng khám',
                       ('\nLịch hẹn tiếp theo: %s.' % facts['next_visit']) if facts['next_visit'] else '', sal))
         return {'call_script': script, 'oa_message': message[:900], 'key_points': points, 'warning_signs': warnings}
 

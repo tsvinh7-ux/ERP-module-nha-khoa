@@ -49,6 +49,12 @@ class TestZaloReception(AiCustomerCase):
         self.assertEqual(thread['visits'][0]['time'], slots[0])
         self.assertTrue(visit._workspace_card()['ai_booked'])
         self.assertIn(visit.name, bot['body'])
+        # Không đặt trùng trong cùng ngày
+        again = self.env['dmag.ai.reception'].tool_book_appointment(conv, {
+            'name': 'Trần Văn Bình', 'phone': '0909123456', 'date': self.tomorrow.isoformat(),
+            'time': slots[-1], 'service_ids': [self.scaling.id], 'doctor_id': 0, 'note': '', 'consent': True})
+        self.assertFalse(again['booked'])
+        self.assertEqual(again['existing_visit'], visit.name)
 
     def test_simulate_no_booking_without_consent(self):
         conv = self._conv()

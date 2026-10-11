@@ -528,7 +528,7 @@ class AnomalyDetector:
                                                                 vnd(ref.amount_total), ref.create_uid.name),
                 'norm': 'Giá trị hóa đơn trung bình 90 ngày: %s' % vnd(avg),
                 'explanation': 'Mọi khoản hoàn / điều chỉnh giảm đều cần lý do và Giám đốc xác nhận. Bội số so với hóa '
-                               'đơn trung bình: %.1f×.' % ratio,
+                               'đơn trung bình: %s×.' % _dec(ratio),
                 'evidence': {'amount': ref.amount_total, 'avg_invoice': avg, 'reason': ref.ref or ''},
                 'res_model': 'account.move', 'res_ids': ref.ids,
             })

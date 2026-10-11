@@ -44,8 +44,7 @@
                 </div>
                 <div class="dmag-goal-ai-card is-ask" t-if="ai.panel.qa_active">
                     <div class="dmag-goal-ai-head"><span class="dmag-goal-ai-tag">AI-13 · Hỏi đáp số liệu</span></div>
-                    <button class="dmag-goal-ai-q" t-on-click="() => this.toggleAiChat('Vì sao doanh thu tháng này chậm?')">"Vì sao doanh thu tháng này chậm?"</button>
-                    <button class="dmag-goal-ai-q" t-on-click="() => this.toggleAiChat('Bác sĩ nào chốt kế hoạch thấp nhất quý này?')">"Bác sĩ nào chốt kế hoạch thấp nhất quý này?"</button>
+                    <button t-foreach="aiQuestions" t-as="q" t-key="q_index" class="dmag-goal-ai-q" t-on-click="() => this.toggleAiChat(q)">"<t t-esc="q"/>"</button>
                     <button class="dmag-link mt-auto text-start" t-on-click="() => this.toggleAiChat()">Hỏi câu khác <i class="fa fa-arrow-right" aria-hidden="true"/></button>
                 </div>
             </section>

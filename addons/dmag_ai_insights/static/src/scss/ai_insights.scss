@@ -54,6 +54,7 @@ $ai-radius: 14px;
 .dmag-ai-explain ol { margin: 0; padding-left: 18px; color: $ai-text; font-size: 13px; li { margin-bottom: 4px; } }
 .dmag-ai-mode {
     display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    white-space: nowrap;
     &.is-simulate { background: $ai-violet-soft; color: $ai-violet; }
     &.is-live { background: $ai-ok-soft; color: $ai-ok; }
 }
@@ -67,7 +68,12 @@ $ai-radius: 14px;
     height: calc(100vh - 170px); min-height: 460px; overflow: hidden;
     &.is-compact { height: 100%; border-radius: 0; border: 0; min-height: 0; }
 }
-.dmag-qa-page { padding: 4px 22px 16px; max-width: 980px; }
+.dmag-qa-page { padding: 4px 22px 16px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
+.dmag-qa-side { display: flex; flex-direction: column; gap: 0; }
+.dmag-qa-how { padding-left: 18px; margin: 0 0 8px; font-size: 13px; li { margin-bottom: 4px; } }
+.dmag-qa-tools { display: flex; flex-wrap: wrap; gap: 4px; .dmag-chip { font-family: monospace; font-weight: 600; } }
+.dmag-qa-head .dmag-btn-icon { border: 0; background: transparent; box-shadow: none; outline: none; }
+.dmag-qa.is-compact .dmag-qa-title .dmag-ws-sub { display: none; }
 .dmag-qa-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid $ai-line; }
 .dmag-qa-title { display: flex; gap: 10px; align-items: center; color: $ai-navy; }
 .dmag-qa-head-actions { display: flex; align-items: center; gap: 4px; }
@@ -252,10 +258,13 @@ $ai-radius: 14px;
     .dmag-ai-kpis, .dmag-hub-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dmag-ai-kpis.is-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dmag-goal-ai { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .dmag-ai-two, .dmag-ai-two.is-hub, .dmag-brief-grid { grid-template-columns: minmax(0, 1fr); }
+    .dmag-ai-two, .dmag-ai-two.is-hub, .dmag-brief-grid, .dmag-qa-page { grid-template-columns: minmax(0, 1fr); }
     .dmag-brief-actions { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 760px) {
     .dmag-ai-kpis, .dmag-hub-band, .dmag-goal-ai, .dmag-brief-layout { grid-template-columns: minmax(0, 1fr); }
     .dmag-ai-body { padding: 4px 12px 12px; }
 }
+
+.dmag-fc-read ul { margin: 0; padding-left: 18px; font-size: 13px; li { margin-bottom: 5px; } b { color: $ai-navy; } }
+.dmag-ai-page .dmag-goal-stack { display: flex; flex-direction: column; gap: 12px; > .dmag-panel { margin-bottom: 0; } }
