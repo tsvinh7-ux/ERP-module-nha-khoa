@@ -142,7 +142,7 @@ section { display: grid; gap: 18px; margin-top: 56px }
         <div class="fact"><b>5</b>chạy tại chỗ, không gửi dữ liệu</div>
         <div class="fact"><b>15</b>dùng Claude (dữ liệu đã ẩn danh)</div>
         <div class="fact"><b>≈ 4–5 tr đ</b>/ tháng / phòng khám nếu chạy thật</div>
-        <div class="fact"><b>228/228</b>bài kiểm thử đạt</div>
+        <div class="fact"><b>254/254</b>bài kiểm thử đạt</div>
       </div>
     </div>
     <div>
@@ -222,13 +222,55 @@ section { display: grid; gap: 18px; margin-top: 56px }
   </section>
 
   <section aria-labelledby="h-dec">
-    <p class="eyebrow">Đã chốt – đang đưa vào hệ thống</p>
+    <p class="eyebrow">Đã chốt – đã đưa vào hệ thống</p>
     <h2 id="h-dec">Quyết định của anh/chị</h2>
+    <article class="feat">
+      <div class="body">
+        <div class="head"><span class="code">QĐ 1</span><span class="badge b-local"><span class="dot"></span>Quy tắc cố định</span></div>
+        <h3>Đơn thuốc vi phạm: chỉ Giám đốc vượt, ký chịu trách nhiệm</h3>
+        <div class="case">Bệnh nhân ghi "dị ứng Penicillin" nhưng thực tế chỉ buồn nôn khi uống lúc đói; bác sĩ cần kê <b>Amoxicilin</b>.</div>
+        <div class="rows">
+          <div><span class="k">Hệ thống</span><span>Chặn ở mọi đường phát hành (Bàn làm việc bác sĩ, form đơn, đơn thay thế). Bác sĩ bấm "Đề nghị Giám đốc duyệt vượt".</span></div>
+          <div><span class="k">Giám đốc</span><span>Ghi lý do (tối thiểu 15 ký tự), tích "ký bổ sung chịu trách nhiệm", hệ thống gửi yêu cầu ký số. Người duyệt, thời điểm, lý do, quy tắc bị vượt lưu chỉ đọc trên đơn. Sửa đơn phát sinh vi phạm mới thì phải duyệt lại.</span></div>
+        </div>
+      </div>
+      <div class="gallery two">
+        <div><button class="shot" type="button" data-cap="Hộp thoại Giám đốc duyệt vượt và ký chịu trách nhiệm."><img src="img/dec_01b_giam_doc_duyet_vuot.jpg" alt="Giám đốc duyệt vượt đơn thuốc" loading="lazy"></button><p class="cap">Giám đốc duyệt vượt, ghi lý do, ký.</p></div>
+        <div><button class="shot" type="button" data-cap="Nhật ký kiểm soát trên đơn thuốc: ai duyệt vượt, khi nào, lý do, trạng thái ký số."><img src="img/dec_01d_don_thuoc_nhat_ky_kiem_soat.jpg" alt="Nhật ký kiểm soát đơn thuốc" loading="lazy"></button><p class="cap">Vết duyệt vượt lưu trên đơn.</p></div>
+      </div>
+    </article>
+    <article class="feat">
+      <div class="body">
+        <div class="head"><span class="code">QĐ 2</span><span class="badge b-llm"><span class="dot"></span>Claude theo kịch bản</span></div>
+        <h3>Zalo tự trả lời theo kịch bản đã duyệt</h3>
+        <div class="case">"Cạo vôi răng giá bao nhiêu ạ?" → <b>khớp kịch bản "Giá dịch vụ" 99%, tự gửi</b> với giá thật. "Bên mình có xuất hóa đơn VAT cho công ty không?" → <b>không khớp kịch bản, chờ lễ tân duyệt</b>.</div>
+        <div class="rows">
+          <div><span class="k">Kịch bản</span><span>12 kịch bản mẫu (giá, giờ làm việc, địa chỉ, đặt / đổi lịch, chuẩn bị, bảo hành, trả góp, đau sau nhổ răng…). Quản lý soạn, chỉ Giám đốc duyệt; đã duyệt thì khóa.</span></div>
+          <div><span class="k">Huấn luyện</span><span>Câu lễ tân đã duyệt bấm "Đề xuất thành kịch bản" → Giám đốc duyệt → lần sau trợ lý tự trả lời. Hộp thư thống kê % tự trả lời và câu hỏi chưa có kịch bản.</span></div>
+        </div>
+      </div>
+      <div class="gallery two">
+        <div><button class="shot" type="button" data-cap="Mô phỏng Zalo: một câu khớp kịch bản 99% tự gửi, một câu không khớp chờ lễ tân duyệt."><img src="img/dec_02_zalo_kich_ban_va_chuyen_nhan_vien.jpg" alt="Zalo theo kịch bản" loading="lazy"></button><p class="cap">Khớp kịch bản thì tự gửi, không khớp thì chờ duyệt.</p></div>
+        <div><button class="shot" type="button" data-cap="Hộp thư lễ tân: đề xuất câu trả lời đã duyệt thành kịch bản mới."><img src="img/dec_04_hop_thu_de_xuat_kich_ban.jpg" alt="Đề xuất kịch bản" loading="lazy"></button><p class="cap">Biến câu trả lời tốt thành kịch bản.</p></div>
+      </div>
+    </article>
+    <article class="feat">
+      <div class="body">
+        <div class="head"><span class="code">QĐ 3</span><span class="badge b-local"><span class="dot"></span>Cấu hình</span></div>
+        <h3>Lịch làm việc thực tế của phòng khám</h3>
+        <div class="case">Mặc định Thứ 2–7: 08:00–12:00 và 13:30–20:00, Chủ nhật nghỉ, cùng danh sách ngày lễ. Khách đặt Chủ nhật: <b>"Phòng khám nghỉ"</b>.</div>
+        <div class="rows">
+          <div><span class="k">Áp dụng</span><span>Giờ trống, hộp thoại đặt lịch, trợ lý Zalo, gợi ý xếp lịch, số ngày làm việc và nhịp mục tiêu, công suất ghế sáng / chiều, dự báo doanh thu, dữ liệu demo.</span></div>
+          <div><span class="k">Ngoài giờ</span><span>Chặn (chỉ Quản lý trở lên đặt được) hoặc chỉ cảnh báo – chọn trong cấu hình. Có ngày làm việc riêng cho từng bác sĩ.</span></div>
+        </div>
+      </div>
+      <div class="gallery two">
+        <div><button class="shot" type="button" data-cap="Cấu hình lịch làm việc: ca theo từng thứ, bước khung giờ, cách xử lý đặt ngoài giờ."><img src="img/dec_05_lich_lam_viec.jpg" alt="Lịch làm việc" loading="lazy"></button><p class="cap">Ca làm việc theo từng thứ.</p></div>
+        <div><button class="shot" type="button" data-cap="Hộp thoại đặt lịch báo phòng khám nghỉ Chủ nhật."><img src="img/dec_05c_dat_lich_theo_lich_lam_viec.jpg" alt="Đặt lịch theo lịch làm việc" loading="lazy"></button><p class="cap">Đặt lịch theo lịch làm việc.</p></div>
+      </div>
+    </article>
     <div class="decide">
-      <div><b>Đơn thuốc vi phạm an toàn</b><span>Chặn ở mọi đường phát hành. Chỉ Giám đốc được vượt, kèm lý do và ký bổ sung chịu trách nhiệm; lưu vết trên đơn.</span></div>
-      <div><b>Trợ lý Zalo tự trả lời</b><span>Chỉ tự gửi khi câu hỏi khớp kịch bản đã duyệt. Câu khác chờ nhân viên duyệt; câu đã duyệt có thể thành kịch bản mới ("huấn luyện").</span></div>
-      <div><b>Lịch làm việc phòng khám</b><span>Ngày mở cửa, ca làm, ngày nghỉ lễ cấu hình theo thực tế; giờ trống, đặt lịch Zalo, tiến độ mục tiêu và công suất ghế đều tính theo lịch này.</span></div>
-      <div><b>Giọng nói</b><span>Thử nghiệm bằng giọng nói của Chrome; sau khi chạy thử, đề xuất nhà cung cấp phù hợp (dự kiến FPT.AI).</span></div>
+      <div><b>QĐ 4 · Giọng nói</b><span>Thử nghiệm bằng giọng nói của Chrome; sau khi chạy thử sẽ đề xuất nhà cung cấp phù hợp (dự kiến FPT.AI, dự phòng Google).</span></div>
     </div>
   </section>
 
