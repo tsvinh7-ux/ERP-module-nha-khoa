@@ -152,6 +152,36 @@ class TestDemoData(TransactionCase):
         assistant = demo_user(self.env, 'phuta.demo')
         self.assertTrue(self.Visit.with_user(assistant).get_frontdesk_board()['visits'])
 
+    def test_10_ai_demo(self):
+        """Trợ lý AI: giả lập, ~90 % bệnh nhân đồng ý, nhật ký / bản tin / cảnh báo sinh bằng hàm AI thật."""
+        if 'dmag.ai.log' not in self.env:
+            self.skipTest('Chưa cài dmag_ai_core')
+        self.assertEqual(self.company.dmag_ai_mode, 'simulate')
+        names = {spec[1] for spec in D.PATIENTS}
+        demo = self.env['res.partner'].search([('is_patient', '=', True)]).filtered(lambda p: p.name in names)
+        ratio = len(demo.filtered('dmag_ai_consent')) / len(demo)
+        self.assertGreaterEqual(ratio, 0.85)
+        self.assertLess(ratio, 1.0)
+        Log = self.env['dmag.ai.log']
+        self.assertGreaterEqual(Log.search_count([('feature_id.code', '=', 'AI-13')]), 5)
+        self.assertTrue(Log.search_count([('feature_id.code', '=', 'AI-16')]))
+        if 'dmag.ai.brief' in self.env:
+            brief = self.env['dmag.ai.brief'].search([], limit=1)
+            self.assertTrue(brief and brief.state == 'sent' and brief.trigger == 'cron')
+            anomalies = self.env['dmag.ai.anomaly'].search([])
+            kinds = set(anomalies.mapped('kind'))
+            self.assertIn('discount_staff', kinds)
+            self.assertIn('refund', kinds)
+            self.assertIn('review', anomalies.mapped('state'))
+            self.assertTrue(anomalies.filtered('ai_narrative'))
+            hub = self.env['dmag.ai.hub'].get_hub()
+            self.assertEqual(len(hub['features']), 20)
+            self.assertGreater(hub['estimated'], 0)
+            for model in ('dmag.ai.log', 'dmag.ai.brief', 'dmag.ai.anomaly'):
+                self.assertTrue(self.env['ir.model.data'].search_count([
+                    ('module', '=', 'dmag_dental_demo'), ('model', '=', model)]),
+                    'Dữ liệu AI demo phải gắn xmlid để gỡ module là xóa sạch (%s)' % model)
+
     def test_09_regenerate(self):
         receptionist = demo_user(self.env, 'letan.demo')
         with self.assertRaises(AccessError):

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="dmag_dental_goals.GoalDashboard" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('dmag-ws-actions')]" position="inside">
+            <button t-if="ai.panel and ai.panel.qa_active" class="dmag-btn dmag-btn-ai dmag-btn-sm" t-on-click="() => this.toggleAiChat()">
+                <i class="fa fa-comments-o me-1" aria-hidden="true"/>Hỏi AI về số liệu
+            </button>
+        </xpath>
+        <xpath expr="//div[hasclass('dmag-goal-strip')]" position="after">
+            <section t-if="ai.panel" class="dmag-goal-ai" aria-label="Trợ lý AI">
+                <div class="dmag-goal-ai-card is-forecast" t-if="ai.panel.forecast" t-on-click="() => this.openAiAction('dmag_ai_insights.action_dmag_ai_forecast_screen')">
+                    <t t-set="fc" t-value="ai.panel.forecast"/>
+                    <div class="dmag-goal-ai-head"><span class="dmag-goal-ai-tag">AI-16 · Dự báo</span><span class="dmag-ws-sub">tháng <t t-esc="fc.month"/></span></div>
+                    <div class="dmag-goal-ai-fc">
+                        <div>
+                            <div class="dmag-goal-ai-value" t-esc="aiMoney(fc.total)"/>
+                            <div class="dmag-ws-sub">80%: <t t-esc="aiMoney(fc.low)"/> – <t t-esc="aiMoney(fc.high)"/></div>
+                            <div class="dmag-goal-ai-prob" t-if="fc.prob_target !== null and fc.prob_target !== undefined">Khả năng đạt mục tiêu <b t-esc="aiPct(fc.prob_target)"/></div>
+                            <div class="dmag-ws-sub" t-if="fc.materials_critical or fc.materials_low"><i class="fa fa-cubes me-1" aria-hidden="true"/><t t-esc="fc.materials_critical + fc.materials_low"/> vật tư cần đặt thêm</div>
+                        </div>
+                        <AiForecastChart data="fc" compact="true"/>
+                    </div>
+                </div>
+                <div class="dmag-goal-ai-card" t-on-click="() => this.openAiAction('dmag_ai_insights.action_dmag_ai_brief_screen')">
+                    <div class="dmag-goal-ai-head"><span class="dmag-goal-ai-tag">AI-14 · Bản tin tuần</span><span class="dmag-ws-sub" t-if="ai.panel.brief" t-esc="ai.panel.brief.date.slice(8,10) + '/' + ai.panel.brief.date.slice(5,7)"/></div>
+                    <t t-if="ai.panel.brief">
+                        <div class="dmag-goal-ai-title" t-esc="ai.panel.brief.headline"/>
+                        <div class="dmag-ws-sub">Chỉ tiêu lệch, nguyên nhân, 3 việc nên làm tuần này</div>
+                    </t>
+                    <div t-else="" class="dmag-ws-sub">Chưa có bản tin – tự soạn 07:00 thứ Hai, hoặc bấm để soạn ngay.</div>
+                    <span class="dmag-link mt-auto">Đọc bản tin <i class="fa fa-arrow-right" aria-hidden="true"/></span>
+                </div>
+                <div class="dmag-goal-ai-card" t-on-click="() => this.openAiAction('dmag_ai_insights.action_dmag_ai_anomaly_screen')">
+                    <div class="dmag-goal-ai-head"><span class="dmag-goal-ai-tag">AI-15 · Bất thường</span></div>
+                    <div class="dmag-goal-ai-anom">
+                        <span class="dmag-goal-ai-value" t-esc="ai.panel.anomalies.total"/>
+                        <span class="dmag-ws-sub">cảnh báo đang mở</span>
+                    </div>
+                    <div class="dmag-chips">
+                        <span t-if="ai.panel.anomalies.high" class="dmag-chip is-danger"><i class="fa fa-exclamation-triangle me-1" aria-hidden="true"/><t t-esc="ai.panel.anomalies.high"/> mức cao</span>
+                        <span t-if="ai.panel.anomalies.medium" class="dmag-chip is-warning"><t t-esc="ai.panel.anomalies.medium"/> trung bình</span>
+                    </div>
+                    <div class="dmag-ws-sub dmag-goal-ai-clip" t-if="ai.panel.anomalies.top" t-esc="ai.panel.anomalies.top"/>
+                </div>
+                <div class="dmag-goal-ai-card is-ask" t-if="ai.panel.qa_active">
+                    <div class="dmag-goal-ai-head"><span class="dmag-goal-ai-tag">AI-13 · Hỏi đáp số liệu</span></div>
+                    <button class="dmag-goal-ai-q" t-on-click="() => this.toggleAiChat('Vì sao doanh thu tháng này chậm?')">"Vì sao doanh thu tháng này chậm?"</button>
+                    <button class="dmag-goal-ai-q" t-on-click="() => this.toggleAiChat('Bác sĩ nào chốt kế hoạch thấp nhất quý này?')">"Bác sĩ nào chốt kế hoạch thấp nhất quý này?"</button>
+                    <button class="dmag-link mt-auto text-start" t-on-click="() => this.toggleAiChat()">Hỏi câu khác <i class="fa fa-arrow-right" aria-hidden="true"/></button>
+                </div>
+            </section>
+        </xpath>
+        <xpath expr="//div[hasclass('dmag-goals')]" position="inside">
+            <div t-if="ai.chat" class="dmag-ai-drawer" role="dialog" aria-label="Hỏi đáp số liệu">
+                <AiQaChat compact="true" onClose="() => this.toggleAiChat()" initialQuestion="ai.question"/>
+            </div>
+        </xpath>
+    </t>
+</templates>

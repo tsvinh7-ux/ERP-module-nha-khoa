@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_customer.AiBadge">
+        <span t-att-class="'dmag-ai-badge is-' + (props.mode || 'simulate')" t-att-title="tooltip">
+            <i t-att-class="'fa me-1 ' + (props.mode === 'local' ? 'fa-microchip' : 'fa-magic')" title="AI"/><t t-esc="text"/>
+        </span>
+    </t>
+
+    <!-- Bong bóng tin nhắn dùng chung (mô phỏng Zalo & hộp thư) – biến: messages, perspective ('customer'|'staff') -->
+    <t t-name="dmag_ai_customer.ChatBubbles">
+        <t t-foreach="messages" t-as="m" t-key="m.id">
+            <t t-set="mine" t-value="perspective === 'customer' ? m.role === 'customer' : ['bot', 'staff'].includes(m.role)"/>
+            <div t-if="m.role === 'system'" class="dmag-ai-sysmsg" t-esc="m.body"/>
+            <div t-else="" t-att-class="'dmag-ai-bubble-row' + (mine ? ' is-mine' : '')">
+                <div t-att-class="'dmag-ai-bubble is-' + m.role + (m.state === 'pending' ? ' is-pending' : '') + (m.state === 'discarded' ? ' is-discarded' : '')">
+                    <div t-if="m.role !== 'customer'" class="dmag-ai-bubble-who">
+                        <t t-if="m.role === 'bot'"><i class="fa fa-magic me-1" title="Trợ lý AI"/>Trợ lý AI</t>
+                        <t t-else=""><i class="fa fa-user me-1" title="Nhân viên"/><t t-esc="m.author or 'Nhân viên'"/></t>
+                    </div>
+                    <div class="dmag-ai-bubble-body" t-esc="m.body"/>
+                    <div class="dmag-ai-bubble-meta">
+                        <t t-esc="m.time"/>
+                        <t t-if="m.role === 'bot' and perspective === 'staff'"> · <t t-esc="m.simulated ? 'Giả lập' : 'Claude'"/></t>
+                        <t t-if="m.state === 'pending'"> · <b>Chờ duyệt</b></t>
+                        <t t-if="m.state === 'mock_sent'"> · Đã gửi (giả lập)</t>
+                        <t t-if="m.state === 'sent'"> · Đã gửi Zalo</t>
+                        <t t-if="m.state === 'failed'"> · <span class="text-danger">Gửi lỗi</span></t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </t>
+</templates>

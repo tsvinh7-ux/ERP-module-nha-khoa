@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_ai_brief_tree" model="ir.ui.view">
+        <field name="name">dmag.ai.brief.tree</field>
+        <field name="model">dmag.ai.brief</field>
+        <field name="arch" type="xml">
+            <tree string="Bản tin điều hành" create="0">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="headline"/>
+                <field name="off_track_count"/>
+                <field name="trigger"/>
+                <field name="mode"/>
+                <field name="state" widget="badge" decoration-success="state == 'sent'"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_ai_brief_form" model="ir.ui.view">
+        <field name="name">dmag.ai.brief.form</field>
+        <field name="model">dmag.ai.brief</field>
+        <field name="arch" type="xml">
+            <form string="Bản tin điều hành" create="0">
+                <header>
+                    <button name="action_send" type="object" string="Gửi lại Giám đốc" class="btn-secondary"/>
+                    <button name="action_open_dashboard" type="object" string="Mở Bảng điều hành" class="btn-secondary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h3 class="text-muted"><field name="headline" readonly="1"/></h3>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="1"/>
+                            <field name="week_from" readonly="1"/>
+                            <field name="week_to" readonly="1"/>
+                            <field name="period_label" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="trigger"/>
+                            <field name="mode"/>
+                            <field name="estimated_cost_vnd"/>
+                            <field name="log_id"/>
+                        </group>
+                    </group>
+                    <field name="body_html"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_ai_brief" model="ir.actions.act_window">
+        <field name="name">Bản tin điều hành (danh sách)</field>
+        <field name="res_model">dmag.ai.brief</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_dmag_ai_brief_generate" model="ir.actions.server">
+        <field name="name">Soạn bản tin tuần ngay</field>
+        <field name="model_id" ref="model_dmag_ai_brief"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_generate()</field>
+    </record>
+</odoo>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_ai_smile_form" model="ir.ui.view">
+        <field name="name">dmag.ai.smile.form</field>
+        <field name="model">dmag.ai.smile</field>
+        <field name="arch" type="xml">
+            <form string="Mô phỏng nụ cười">
+                <header>
+                    <button name="action_generate" type="object" string="Tạo minh họa" class="btn-primary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning text-center fw-bold" role="alert">
+                        Minh họa – không phải cam kết kết quả. Bác sĩ thăm khám trực tiếp mới chỉ định điều trị.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="source"/>
+                            <field name="mode"/>
+                            <field name="estimated_cost_vnd"/>
+                        </group>
+                        <group>
+                            <field name="shade_now"/>
+                            <field name="shade_after"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="image_before" widget="image" options="{'size': [0, 260]}"/>
+                    </group>
+                    <div invisible="not image_result">
+                        <field name="image_result" widget="image" options="{'size': [0, 420]}" readonly="1"/>
+                    </div>
+                    <group invisible="state != 'done'">
+                        <field name="observations"/>
+                        <field name="options"/>
+                        <field name="caution"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_ai_smile_tree" model="ir.ui.view">
+        <field name="name">dmag.ai.smile.tree</field>
+        <field name="model">dmag.ai.smile</field>
+        <field name="arch" type="xml">
+            <tree string="Mô phỏng nụ cười">
+                <field name="create_date" string="Ngày"/>
+                <field name="patient_id"/>
+                <field name="source"/>
+                <field name="shade_now"/>
+                <field name="shade_after"/>
+                <field name="mode"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_ai_smile" model="ir.actions.act_window">
+        <field name="name">Mô phỏng nụ cười (minh họa)</field>
+        <field name="res_model">dmag.ai.smile</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

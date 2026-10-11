@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_visit_form_ai_customer" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.form.ai.customer</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_dmag_ai_care_draft" type="object" string="Soạn nội dung chăm sóc (AI)" icon="fa-magic"
+                        invisible="state != 'done'"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="AI chăm sóc khách" name="ai_customer">
+                    <group>
+                        <group string="Dự báo không đến (AI-08)" invisible="state not in ('draft', 'confirmed')">
+                            <field name="dmag_noshow_risk" widget="percentage"/>
+                            <field name="dmag_noshow_level"/>
+                            <field name="dmag_noshow_factors"/>
+                            <field name="dmag_noshow_scored_at"/>
+                            <button name="action_dmag_open_noshow_model" type="object" string="Cách tính" class="btn-link" icon="fa-info-circle"/>
+                        </group>
+                        <group string="Nguồn đặt">
+                            <field name="dmag_ai_conversation_id"/>
+                        </group>
+                    </group>
+                    <field name="dmag_ai_followup_ids" readonly="1">
+                        <tree>
+                            <field name="checkpoint"/><field name="due_at"/><field name="pain"/><field name="level"/><field name="state"/>
+                        </tree>
+                    </field>
+                    <field name="dmag_ai_care_ids" readonly="1">
+                        <tree>
+                            <field name="create_date"/><field name="mode"/><field name="state"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

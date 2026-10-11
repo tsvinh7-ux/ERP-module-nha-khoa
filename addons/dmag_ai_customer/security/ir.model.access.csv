@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_ai_conversation_user,dmag.ai.conversation receptionist,model_dmag_ai_conversation,dmag_dental_base.group_dmag_receptionist,1,1,1,0
+access_dmag_ai_conversation_manager,dmag.ai.conversation manager,model_dmag_ai_conversation,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_conversation_message_user,dmag.ai.conversation.message receptionist,model_dmag_ai_conversation_message,dmag_dental_base.group_dmag_receptionist,1,1,1,0
+access_dmag_ai_feedback_user,dmag.ai.feedback receptionist,model_dmag_ai_feedback,dmag_dental_base.group_dmag_receptionist,1,1,1,0
+access_dmag_ai_feedback_manager,dmag.ai.feedback manager,model_dmag_ai_feedback,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_noshow_model_user,dmag.ai.noshow.model receptionist,model_dmag_ai_noshow_model,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_noshow_model_manager,dmag.ai.noshow.model manager,model_dmag_ai_noshow_model,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_care_draft_user,dmag.ai.care.draft receptionist,model_dmag_ai_care_draft,dmag_dental_base.group_dmag_receptionist,1,1,1,0
+access_dmag_ai_care_draft_manager,dmag.ai.care.draft manager,model_dmag_ai_care_draft,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_followup_user,dmag.ai.followup receptionist,model_dmag_ai_followup,dmag_dental_base.group_dmag_receptionist,1,1,1,0
+access_dmag_ai_followup_manager,dmag.ai.followup manager,model_dmag_ai_followup,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_smile_user,dmag.ai.smile receptionist,model_dmag_ai_smile,dmag_dental_base.group_dmag_receptionist,1,1,1,0
+access_dmag_ai_smile_manager,dmag.ai.smile manager,model_dmag_ai_smile,dmag_dental_base.group_dmag_manager,1,1,1,1

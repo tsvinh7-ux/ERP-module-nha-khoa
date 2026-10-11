@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_insights.AiHub">
+        <div class="dmag-ws dmag-ai-page dmag-hub">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark dmag-hub-mark"><i class="fa fa-magic" aria-hidden="true"/></div>
+                    <div><h1>Trung tâm AI</h1>
+                        <span class="dmag-ws-sub">20 tính năng AI của DMAG Dental ERP – làm gì, đang chạy thế nào, tốn bao nhiêu, thử ở đâu</span></div>
+                </div>
+                <div class="dmag-ws-actions" t-if="state.data">
+                    <button t-if="state.data.is_manager" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="openLogs"><i class="fa fa-list-alt me-1" aria-hidden="true"/>Nhật ký &amp; chi phí</button>
+                    <button t-if="state.data.is_manager" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="openFeatures"><i class="fa fa-sliders me-1" aria-hidden="true"/>Bật / tắt tính năng</button>
+                    <button t-if="state.data.is_director" class="dmag-btn dmag-btn-primary dmag-btn-sm" t-on-click="openSettings"><i class="fa fa-key me-1" aria-hidden="true"/>Cài đặt AI</button>
+                </div>
+            </header>
+            <t t-if="state.data">
+                <t t-set="d" t-value="state.data"/>
+                <div class="dmag-ai-body">
+                    <!-- Dải trạng thái: chế độ · ngân sách · chi phí nếu chạy thật · đồng ý -->
+                    <section class="dmag-hub-band">
+                        <div t-att-class="'dmag-hub-mode is-' + d.mode">
+                            <div class="dmag-hub-mode-top">
+                                <span class="dmag-hub-mode-icon"><i t-att-class="'fa ' + (d.mode === 'live' ? 'fa-bolt' : 'fa-flask')" aria-hidden="true"/></span>
+                                <div>
+                                    <span class="dmag-ai-kpi-label">Chế độ hiện tại</span>
+                                    <div class="dmag-hub-mode-name" t-esc="d.mode === 'live' ? 'AI thật – Claude API' : 'Giả lập (demo)'"/>
+                                </div>
+                            </div>
+                            <p t-if="d.mode !== 'live'">Mọi tính năng chạy trên <b>số liệu thật</b> của phòng khám nhưng <b>không gọi AI</b>, không tốn phí. Nhật ký vẫn ghi chi phí ước tính nếu chạy thật.</p>
+                            <p t-else="">Các tính năng Claude API gọi mô hình thật, dữ liệu bệnh nhân được ẩn danh trước khi gửi, có trần ngân sách.</p>
+                            <ul class="dmag-hub-checks">
+                                <li><i t-att-class="'fa ' + (d.key_set ? 'fa-check-circle is-good' : 'fa-circle-o')" aria-hidden="true"/> Khóa API Claude <t t-esc="d.key_set ? 'đã nhập' : 'chưa nhập'"/></li>
+                                <li><i t-att-class="'fa ' + (d.library ? 'fa-check-circle is-good' : 'fa-circle-o')" aria-hidden="true"/> Thư viện anthropic <t t-esc="d.library ? 'đã cài' : 'chưa cài'"/></li>
+                                <li><i t-att-class="'fa ' + (d.zdr ? 'fa-check-circle is-good' : 'fa-circle-o')" aria-hidden="true"/> Thỏa thuận không lưu dữ liệu (ZDR)</li>
+                            </ul>
+                            <div t-if="d.mode !== 'live' and d.is_director" class="dmag-hub-howto">Chuyển sang AI thật: <b>Cài đặt AI</b> → dán khóa API → chọn "Claude API".</div>
+                        </div>
+                        <div class="dmag-ai-tile dmag-hub-budget">
+                            <span class="dmag-ai-kpi-label">Chi phí AI thật tháng này</span>
+                            <span class="dmag-ai-kpi-value"><t t-esc="money(d.spent)"/></span>
+                            <span class="dmag-ai-kpi-sub">trần ngân sách <t t-esc="money(d.budget)"/>/tháng</span>
+                            <div class="dmag-meter" role="meter" t-att-aria-valuenow="budgetPct" aria-valuemin="0" aria-valuemax="100" aria-label="Đã dùng ngân sách AI">
+                                <div t-att-class="'dmag-meter-fill ' + (budgetPct >= 90 ? 'is-bad' : budgetPct >= 70 ? 'is-warn' : 'is-accent')" t-att-style="'width:' + Math.max(budgetPct, 0.5) + '%'"/>
+                            </div>
+                            <span class="dmag-ai-kpi-sub">Đã dùng <t t-esc="pct(budgetPct)"/> ngân sách · vượt trần → tự tạm dừng</span>
+                        </div>
+                        <div class="dmag-ai-tile dmag-hub-est">
+                            <span class="dmag-ai-kpi-label">Chi phí nếu chạy thật (<t t-esc="d.month_label"/>)</span>
+                            <span class="dmag-ai-kpi-value"><t t-esc="money(d.estimated)"/></span>
+                            <span class="dmag-ai-kpi-sub">dự kiến cả tháng ≈ <b t-esc="money(d.projected)"/> (<t t-esc="pct(projectedPct)"/> trần)</span>
+                            <span class="dmag-ai-kpi-sub">tính từ <t t-esc="num(d.calls_month)"/> lần dùng trong nhật ký, giá Claude Opus 5.5, tỷ giá <t t-esc="num(d.usd_rate)"/> đ/USD</span>
+                        </div>
+                        <div class="dmag-ai-tile">
+                            <span class="dmag-ai-kpi-label">Bệnh nhân đồng ý hỗ trợ bằng AI</span>
+                            <span class="dmag-ai-kpi-value"><t t-esc="pct(d.consent.pct)"/></span>
+                            <span class="dmag-ai-kpi-sub"><t t-esc="num(d.consent.consent)"/> / <t t-esc="num(d.consent.patients)"/> hồ sơ · NĐ 13/2023</span>
+                            <span class="dmag-ai-kpi-sub" t-if="d.require_consent">Tính năng có dữ liệu bệnh nhân chỉ chạy khi đã đồng ý</span>
+                        </div>
+                    </section>
+
+                    <div class="dmag-ai-two is-hub">
+                        <section class="dmag-panel">
+                            <div class="dmag-panel-title">Chi phí nếu chạy thật theo tính năng <span class="dmag-ws-sub"><t t-esc="d.month_label"/> · đồng</span></div>
+                            <div t-if="!costBars.length" class="dmag-goal-empty">Chưa có lần dùng AI nào trong tháng.</div>
+                            <div class="dmag-hbars">
+                                <div t-foreach="costBars" t-as="b" t-key="b.code" class="dmag-hbar"
+                                     t-att-title="b.code + ' ' + b.name + ': ' + b.usage + ' lần dùng, ' + (b.live ? 'chi phí thật ' + money(b.cost) : 'ước tính nếu chạy thật ' + money(b.estimated))">
+                                    <span class="dmag-hbar-label"><b t-esc="b.code"/> <t t-esc="b.name"/></span>
+                                    <span class="dmag-hbar-track"><span class="dmag-hbar-fill" t-att-style="'width:' + b.w + '%'"/></span>
+                                    <span class="dmag-hbar-value"><t t-esc="money(b.value)"/> <small class="dmag-ws-sub">· <t t-esc="b.usage"/> lần</small></span>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="dmag-panel dmag-hub-sources">
+                            <div class="dmag-panel-title">Ba nguồn AI – dữ liệu đi đâu?</div>
+                            <div class="dmag-hub-source"><span class="dmag-src-badge is-local"><i class="fa fa-server" aria-hidden="true"/> LOCAL</span><span>Chạy ngay trên máy chủ phòng khám (thống kê, quy tắc, đọc QR). <b>Dữ liệu không ra ngoài</b>, không tốn phí theo lượt.</span></div>
+                            <div class="dmag-hub-source"><span class="dmag-src-badge is-api_vn"><i class="fa fa-flag" aria-hidden="true"/> API trong nước</span><span>FPT.AI / Viettel AI cho giọng nói, giấy tờ – dữ liệu ở Việt Nam, tính theo phút / lượt.</span></div>
+                            <div class="dmag-hub-source"><span class="dmag-src-badge is-api_llm"><i class="fa fa-cloud" aria-hidden="true"/> Claude API</span><span>Suy luận, tóm tắt, hội thoại. <b>Chỉ nhận văn bản đã ẩn danh</b> ([BN_1], [SĐT_1]…), tính phí theo token, có trần ngân sách.</span></div>
+                            <div class="dmag-hub-counts">
+                                <span><b t-esc="counts.active"/>/<t t-esc="counts.total"/> tính năng sẵn sàng</span>
+                                <span><b t-esc="counts.local"/> chạy tại chỗ</span>
+                                <span><b t-esc="counts.llm"/> dùng Claude</span>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="dmag-ai-filters dmag-hub-filters">
+                        <div class="dmag-seg" role="group" aria-label="Đối tượng">
+                            <button t-att-class="state.audience === 'all' ? 'is-on' : ''" t-on-click="() => this.state.audience = 'all'">Tất cả</button>
+                            <t t-foreach="d.audiences" t-as="a" t-key="a.key">
+                                <button t-if="a.visible" t-att-class="state.audience === a.key ? 'is-on' : ''" t-on-click="() => this.state.audience = a.key" t-esc="a.label"/>
+                            </t>
+                        </div>
+                        <div class="dmag-search"><i class="fa fa-search" aria-hidden="true"/><input type="search" placeholder="Tìm tính năng…" t-model="state.query" aria-label="Tìm tính năng"/></div>
+                        <span t-if="!d.is_manager" class="dmag-ws-sub">Đang hiện các tính năng dành cho vai trò của <t t-esc="d.user"/></span>
+                    </div>
+
+                    <section t-foreach="groups" t-as="g" t-key="g.key" class="dmag-hub-group">
+                        <div class="dmag-goal-section-head"><h2 t-esc="g.label"/><span class="dmag-ws-sub" t-esc="g.tagline"/></div>
+                        <div class="dmag-hub-grid">
+                            <article t-foreach="g.features" t-as="f" t-key="f.code" t-att-class="'dmag-hub-card is-' + f.state">
+                                <t t-set="sm" t-value="stateMeta(f.state)"/>
+                                <div class="dmag-hub-card-top">
+                                    <span class="dmag-hub-code" t-esc="f.code"/>
+                                    <span t-att-class="'dmag-src-badge is-' + f.source" t-att-title="f.source_help"><i t-att-class="'fa ' + sourceIcon(f.source)" aria-hidden="true"/> <t t-esc="f.source_label"/></span>
+                                    <span t-att-class="'dmag-hub-state is-' + sm.tone"><i t-att-class="'fa ' + sm.icon" aria-hidden="true"/> <t t-esc="f.state_label"/></span>
+                                </div>
+                                <h3 t-esc="f.name"/>
+                                <p class="dmag-hub-what" t-esc="f.what"/>
+                                <div class="dmag-hub-example">
+                                    <span class="dmag-hub-example-label"><i class="fa fa-lightbulb-o me-1" aria-hidden="true"/>Ví dụ thực tế</span>
+                                    <p t-esc="f.example"/>
+                                </div>
+                                <div class="dmag-hub-benefit"><i class="fa fa-line-chart me-1" aria-hidden="true"/><t t-esc="f.benefit"/></div>
+                                <div class="dmag-hub-foot">
+                                    <div class="dmag-hub-usage">
+                                        <span><b t-esc="num(f.usage)"/> lần dùng tháng này</span>
+                                        <span t-if="f.source === 'local'" class="dmag-ws-sub">0 đ – chạy tại chỗ</span>
+                                        <span t-elif="f.live_calls" class="dmag-ws-sub">chi phí <t t-esc="money(f.cost)"/></span>
+                                        <span t-else="" class="dmag-ws-sub">nếu chạy thật ≈ <t t-esc="money(f.estimated)"/></span>
+                                    </div>
+                                    <button t-if="f.target" class="dmag-btn dmag-btn-primary dmag-btn-sm" t-on-click="() => this.tryNow(f)"
+                                            t-att-title="'Mở: ' + f.target.label + (f.target.exact ? '' : ' (màn hình gần nhất)')">
+                                        Thử ngay <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
+                                    </button>
+                                    <span t-else="" class="dmag-ws-sub"><i class="fa fa-lock me-1" aria-hidden="true"/>Chưa mở được</span>
+                                </div>
+                                <div class="dmag-hub-where" t-if="f.target">
+                                    <i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-esc="f.target.label"/>
+                                    <t t-if="!f.module_ready"> · cần cài <code t-esc="f.module"/></t>
+                                    <t t-if="f.sends_patient_data"> · <i class="fa fa-user-secret" aria-hidden="true"/> ẩn danh + cần đồng ý</t>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+                </div>
+            </t>
+            <div t-else="" class="dmag-goal-empty m-4">Đang tải…</div>
+        </div>
+    </t>
+</templates>

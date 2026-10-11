@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_ai_noshow_model_form" model="ir.ui.view">
+        <field name="name">dmag.ai.noshow.model.form</field>
+        <field name="model">dmag.ai.noshow.model</field>
+        <field name="arch" type="xml">
+            <form string="Mô hình dự báo không đến" create="0">
+                <header>
+                    <button name="action_retrain" type="object" string="Huấn luyện lại &amp; chấm điểm lịch sắp tới" class="btn-primary"
+                            groups="dmag_dental_base.group_dmag_manager"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="status"><field name="method_text" readonly="1"/></div>
+                    <group>
+                        <group>
+                            <field name="method"/>
+                            <field name="trained_at"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="n_samples"/>
+                            <field name="n_noshow"/>
+                            <field name="base_rate"/>
+                            <field name="auc" invisible="method != 'logreg'"/>
+                        </group>
+                    </group>
+                    <group string="Trọng số (dương = làm tăng nguy cơ không đến)">
+                        <field name="coef_summary" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_ai_noshow_model_tree" model="ir.ui.view">
+        <field name="name">dmag.ai.noshow.model.tree</field>
+        <field name="model">dmag.ai.noshow.model</field>
+        <field name="arch" type="xml">
+            <tree string="Mô hình dự báo không đến" create="0">
+                <field name="trained_at"/><field name="method"/><field name="n_samples"/><field name="n_noshow"/>
+                <field name="base_rate"/><field name="auc"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_ai_noshow_model" model="ir.actions.act_window">
+        <field name="name">Mô hình dự báo không đến (AI-08)</field>
+        <field name="res_model">dmag.ai.noshow.model</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="view_dmag_visit_tree_noshow" model="ir.ui.view">
+        <field name="name">dmag.dental.visit.tree.noshow</field>
+        <field name="model">dmag.dental.visit</field>
+        <field name="inherit_id" ref="dmag_dental_clinic.view_dmag_visit_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="dmag_noshow_risk" string="Nguy cơ không đến" widget="percentage" optional="show"
+                       invisible="state not in ('draft', 'confirmed')"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

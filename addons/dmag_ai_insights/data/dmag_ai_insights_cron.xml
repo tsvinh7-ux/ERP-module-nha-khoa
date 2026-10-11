@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 07:00 sáng thứ Hai giờ Việt Nam = 00:00 UTC thứ Hai -->
+    <record id="cron_dmag_ai_weekly_brief" model="ir.cron">
+        <field name="name">DMAG AI-14: Bản tin điều hành hằng tuần (thứ Hai 07:00)</field>
+        <field name="model_id" ref="model_dmag_ai_brief"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_weekly_brief()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="numbercall">-1</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(weekday=0, days=1 if DateTime.now().weekday() == 0 else 0)).strftime('%Y-%m-%d 00:00:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+    <!-- Quét bất thường mỗi đêm 22:00 giờ Việt Nam (15:00 UTC) -->
+    <record id="cron_dmag_ai_anomaly" model="ir.cron">
+        <field name="name">DMAG AI-15: Quét bất thường hằng ngày</field>
+        <field name="model_id" ref="model_dmag_ai_anomaly"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_detect()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="nextcall" eval="DateTime.now().strftime('%Y-%m-%d 15:00:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

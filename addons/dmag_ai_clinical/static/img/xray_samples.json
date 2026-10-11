@@ -1,0 +1,177 @@
+{
+ "xray_sample_1": {
+  "title": "Mẫu 1 · sâu răng 36, 46 · mất 16 · mão 21 · trám 37 · răng khôn 38 mọc lệch",
+  "file": "xray_sample_1.png",
+  "findings": [
+   {
+    "tooth": "36",
+    "condition_code": "caries",
+    "confidence": 0.86,
+    "finding": "Vùng thấu quang mặt nhai, nghi sâu ngà",
+    "surfaces": [
+     "O"
+    ],
+    "box": {
+     "x": 0.7221,
+     "y": 0.4584,
+     "w": 0.0314,
+     "h": 0.0629
+    }
+   },
+   {
+    "tooth": "46",
+    "condition_code": "caries",
+    "confidence": 0.81,
+    "finding": "Thấu quang mặt gần – nhai, sát buồng tủy, nghi sâu ngà sâu",
+    "surfaces": [
+     "M",
+     "O"
+    ],
+    "box": {
+     "x": 0.2609,
+     "y": 0.457,
+     "w": 0.0329,
+     "h": 0.0657
+    }
+   },
+   {
+    "tooth": "16",
+    "condition_code": "missing",
+    "confidence": 0.95,
+    "finding": "Mất răng, xương ổ răng tiêu nhẹ theo chiều đứng",
+    "surfaces": [],
+    "box": {
+     "x": 0.2307,
+     "y": 0.3527,
+     "w": 0.0629,
+     "h": 0.1114
+    }
+   },
+   {
+    "tooth": "21",
+    "condition_code": "crown",
+    "confidence": 0.92,
+    "finding": "Phục hình mão cản quang toàn bộ thân răng",
+    "surfaces": [],
+    "box": {
+     "x": 0.4979,
+     "y": 0.2282,
+     "w": 0.0443,
+     "h": 0.2886
+    }
+   },
+   {
+    "tooth": "37",
+    "condition_code": "filling",
+    "confidence": 0.9,
+    "finding": "Miếng trám cản quang mặt nhai, sát khít",
+    "surfaces": [
+     "O"
+    ],
+    "box": {
+     "x": 0.765,
+     "y": 0.4298,
+     "w": 0.06,
+     "h": 0.2543
+    }
+   },
+   {
+    "tooth": "38",
+    "condition_code": "impacted",
+    "confidence": 0.77,
+    "finding": "Răng khôn nghiêng gần ~30°, ngầm một phần dưới xương",
+    "surfaces": [],
+    "box": {
+     "x": 0.8079,
+     "y": 0.4242,
+     "w": 0.0923,
+     "h": 0.2419
+    }
+   }
+  ]
+ },
+ "xray_sample_2": {
+  "title": "Mẫu 2 · 46 đã chữa tủy + tổn thương quanh chóp · mất 26 · nứt 36 · 38 ngầm · tiêu xương 31–41",
+  "file": "xray_sample_2.png",
+  "findings": [
+   {
+    "tooth": "46",
+    "condition_code": "root_canal",
+    "confidence": 0.9,
+    "finding": "Ống tủy đã trám bít cản quang",
+    "surfaces": [],
+    "box": {
+     "x": 0.2307,
+     "y": 0.4584,
+     "w": 0.0629,
+     "h": 0.2686
+    }
+   },
+   {
+    "tooth": "46",
+    "condition_code": "periapical",
+    "confidence": 0.68,
+    "finding": "Vùng thấu quang quanh chóp chân xa ~4 mm, nghi viêm quanh cuống mạn",
+    "surfaces": [],
+    "box": {
+     "x": 0.2551,
+     "y": 0.6727,
+     "w": 0.0457,
+     "h": 0.0914
+    }
+   },
+   {
+    "tooth": "36",
+    "condition_code": "fracture",
+    "confidence": 0.55,
+    "finding": "Đường thấu quang mảnh dọc thân răng, nghi nứt – cần khám lâm sàng xác nhận",
+    "surfaces": [],
+    "box": {
+     "x": 0.7064,
+     "y": 0.4584,
+     "w": 0.0629,
+     "h": 0.2686
+    }
+   },
+   {
+    "tooth": "26",
+    "condition_code": "missing",
+    "confidence": 0.94,
+    "finding": "Mất răng, xoang hàm hạ thấp sát sống hàm",
+    "surfaces": [],
+    "box": {
+     "x": 0.7064,
+     "y": 0.3527,
+     "w": 0.0629,
+     "h": 0.1114
+    }
+   },
+   {
+    "tooth": "38",
+    "condition_code": "impacted",
+    "confidence": 0.83,
+    "finding": "Răng khôn ngầm nghiêng gần ~45°, sát ống thần kinh răng dưới",
+    "surfaces": [],
+    "box": {
+     "x": 0.8031,
+     "y": 0.4467,
+     "w": 0.1084,
+     "h": 0.2271
+    }
+   },
+   {
+    "tooth": "31",
+    "condition_code": "mobility",
+    "confidence": 0.58,
+    "finding": "Tiêu xương ngang vùng răng cửa dưới ~1/3 chân răng",
+    "surfaces": [],
+    "box": {
+     "x": 0.4979,
+     "y": 0.5111,
+     "w": 0.0443,
+     "h": 0.1143
+    }
+   }
+  ]
+ }
+}

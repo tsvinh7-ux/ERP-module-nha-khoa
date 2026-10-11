@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_dmag_ai_conversation_company" model="ir.rule">
+        <field name="name">Hội thoại AI: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_conversation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_conversation_message_company" model="ir.rule">
+        <field name="name">Tin nhắn hội thoại AI: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_conversation_message"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_feedback_company" model="ir.rule">
+        <field name="name">Phản hồi AI: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_feedback"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_noshow_model_company" model="ir.rule">
+        <field name="name">Mô hình không đến: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_noshow_model"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_care_company" model="ir.rule">
+        <field name="name">Nội dung chăm sóc: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_care_draft"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_followup_company" model="ir.rule">
+        <field name="name">Theo dõi sau điều trị: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_followup"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_smile_company" model="ir.rule">
+        <field name="name">Mô phỏng nụ cười: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_smile"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

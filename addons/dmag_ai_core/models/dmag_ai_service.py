@@ -214,8 +214,22 @@ class DmagAi(models.AbstractModel):
 
     @api.model
     def _estimate_tokens(self, *texts):
-        # Tiếng Việt ~ 2,5–3 ký tự / token
-        return int(sum(len(t if isinstance(t, str) else json.dumps(t, ensure_ascii=False)) for t in texts if t) / 2.7)
+        """Ước tính token: tiếng Việt ~2,7 ký tự / token; mỗi ảnh ~1.600 token (không tính theo base64)."""
+        total = 0
+        for value in texts:
+            if not value:
+                continue
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict) and item.get('type') in ('image', 'document'):
+                        total += 1600 * 2.7
+                    elif isinstance(item, dict) and 'content' in item and 'role' in item:
+                        total += self._estimate_tokens(item['content']) * 2.7
+                    else:
+                        total += len(item if isinstance(item, str) else json.dumps(item, ensure_ascii=False, default=str))
+            else:
+                total += len(value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, default=str))
+        return int(total / 2.7)
 
     # ------------------------------------------------------------------ simulate
     def _run_simulated(self, feature, system, user, history, simulate, pseudo, log_vals):

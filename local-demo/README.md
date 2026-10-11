@@ -6,6 +6,7 @@ Lần đầu khởi động, hệ thống tự làm các việc sau:
 - cài toàn bộ module nha khoa;
 - sinh dữ liệu mẫu: khoảng 40 bệnh nhân, 60 ngày lịch sử khám, lịch hôm nay, chính sách và mục tiêu mẫu;
 - giả lập mọi tích hợp (SePay, MySign, Zalo, Đơn thuốc quốc gia);
+- bật **Trợ lý AI ở chế độ Giả lập** (20 tính năng AI-00 … AI-19, chạy trên số liệu thật, không tốn phí);
 - chuyển giao diện sang tiếng Việt.
 
 ## Cần có
@@ -27,7 +28,7 @@ Muốn dùng cổng khác: `DMAG_PORT=8080 ./start.sh`.
 
 | Đăng nhập | Vai trò | Nên thử |
 |---|---|---|
-| `giamdoc.demo` | Giám đốc | **Điều hành mục tiêu** (mục tiêu kinh doanh, OKR, KPI); duyệt lương 3P; sửa chứng từ đã chốt |
+| `giamdoc.demo` | Giám đốc | **Điều hành mục tiêu** (mục tiêu kinh doanh, OKR, KPI, hỏi AI về số liệu); **Trung tâm AI**; bản tin tuần, cảnh báo bất thường, dự báo; duyệt lương 3P |
 | `quanly.demo` | Quản lý | Điều hành mục tiêu, labo, kho, pháp chế |
 | `letan.demo` | Lễ tân | Bảng điều phối: đặt lịch, check-in, thu tiền QR → **"Giả lập khách chuyển khoản"** |
 | `tuvan.demo` | Tư vấn | Chế độ tư vấn 2 phương án, chốt kế hoạch |
@@ -35,6 +36,29 @@ Muốn dùng cổng khác: `DMAG_PORT=8080 ./start.sh`.
 | `phuta.demo` | Phụ tá | Thủ thuật, vật tư |
 | `benhnhan.demo` | Bệnh nhân | http://localhost:8069/my/dental |
 | `admin` (mật khẩu `admin`) | Quản trị hệ thống | Cài đặt kỹ thuật |
+
+## Trợ lý AI: Giả lập → AI thật (Claude API)
+
+Mở **Nha khoa › Trợ lý AI › Trung tâm AI** để xem cả 20 tính năng AI, trạng thái, số lần dùng, chi phí và nút
+**"Thử ngay"**. Mặc định mọi tính năng chạy **Giả lập**: kết quả tính từ số liệu thật của bản demo nhưng không gọi AI,
+không tốn phí; nhật ký vẫn ghi *chi phí nếu chạy thật*.
+
+Ảnh Docker của bản demo được dựng từ `Dockerfile` trong thư mục này (`odoo:17.0` + thư viện Python `anthropic`), nên
+chuyển sang AI thật chỉ cần dán khóa:
+
+1. Lấy khóa API tại https://console.anthropic.com → **API Keys** → *Create Key* (dạng `sk-ant-…`).
+2. Đăng nhập `giamdoc.demo` → **Nha khoa › Cấu hình › Trợ lý AI › Cài đặt AI**.
+3. Dán khóa vào ô **Khóa API Claude**, chọn **Chế độ AI = Claude API (AI thật)**, đặt **Trần chi phí AI / tháng**
+   (mặc định 5 triệu đồng; vượt trần → tự tạm dừng) rồi **Lưu**.
+4. Thử: *Điều hành mục tiêu* → **Hỏi AI về số liệu** → "Vì sao doanh thu tháng này chậm?". Câu trả lời có nhãn
+   "Claude API", số token và chi phí thật; xem chi tiết ở *Cấu hình › Trợ lý AI › Nhật ký & chi phí AI*.
+
+Muốn quay lại giả lập: chọn lại **Giả lập** (khóa vẫn được giữ). Mô hình mặc định Claude Opus 5.5; đổi mô hình
+(Sonnet / Haiku) hoặc tắt từng tính năng tại *Cấu hình › Trợ lý AI › Tính năng AI*.
+
+> Ảnh được build tự động ở lần `start` đầu tiên (cần Internet để tải `anthropic` từ PyPI). Máy sau tường lửa công ty
+> chặn chứng chỉ HTTPS: `docker compose build` với `--secret id=ca,src=<tệp CA.pem>` (xem chú thích trong `Dockerfile`).
+> Kiểm tra thư viện: `docker compose exec odoo python3 -c "import anthropic; print(anthropic.__version__)"`.
 
 ## Cập nhật khi có bản mới
 

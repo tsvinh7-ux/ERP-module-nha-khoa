@@ -1,7 +1,7 @@
 @echo off
 REM Khởi động bản demo DMAG Dental ERP trên Windows (cần Docker Desktop đang chạy).
 cd /d "%~dp0"
-docker compose up -d
+docker compose up -d --build
 echo Dang khoi dong... Lan dau mat khoang 3-5 phut de sinh du lieu mau.
 echo Theo doi: docker compose logs -f odoo
 :wait

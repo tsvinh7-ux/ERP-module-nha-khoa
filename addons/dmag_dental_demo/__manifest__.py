@@ -24,6 +24,8 @@
         'dmag_hr_3p',
         'dmag_dental_commission',
         'dmag_dental_goals',
+        'dmag_ai_core',
+        'dmag_ai_insights',
     ],
     'data': [
         'security/ir.model.access.csv',

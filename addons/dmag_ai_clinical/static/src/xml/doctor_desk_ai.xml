@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Mở rộng Bàn làm việc bác sĩ bằng t-inherit (không sửa file của dmag_clinic_workspace) -->
+    <t t-name="dmag_ai_clinical.DoctorDesk" t-inherit="dmag_clinic_workspace.DoctorDesk" t-inherit-mode="extension">
+        <!-- AI-04: thẻ tóm tắt hồ sơ ngay dưới thẻ bệnh nhân -->
+        <xpath expr="//section[hasclass('dmag-patient-head')]" position="after">
+            <AiSummaryCard t-if="aiOn('AI-04')" t-key="'ai04-' + visit.id" visitId="visit.id" mode="ai.status.mode"/>
+        </xpath>
+
+        <!-- AI-01 + AI-02 trong tab Bệnh án -->
+        <xpath expr="//section[hasclass('dmag-record')]/EmrPanel" position="before">
+            <AiDictation t-if="aiOn('AI-01') and !locked" t-key="'ai01-' + visit.id" visitId="visit.id" locked="locked"
+                         status="ai.status" onApplied.bind="aiReloadAfterApply" onCheck.bind="aiCheckRecord" showCheck="aiOn('AI-02')"/>
+            <div t-elif="aiOn('AI-02') and !locked" class="dmag-row-end">
+                <button class="dmag-btn dmag-ai-btn" t-on-click="aiCheckRecord"><i class="fa fa-check-square-o me-1" title="Kiểm tra"/>AI kiểm tra bệnh án</button>
+            </div>
+        </xpath>
+
+        <!-- AI-06: nút đọc phim trên thanh công cụ sơ đồ răng + tô răng AI đánh dấu -->
+        <xpath expr="//div[hasclass('dmag-chart-toolbar')]" position="inside">
+            <button t-if="aiOn('AI-06')" class="dmag-btn dmag-ai-btn dmag-btn-sm ms-auto" t-on-click="aiOpenXray">
+                <i class="fa fa-picture-o me-1" title="Phim"/>AI đọc phim <span class="dmag-ai-badge ms-1">minh họa</span>
+            </button>
+        </xpath>
+        <xpath expr="//div[hasclass('dmag-chart-board')]/Odontogram" position="attributes">
+            <attribute name="highlight">aiHighlight</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('dmag-chart-board')]/Odontogram" position="before">
+            <div t-if="ai.xrayTeeth.length" class="dmag-ai-xray-banner">
+                <span class="dmag-ai-badge"><i class="fa fa-magic" title="AI"/> AI-06</span>
+                <span>Răng AI nghi ngờ trên phim (tô vàng): <b t-esc="ai.xrayTeeth.map((t) => 'R' + t).join(', ')"/>
+                    · <i>chỉ minh họa – bác sĩ quyết định</i></span>
+                <button class="dmag-link ms-auto" t-on-click="() => this.ai.xrayTeeth = []">Bỏ đánh dấu</button>
+            </div>
+        </xpath>
+
+        <!-- AI-05: gợi ý kế hoạch từ sơ đồ răng -->
+        <xpath expr="//aside[hasclass('dmag-chart-side')]/button[last()]" position="before">
+            <button t-if="aiOn('AI-05')" class="dmag-btn dmag-ai-btn w-100 mb-2" t-on-click="aiSuggestPlan" t-att-disabled="!findings.length and !state.ws.chart.some((e) => e.category === 'missing')">
+                <i class="fa fa-magic me-1" title="AI"/>AI gợi ý 2 phương án điều trị
+            </button>
+        </xpath>
+        <xpath expr="//section[hasclass('dmag-plans')]/t[@t-if='state.builder']" position="before">
+            <AiPlanSuggest t-if="aiOn('AI-05') and (ai.plan or ai.planLoading)" loading="ai.planLoading"
+                           result="ai.plan and !ai.plan.consent ? ai.plan : null" consent="ai.planConsent"
+                           onUse.bind="aiUsePlan" onClose.bind="aiClosePlan" onRetry.bind="aiSuggestPlan"/>
+        </xpath>
+        <xpath expr="//section[hasclass('dmag-plans')]/div[hasclass('dmag-row-end')]" position="inside">
+            <button t-if="aiOn('AI-05') and !ai.plan" class="dmag-btn dmag-ai-btn ms-2" t-on-click="aiSuggestPlan">
+                <i class="fa fa-magic me-1" title="AI"/>AI gợi ý kế hoạch
+            </button>
+        </xpath>
+    </t>
+</templates>

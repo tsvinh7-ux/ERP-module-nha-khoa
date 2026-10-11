@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_ai_care_draft_form" model="ir.ui.view">
+        <field name="name">dmag.ai.care.draft.form</field>
+        <field name="model">dmag.ai.care.draft</field>
+        <field name="arch" type="xml">
+            <form string="Nội dung chăm sóc cá nhân hóa">
+                <header>
+                    <button name="action_approve_send" type="object" string="Duyệt &amp; gửi tin OA" class="btn-primary"
+                            invisible="state not in ('draft', 'called')" confirm="Gửi tin nhắn này cho khách?"/>
+                    <button name="action_log_call" type="object" string="Ghi nhận đã gọi" invisible="state in ('cancel', 'done')"/>
+                    <button name="action_regenerate" type="object" string="Soạn lại" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,sent,called,done"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info mb-2" role="status">
+                        <i class="fa fa-magic me-1" title="AI"/> Nội dung do AI soạn (<field name="mode" readonly="1" class="d-inline"/> · ước tính
+                        <field name="estimated_cost_vnd" readonly="1" class="d-inline"/> đ). Nhân viên đọc, sửa rồi mới gửi.
+                        Tin chủ động qua ZNS vẫn dùng mẫu đã đăng ký.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="visit_id" readonly="1"/>
+                            <field name="patient_id"/>
+                            <field name="doctor_id"/>
+                        </group>
+                        <group>
+                            <field name="procedures"/>
+                            <field name="approved_by_id" invisible="not approved_by_id"/>
+                            <field name="send_channel" invisible="not send_channel"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Kịch bản gọi +24h" name="call">
+                            <field name="call_script" readonly="state in ('done', 'cancel')"/>
+                            <group string="Kết quả cuộc gọi">
+                                <field name="call_pain" string="Điểm đau khách báo (0–10, -1 = không hỏi)"/>
+                                <field name="call_note"/>
+                            </group>
+                        </page>
+                        <page string="Tin nhắn Zalo OA" name="oa">
+                            <field name="oa_message" readonly="state not in ('draft', 'called')"/>
+                        </page>
+                        <page string="Lời dặn &amp; dấu hiệu" name="points">
+                            <group>
+                                <field name="key_points"/>
+                                <field name="warning_signs"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_ai_care_draft_tree" model="ir.ui.view">
+        <field name="name">dmag.ai.care.draft.tree</field>
+        <field name="model">dmag.ai.care.draft</field>
+        <field name="arch" type="xml">
+            <tree string="Nội dung chăm sóc">
+                <field name="create_date" string="Soạn lúc"/>
+                <field name="patient_id"/>
+                <field name="visit_id"/>
+                <field name="procedures"/>
+                <field name="mode"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state in ('sent', 'called', 'done')"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_dmag_ai_care_draft" model="ir.actions.act_window">
+        <field name="name">Nội dung chăm sóc (AI-12)</field>
+        <field name="res_model">dmag.ai.care.draft</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có nội dung chăm sóc</p>
+            <p>Mở một lượt khám đã hoàn tất → "Soạn nội dung chăm sóc (AI)" để có kịch bản gọi hỏi thăm và tin nhắn OA.</p>
+        </field>
+    </record>
+</odoo>

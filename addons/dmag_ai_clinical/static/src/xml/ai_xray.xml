@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.AiXrayDialog">
+        <Dialog title="'Hỗ trợ đọc phim X-quang – minh họa (AI-06)'" size="'fs'" contentClass="'dmag-ai-dialog dmag-ai-xray-dialog'">
+            <div class="dmag-ai-disclaimer">
+                <i class="fa fa-exclamation-triangle me-2" title="Lưu ý"/>
+                <b>Chỉ minh họa – không phải thiết bị chẩn đoán được cấp phép; bác sĩ quyết định.</b>
+                Vùng khoanh và độ tin cậy là gợi ý của AI để bác sĩ đối chiếu lâm sàng.
+            </div>
+            <div class="dmag-ai-xray">
+                <aside class="dmag-ai-xray-pick">
+                    <div class="dmag-ai-sec-title">Phim của lượt khám</div>
+                    <div t-if="!state.images.length" class="small text-muted mb-2">Chưa có ảnh phim. Tải ảnh lên hoặc dùng phim mẫu.</div>
+                    <button t-foreach="state.images" t-as="img" t-key="img.id"
+                            t-att-class="'dmag-ai-thumb' + (state.selected and state.selected.id === img.id ? ' is-on' : '')" t-on-click="() => this.select(img)">
+                        <img t-att-src="img.url" alt="Phim"/>
+                        <span><t t-esc="img.name"/><span t-if="img.sample" class="dmag-ai-tag">Mẫu</span></span>
+                    </button>
+                    <label class="dmag-btn dmag-btn-ghost w-100 mt-2">
+                        <i class="fa fa-upload me-1" title="Tải lên"/>Tải ảnh phim (PNG/JPEG)
+                        <input type="file" accept="image/png,image/jpeg,image/webp" class="d-none" t-on-change="onUpload"/>
+                    </label>
+                    <div class="dmag-ai-sec-title mt-3">Phim mẫu tổng hợp (demo)</div>
+                    <button t-foreach="state.samples" t-as="s" t-key="s.key" class="dmag-ai-sample" t-on-click="() => this.addSample(s)" t-att-title="s.title">
+                        <img t-att-src="s.url" alt="Phim mẫu"/><span t-esc="s.title"/>
+                    </button>
+                </aside>
+                <main class="dmag-ai-xray-main">
+                    <div t-if="state.selected" class="dmag-ai-xray-stage">
+                        <img t-att-src="state.selected.url" alt="Phim X-quang"/>
+                        <t t-foreach="findings" t-as="f" t-key="f_index">
+                            <div t-if="f.box" t-att-class="'dmag-ai-box ' + confClass(f) + (['3', '4', '7', '8'].includes(f.tooth[0]) ? ' is-lower' : '') + (state.hover === f_index ? ' is-hover' : '')" t-att-style="boxStyle(f)"
+                                 t-on-mouseenter="() => this.state.hover = f_index" t-on-mouseleave="() => this.state.hover = null">
+                                <span class="dmag-ai-box-label">R<t t-esc="f.tooth"/> · <t t-esc="Math.round(f.confidence * 100)"/>%</span>
+                            </div>
+                        </t>
+                    </div>
+                    <div t-else="" class="dmag-ai-empty">Chọn một ảnh phim bên trái.</div>
+                    <div class="dmag-row-end mt-2">
+                        <AiMeta meta="state.result or {}" label="'AI-06 · ảnh'"/>
+                        <span t-if="state.result" class="small text-muted me-auto" t-esc="state.result.image_quality"/>
+                        <span t-else="" class="me-auto"/>
+                        <button class="dmag-btn dmag-ai-btn-solid" t-att-disabled="!state.selected or state.analyzing" t-on-click="analyze">
+                            <span t-if="state.analyzing" class="dmag-ai-spinner"/><i t-else="" class="fa fa-eye me-1" title="Phân tích"/>
+                            <t t-esc="state.result ? 'Phân tích lại' : 'AI đọc phim'"/>
+                        </button>
+                    </div>
+                    <AiConsent t-if="state.consent" info="state.consent" onDone.bind="analyze"/>
+                </main>
+                <aside class="dmag-ai-xray-findings">
+                    <div class="dmag-ai-sec-title">Gợi ý của AI <span t-if="findings.length" class="dmag-lane-count" t-esc="findings.length"/></div>
+                    <div t-if="state.result" class="dmag-ai-summary-line mb-2" t-esc="state.result.summary"/>
+                    <div t-if="!state.result" class="small text-muted">Bấm "AI đọc phim" để xem các vùng nghi ngờ.</div>
+                    <div t-foreach="findings" t-as="f" t-key="f_index" t-att-class="'dmag-ai-finding' + (state.hover === f_index ? ' is-hover' : '')"
+                         t-on-mouseenter="() => this.state.hover = f_index" t-on-mouseleave="() => this.state.hover = null">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="dmag-swatch" t-att-style="'background:' + f.color"/>
+                            <b>R<t t-esc="f.tooth"/></b> <span t-esc="f.condition"/>
+                            <span t-if="f.on_chart" class="dmag-ai-tag ms-auto">Có trên sơ đồ</span>
+                        </div>
+                        <div class="small" t-esc="f.finding"/>
+                        <div class="dmag-ai-conf"><div t-att-class="confClass(f)" t-att-style="'width:' + Math.round(f.confidence * 100) + '%'"/></div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">Độ tin cậy <t t-esc="Math.round(f.confidence * 100)"/>%</span>
+                            <span class="d-flex gap-2">
+                                <button class="dmag-link" t-on-click="() => this.selectTooth(f)">Chọn răng</button>
+                                <button t-if="canAdd(f)" class="dmag-link" t-on-click="() => this.addToChart(f)">Ghi lên sơ đồ</button>
+                            </span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+            <div t-if="findings.length" class="dmag-ai-xray-odo">
+                <div class="dmag-ai-sec-title">Răng có vùng nghi ngờ (tô vàng trên sơ đồ)</div>
+                <Odontogram entries="props.chart" dentition="props.dentition or 'permanent'" readonly="true" highlight="teeth" showLegend="false"/>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">Đóng</button>
+                <button class="btn dmag-ai-btn-solid" t-att-disabled="!findings.length" t-on-click="showOnChart">
+                    <i class="fa fa-th me-1" title="Sơ đồ"/>Đánh dấu các răng trên sơ đồ chính
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

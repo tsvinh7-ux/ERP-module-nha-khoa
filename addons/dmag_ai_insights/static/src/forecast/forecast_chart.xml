@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_insights.AiForecastChart">
+        <t t-set="g" t-value="geo"/>
+        <div t-att-class="'dmag-fc-chart' + (props.compact ? ' is-compact' : '')">
+            <svg t-att-viewBox="'0 0 ' + g.W + ' ' + g.H" role="img" width="100%"
+                 t-att-aria-label="'Doanh thu lũy kế tháng: thực tế ' + money(g.lastActual and g.lastActual.v) + ', dự báo cuối tháng ' + money(g.lastFc and g.lastFc.v)"
+                 t-on-mousemove="(ev) => this.onMove(ev, g)" t-on-mouseleave="onLeave">
+                <g t-if="!props.compact" class="dmag-fc-grid">
+                    <t t-foreach="g.ticks" t-as="t" t-key="t_index">
+                        <line t-att-x1="g.pad.l" t-att-x2="g.W - g.pad.r" t-att-y1="t.y" t-att-y2="t.y"/>
+                        <text t-att-x="g.pad.l - 8" t-att-y="t.y + 4" text-anchor="end" t-esc="t.label"/>
+                    </t>
+                    <t t-foreach="g.xTicks" t-as="t" t-key="t_index">
+                        <text t-att-x="t.x" t-att-y="g.H - 8" text-anchor="middle" t-esc="t.label"/>
+                    </t>
+                </g>
+                <line t-else="" class="dmag-fc-base" t-att-x1="g.pad.l" t-att-x2="g.W - g.pad.r" t-att-y1="g.H - g.pad.b" t-att-y2="g.H - g.pad.b"/>
+                <path t-if="g.band" class="dmag-fc-band" t-att-d="g.band"/>
+                <g t-if="g.targetY !== null">
+                    <line class="dmag-fc-target" t-att-x1="g.pad.l" t-att-x2="g.W - g.pad.r" t-att-y1="g.targetY" t-att-y2="g.targetY"/>
+                    <text t-if="!props.compact" class="dmag-fc-target-label" t-att-x="g.W - g.pad.r + 6" t-att-y="g.targetY + 4">Mục tiêu <t t-esc="money(props.data.target)"/></text>
+                </g>
+                <path t-if="g.actualPath" class="dmag-fc-actual" t-att-d="g.actualPath"/>
+                <path t-if="g.fcPath" class="dmag-fc-forecast" t-att-d="g.fcPath"/>
+                <circle t-if="g.lastActual" class="dmag-fc-dot" t-att-cx="g.lastActual.x" t-att-cy="g.lastActual.y" r="4.5"/>
+                <circle t-if="g.lastFc" class="dmag-fc-dot is-fc" t-att-cx="g.lastFc.x" t-att-cy="g.lastFc.y" r="4.5"/>
+                <text t-if="g.lastFc and !props.compact" class="dmag-fc-end-label" t-att-x="g.lastFc.x + 8" t-att-y="g.lastFc.y + 4" t-esc="money(g.lastFc.v)"/>
+                <g t-if="state.hover">
+                    <line class="dmag-fc-cross" t-att-x1="state.hover.x" t-att-x2="state.hover.x" t-att-y1="g.pad.t" t-att-y2="g.H - g.pad.b"/>
+                    <circle class="dmag-fc-dot is-hover" t-att-cx="state.hover.x" t-att-cy="state.hover.y" r="5"/>
+                </g>
+            </svg>
+            <div t-if="state.hover" class="dmag-fc-tip" t-att-style="'left:' + Math.min(78, Math.max(4, 100 * state.hover.x / g.W)) + '%'" t-esc="hoverText(state.hover)"/>
+            <div t-if="!props.compact" class="dmag-fc-legend" aria-hidden="true">
+                <span><i class="is-actual"/>Thực tế lũy kế</span>
+                <span><i class="is-forecast"/>Dự báo</span>
+                <span><i class="is-band"/>Khoảng tin cậy 80%</span>
+                <span t-if="props.data.target"><i class="is-target"/>Mục tiêu</span>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_insights.AiBriefPage">
+        <div class="dmag-ws dmag-ai-page">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div><h1>Bản tin điều hành hằng tuần</h1>
+                        <span class="dmag-ws-sub">AI-14 · tự soạn 07:00 sáng thứ Hai và gửi Giám đốc<t t-if="state.data and state.data.next_run"> · lần tới: <t t-esc="nextRun()"/></t></span></div>
+                </div>
+                <div class="dmag-ws-actions" t-if="state.data">
+                    <span t-att-class="'dmag-ai-mode is-' + state.data.mode"><i t-att-class="'fa ' + (state.data.mode === 'live' ? 'fa-bolt' : 'fa-flask')" aria-hidden="true"/> <t t-esc="state.data.mode === 'live' ? 'Claude API' : 'Giả lập'"/></span>
+                    <button class="dmag-btn dmag-btn-primary dmag-btn-sm" t-att-disabled="state.busy or !state.data.active" t-on-click="generate">
+                        <i t-att-class="'fa me-1 ' + (state.busy ? 'fa-spinner fa-spin' : 'fa-magic')" aria-hidden="true"/>Soạn bản tin tuần ngay
+                    </button>
+                </div>
+            </header>
+            <div t-if="state.data" class="dmag-brief-layout">
+                <aside class="dmag-brief-list">
+                    <div class="dmag-brief-list-title">Các bản tin</div>
+                    <div t-if="!state.data.list.length" class="dmag-goal-empty">Chưa có bản tin – bấm "Soạn bản tin tuần ngay".</div>
+                    <button t-foreach="state.data.list" t-as="b" t-key="b.id"
+                            t-att-class="'dmag-brief-item' + (state.data.current and state.data.current.id === b.id ? ' is-on' : '')" t-on-click="() => this.load(b.id)">
+                        <span class="dmag-brief-item-date"><t t-esc="fmtDate(b.date)"/> · <t t-esc="b.trigger === 'cron' ? 'tự động' : 'bấm tay'"/></span>
+                        <span class="dmag-brief-item-title" t-esc="b.headline"/>
+                        <span t-if="b.off_track" class="dmag-chip is-danger"><t t-esc="b.off_track"/> chỉ tiêu lệch</span>
+                    </button>
+                </aside>
+                <main t-if="state.data.current" class="dmag-brief-main">
+                    <t t-set="c" t-value="state.data.current"/>
+                    <t t-set="d" t-value="c.data"/>
+                    <div class="dmag-panel dmag-brief-hero">
+                        <div class="dmag-brief-kicker"><t t-esc="c.name"/> · kỳ mục tiêu <t t-esc="c.facts.period"/></div>
+                        <h2 t-esc="d.headline"/>
+                        <p class="dmag-brief-summary" t-esc="d.summary"/>
+                        <div class="dmag-brief-tools">
+                            <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="openForm"><i class="fa fa-comments-o me-1" aria-hidden="true"/>Mở bản tin (trao đổi, theo dõi)</button>
+                            <span class="dmag-ws-sub"><t t-esc="c.mode === 'live' ? 'Viết bởi Claude API' : 'Giả lập: số liệu thật, chưa gọi AI'"/> · <t t-esc="c.mode === 'live' ? 'chi phí ' : 'nếu chạy thật ≈ '"/><t t-esc="money(c.estimated_cost_vnd)"/></span>
+                        </div>
+                    </div>
+                    <div class="dmag-brief-grid">
+                        <section class="dmag-panel">
+                            <div class="dmag-panel-title">Tuần qua <span class="dmag-ws-sub"><t t-esc="fmtDate(c.facts.week.from)"/> → <t t-esc="fmtDate(c.facts.week.to)"/> · so với tuần trước</span></div>
+                            <table class="table table-sm dmag-ai-table mb-0">
+                                <tbody>
+                                    <tr t-foreach="c.facts.week.metrics" t-as="m" t-key="m.metric">
+                                        <td t-esc="m.label"/>
+                                        <td class="text-end tabular"><b t-esc="m.text"/></td>
+                                        <td class="text-end tabular dmag-ws-sub" t-esc="m.prev_text"/>
+                                        <td class="text-end"><span t-att-class="'dmag-delta ' + changeTone(m)" t-esc="m.change or '–'"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </section>
+                        <section class="dmag-panel">
+                            <div class="dmag-panel-title">Chỉ tiêu đang lệch <span class="dmag-chip is-danger" t-if="d.off_track.length"><t t-esc="d.off_track.length"/></span></div>
+                            <div t-if="!d.off_track.length" class="dmag-goal-empty"><i class="fa fa-check-circle text-success me-1" aria-hidden="true"/>Không có chỉ tiêu lệch.</div>
+                            <div t-foreach="d.off_track" t-as="o" t-key="o_index" class="dmag-brief-off">
+                                <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                                <div><b t-esc="o.metric"/><div class="dmag-ws-sub" t-esc="o.detail"/></div>
+                            </div>
+                        </section>
+                    </div>
+                    <section class="dmag-panel">
+                        <div class="dmag-panel-title">Nguyên nhân có thể <span class="dmag-ws-sub">từ phễu khách hàng, bác sĩ, nhóm dịch vụ, công suất ghế</span></div>
+                        <ul class="dmag-brief-causes"><li t-foreach="d.causes" t-as="cause" t-key="cause_index" t-esc="cause"/></ul>
+                    </section>
+                    <section>
+                        <div class="dmag-goal-section-head"><h2>3 việc nên làm tuần này</h2></div>
+                        <div class="dmag-brief-actions">
+                            <div t-foreach="d.actions" t-as="a" t-key="a_index" class="dmag-brief-action">
+                                <span class="dmag-brief-action-no" t-esc="a_index + 1"/>
+                                <div>
+                                    <b t-esc="a.title"/>
+                                    <p t-esc="a.detail"/>
+                                    <span class="dmag-chip is-info"><i class="fa fa-user-o me-1" aria-hidden="true"/><t t-esc="a.owner"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="dmag-panel mt-3">
+                        <div class="dmag-panel-title">Điểm sáng</div>
+                        <ul class="dmag-brief-highlights"><li t-foreach="d.highlights" t-as="h" t-key="h_index"><i class="fa fa-star me-2" aria-hidden="true"/><t t-esc="h"/></li></ul>
+                    </section>
+                </main>
+                <main t-else="" class="dmag-brief-main"><div class="dmag-goal-empty">Chưa có bản tin.</div></main>
+            </div>
+        </div>
+    </t>
+</templates>

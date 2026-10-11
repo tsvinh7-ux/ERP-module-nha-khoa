@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.AiRecordCheckDialog">
+        <Dialog title="props.signMode ? 'Kiểm tra bệnh án trước khi ký (AI-02)' : 'AI kiểm tra bệnh án (AI-02)'" size="'lg'" contentClass="'dmag-ai-dialog'">
+            <div t-if="state.loading" class="dmag-ai-loading"><span class="dmag-ai-spinner"/>Đang kiểm tra mục bắt buộc, đối chiếu mô tả – ICD-10 – sơ đồ răng…</div>
+            <t t-elif="state.data">
+                <div class="dmag-ai-dialog-top">
+                    <AiMeta meta="state.data.ai or {}" label="'Quy tắc cố định'"/>
+                    <span t-if="state.data.ai and state.data.ai.tools" class="small text-muted"><i class="fa fa-search me-1" title="Tra cứu"/>AI đã tra danh mục ICD-10 <t t-esc="state.data.ai.tools"/> lần</span>
+                </div>
+                <div class="dmag-ai-counts">
+                    <span class="dmag-ai-count is-high"><b t-esc="counts.high"/> cần sửa</span>
+                    <span class="dmag-ai-count is-medium"><b t-esc="counts.medium"/> nên bổ sung</span>
+                    <span class="dmag-ai-count is-low"><b t-esc="counts.low"/> gợi ý</span>
+                    <span t-if="state.data.ai" class="dmag-ai-summary-line" t-esc="state.data.ai.summary"/>
+                </div>
+                <AiConsent t-if="state.data.consent" info="state.data.consent" onDone.bind="recheck"/>
+                <div t-if="!issues.length" class="dmag-ai-ok"><i class="fa fa-check-circle me-2" title="Ổn"/>Không phát hiện thiếu sót – bệnh án sẵn sàng để ký.</div>
+                <ul class="dmag-ai-issues">
+                    <li t-foreach="issues" t-as="issue" t-key="issue_index" t-att-class="'is-' + issue.severity">
+                        <i t-att-class="'fa ' + (SEVERITY[issue.severity] or SEVERITY.low).icon" t-att-title="(SEVERITY[issue.severity] or SEVERITY.low).label"/>
+                        <span class="flex-grow-1" t-esc="issue.message"/>
+                        <span t-att-class="'dmag-ai-src-tag is-' + issue.source" t-esc="issue.source === 'ai' ? 'AI' : 'Quy tắc'"/>
+                    </li>
+                </ul>
+                <div t-if="state.data.icd.length" class="dmag-ai-icd">
+                    <div class="fw-bold mb-1">Gợi ý mã ICD-10 <span class="small text-muted fw-normal">(chỉ từ danh mục phòng khám – bấm để thêm)</span></div>
+                    <div t-foreach="state.data.icd" t-as="d" t-key="d.id" class="dmag-ai-icd-row">
+                        <b t-esc="d.code"/><span class="flex-grow-1"><t t-esc="d.name"/> <span class="small text-muted" t-if="d.reason">· <t t-esc="d.reason"/></span></span>
+                        <span t-if="state.added[d.id]" class="dmag-ai-tag">Đã thêm</span>
+                        <button t-else="" class="dmag-btn dmag-ai-btn dmag-btn-sm" t-on-click="() => this.addDiagnosis(d)">+ Thêm</button>
+                    </div>
+                </div>
+            </t>
+            <t t-set-slot="footer">
+                <t t-if="props.signMode">
+                    <button class="btn btn-secondary" t-on-click="props.close">Quay lại sửa</button>
+                    <button t-att-class="'btn ' + (counts.high ? 'btn-warning' : 'btn-primary')" t-att-disabled="state.loading or state.signing" t-on-click="sign">
+                        <i class="fa fa-pencil-square-o me-1" title="Ký"/><t t-esc="issues.length ? 'Vẫn ký bệnh án' : 'Ký bệnh án'"/>
+                    </button>
+                </t>
+                <t t-else="">
+                    <button class="btn btn-secondary" t-att-disabled="state.loading" t-on-click="recheck"><i class="fa fa-refresh me-1" title="Kiểm tra lại"/>Kiểm tra lại</button>
+                    <button class="btn btn-primary" t-on-click="props.close">Đóng</button>
+                </t>
+            </t>
+        </Dialog>
+    </t>
+</templates>

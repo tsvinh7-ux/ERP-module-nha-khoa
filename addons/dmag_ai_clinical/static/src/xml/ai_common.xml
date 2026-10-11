@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.AiMeta">
+        <span class="dmag-ai-meta">
+            <span class="dmag-ai-badge" title="Trợ lý AI – chỉ gợi ý, bác sĩ quyết định"><i class="fa fa-magic" title="AI"/> AI</span>
+            <t t-if="mode">
+                <span t-att-class="'dmag-ai-mode ' + (props.meta.simulated ? 'is-sim' : 'is-live')" t-att-title="modelText" t-esc="mode"/>
+                <span class="dmag-ai-cost" t-esc="costText"/>
+            </t>
+            <span t-elif="props.label" class="dmag-ai-cost" t-esc="props.label"/>
+        </span>
+    </t>
+
+    <t t-name="dmag_ai_clinical.AiConsent">
+        <div class="dmag-ai-consent">
+            <i class="fa fa-user-secret fa-lg" title="Đồng ý AI"/>
+            <div class="flex-grow-1">
+                <div class="fw-bold">Cần bệnh nhân đồng ý trước khi dùng AI</div>
+                <div class="small" t-esc="props.info.message"/>
+            </div>
+            <button t-if="props.info.can_consent" class="dmag-btn dmag-ai-btn-solid" t-att-disabled="state.saving" t-on-click="agree">
+                <i class="fa fa-check me-1" title="Đồng ý"/>Bệnh nhân đồng ý
+            </button>
+        </div>
+    </t>
+</templates>

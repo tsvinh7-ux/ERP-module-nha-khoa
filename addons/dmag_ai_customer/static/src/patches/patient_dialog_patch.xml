@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_customer.NewPatientDialogCccd" t-inherit="dmag_clinic_workspace.NewPatientDialog" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('dmag-form-grid')]" position="before">
+            <div class="dmag-ai-cccd">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="toggleCccd">
+                        <i class="fa fa-qrcode me-1" title="QR"/>Quét CCCD
+                    </button>
+                    <span class="dmag-hint">Đọc mã QR trên CCCD gắn chip – điền họ tên, ngày sinh, giới tính, số định danh, địa chỉ. Tại máy, không gửi đi đâu.</span>
+                    <span class="dmag-ai-badge is-local ms-auto" title="Đọc QR tại trình duyệt – không dùng AI, không gửi dữ liệu"><i class="fa fa-microchip me-1" title="Tại chỗ"/>AI-10 · tại chỗ</span>
+                </div>
+                <div t-if="cccd.open" class="dmag-ai-cccd-panel">
+                    <div class="dmag-ai-cccd-cam" t-if="cccd.scanning">
+                        <video t-ref="cccdVideo" playsinline="" muted=""/>
+                        <div class="dmag-ai-cccd-frame"/>
+                        <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="stopCamera">Dừng camera</button>
+                    </div>
+                    <canvas t-ref="cccdCanvas" class="d-none"/>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <button t-if="!cccd.scanning" class="dmag-btn dmag-btn-primary dmag-btn-sm" t-on-click="startCamera"><i class="fa fa-camera me-1" title="Camera"/>Mở camera</button>
+                        <label class="dmag-btn dmag-btn-ghost dmag-btn-sm mb-0"><i class="fa fa-picture-o me-1" title="Ảnh"/>Chọn ảnh mã QR
+                            <input type="file" accept="image/*" class="d-none" t-on-change="scanImage"/></label>
+                        <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="useSampleCccd">Dùng chuỗi mẫu (demo)</button>
+                        <a class="dmag-link" href="/dmag_ai_customer/static/img/cccd_sample_qr.png" target="_blank">Ảnh QR mẫu</a>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <input class="dmag-input mb-0" placeholder="…hoặc dán chuỗi QR: 0791…|…|Họ tên|ddmmyyyy|Nam/Nữ|Địa chỉ|ddmmyyyy" t-model="cccd.raw"/>
+                        <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-att-disabled="!cccd.raw" t-on-click="() => this.applyCccd(cccd.raw)">Điền</button>
+                    </div>
+                    <div t-if="cccd.error" class="dmag-banner is-warn mt-2" t-esc="cccd.error"/>
+                    <div t-if="cccd.info" class="dmag-ai-cccd-info">
+                        <i class="fa fa-check-circle me-1" title="OK"/>Đã đọc (<t t-esc="cccd.engine"/>):
+                        <b t-esc="cccd.info.name"/> · CCCD <t t-esc="cccd.info.citizen_id"/>
+                        <t t-if="cccd.info.old_id"> · CMND cũ <t t-esc="cccd.info.old_id"/></t>
+                        <t t-if="cccd.info.issue_date"> · cấp ngày <t t-esc="cccd.info.issue_date.split('-').reverse().join('/')"/></t>
+                    </div>
+                    <div t-if="cccd.existing" class="dmag-banner is-warn mt-2">
+                        Số CCCD đã có hồ sơ: <b t-esc="cccd.existing.name"/> (<t t-esc="cccd.existing.code"/>).
+                        <button class="dmag-btn dmag-btn-primary dmag-btn-sm ms-2" t-on-click="useExistingCccd">Dùng hồ sơ này</button>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('dmag-form-grid')]/label[last()]" position="before">
+            <label class="dmag-form-field dmag-span-2" t-if="state.street or cccd.info">
+                <span>Địa chỉ (theo CCCD)</span>
+                <input class="dmag-input" t-model="state.street"/>
+            </label>
+        </xpath>
+    </t>
+</templates>

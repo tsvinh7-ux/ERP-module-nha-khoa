@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cài đặt nhận dạng giọng nói (AI-01) trong màn hình Cài đặt AI của dmag_ai_core -->
+    <record id="view_company_form_dmag_ai_stt" model="ir.ui.view">
+        <field name="name">res.company.form.dmag.ai.stt</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="dmag_ai_core.view_company_form_dmag_ai"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Ghi bệnh án bằng giọng nói (AI-01)">
+                    <group>
+                        <field name="dmag_stt_provider" widget="radio"/>
+                    </group>
+                    <group>
+                        <div class="text-muted" colspan="2">
+                            <b>Trình duyệt</b>: dùng nhận dạng giọng nói tiếng Việt có sẵn của Chrome / Edge (âm thanh do
+                            trình duyệt gửi tới dịch vụ của hãng trình duyệt) – phù hợp demo / thí điểm.
+                            <b>FPT.AI / Viettel AI</b>: âm thanh ghi tại trình duyệt được gửi về Odoo rồi chuyển tiếp tới
+                            nhà cung cấp trong nước theo hợp đồng. Địa chỉ API mặc định cần xác minh theo tài liệu
+                            của nhà cung cấp.
+                        </div>
+                    </group>
+                    <group string="FPT.AI" invisible="dmag_stt_provider != 'fpt'">
+                        <field name="dmag_stt_fpt_endpoint"/>
+                        <field name="dmag_stt_fpt_api_key" password="True" groups="dmag_dental_base.group_dmag_director,base.group_system"/>
+                        <field name="dmag_stt_fpt_key_set"/>
+                    </group>
+                    <group string="Viettel AI" invisible="dmag_stt_provider != 'viettel'">
+                        <field name="dmag_stt_viettel_endpoint"/>
+                        <field name="dmag_stt_viettel_token" password="True" groups="dmag_dental_base.group_dmag_director,base.group_system"/>
+                        <field name="dmag_stt_viettel_key_set"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

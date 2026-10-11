@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_ai_followup_tree" model="ir.ui.view">
+        <field name="name">dmag.ai.followup.tree</field>
+        <field name="model">dmag.ai.followup</field>
+        <field name="arch" type="xml">
+            <tree string="Theo dõi sau điều trị" decoration-danger="level == 'urgent'" decoration-warning="level == 'watch'"
+                  decoration-muted="state in ('closed', 'expired')">
+                <field name="due_at"/>
+                <field name="patient_id"/>
+                <field name="procedures"/>
+                <field name="checkpoint"/>
+                <field name="doctor_id"/>
+                <field name="pain" string="Đau" invisible="pain &lt; 0"/>
+                <field name="bleeding" optional="show"/>
+                <field name="swelling" optional="show"/>
+                <field name="fever" optional="show"/>
+                <field name="level" widget="badge" decoration-danger="level == 'urgent'" decoration-warning="level == 'watch'"
+                       decoration-success="level == 'normal'"/>
+                <field name="state" widget="badge" decoration-danger="state == 'alert'" decoration-info="state in ('scheduled', 'sent')"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_ai_followup_form" model="ir.ui.view">
+        <field name="name">dmag.ai.followup.form</field>
+        <field name="model">dmag.ai.followup</field>
+        <field name="arch" type="xml">
+            <form string="Theo dõi sau điều trị">
+                <header>
+                    <button name="action_send" type="object" string="Gửi câu hỏi ngay" invisible="state != 'scheduled'"/>
+                    <button name="action_record_call" type="object" string="Ghi câu trả lời (gọi điện)" class="btn-primary"
+                            invisible="state not in ('scheduled', 'sent', 'expired')"/>
+                    <button name="action_open_answer_page" type="object" string="Mở trang trả lời của khách" icon="fa-mobile"/>
+                    <button name="action_close" type="object" string="Bác sĩ đã xử lý" invisible="state != 'alert'"
+                            groups="dmag_dental_base.group_dmag_assistant"/>
+                    <field name="state" widget="statusbar" statusbar_visible="scheduled,sent,answered,alert,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <div class="alert alert-danger" role="alert" invisible="level != 'urgent'">
+                        <b>Bất thường – đã báo bác sĩ phụ trách.</b> <field name="flags" readonly="1" class="d-inline"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="level != 'watch'">
+                        <b>Cần theo dõi.</b> <field name="flags" readonly="1" class="d-inline"/>
+                    </div>
+                    <group>
+                        <group string="Lượt khám">
+                            <field name="visit_id"/>
+                            <field name="patient_id"/>
+                            <field name="doctor_id"/>
+                            <field name="procedures"/>
+                            <field name="checkpoint"/>
+                            <field name="due_at"/>
+                            <field name="sent_note"/>
+                        </group>
+                        <group string="Câu trả lời">
+                            <field name="pain" string="Mức đau (0–10, -1 = chưa hỏi)" readonly="state not in ('scheduled', 'sent', 'expired')"/>
+                            <field name="bleeding" readonly="state not in ('scheduled', 'sent', 'expired')"/>
+                            <field name="swelling" readonly="state not in ('scheduled', 'sent', 'expired')"/>
+                            <field name="fever" readonly="state not in ('scheduled', 'sent', 'expired')"/>
+                            <field name="free_text" readonly="state not in ('scheduled', 'sent', 'expired')"/>
+                            <field name="channel" readonly="1"/>
+                            <field name="answered_at"/>
+                        </group>
+                    </group>
+                    <group string="Đánh giá" invisible="not level">
+                        <group>
+                            <field name="local_level"/>
+                            <field name="ai_level"/>
+                            <field name="level"/>
+                            <field name="ai_mode"/>
+                        </group>
+                        <group>
+                            <field name="ai_summary"/>
+                            <field name="reply_to_patient"/>
+                            <field name="doctor_note"/>
+                        </group>
+                    </group>
+                    <div class="text-muted small">
+                        Phương pháp: ngưỡng cố định tại chỗ (đau ≥ 7, đau tăng ở mốc 72h, chảy máu nhiều, sưng nhiều, sốt → báo bác sĩ ngay)
+                        + AI đọc phần mô tả tự do để bắt dấu hiệu ngưỡng không thấy. Không chẩn đoán.
+                    </div>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="view_dmag_ai_followup_search" model="ir.ui.view">
+        <field name="name">dmag.ai.followup.search</field>
+        <field name="model">dmag.ai.followup</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/><field name="doctor_id"/>
+                <filter name="alert" string="Bất thường" domain="[('state', '=', 'alert')]"/>
+                <filter name="waiting" string="Chờ khách trả lời" domain="[('state', 'in', ('scheduled', 'sent'))]"/>
+                <filter name="answered" string="Đã trả lời" domain="[('state', 'in', ('answered', 'alert', 'closed'))]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_dmag_ai_followup" model="ir.actions.act_window">
+        <field name="name">Theo dõi sau điều trị</field>
+        <field name="res_model">dmag.ai.followup</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có câu hỏi theo dõi</p>
+            <p>Sau ca thủ thuật (nhổ, implant, nội nha, phục hình…) hệ thống tự hỏi khách mức đau, chảy máu, sưng, sốt ở mốc 24h và 72h.</p>
+        </field>
+    </record>
+</odoo>

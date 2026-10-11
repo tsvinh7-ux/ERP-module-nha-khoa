@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_customer.ZaloSimulator">
+        <div class="dmag-ws dmag-ai-sim">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <h1>Mô phỏng Zalo OA <span class="dmag-ai-code">AI-07</span></h1>
+                        <span class="dmag-ws-sub">Đóng vai khách nhắn OA · trợ lý tra bảng giá, giờ trống và giữ chỗ thật trong Odoo</span>
+                    </div>
+                </div>
+                <div class="dmag-ws-actions">
+                    <AiBadge mode="state.status.mode" estimated="totalEstimate" cost="totalCost"/>
+                    <div class="dmag-ai-persona">
+                        <div class="dmag-search">
+                            <i class="fa fa-user" title="Khách"/>
+                            <input type="search" placeholder="Đóng vai bệnh nhân có sẵn…" t-on-input="searchPatient" t-att-value="state.query"/>
+                        </div>
+                        <div t-if="state.results.length" class="dmag-ai-persona-results">
+                            <button t-foreach="state.results" t-as="p" t-key="p.id" t-on-click="() => this.start(p)">
+                                <b t-esc="p.name"/> <span class="text-muted" t-esc="p.code"/>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="() => this.start()"><i class="fa fa-refresh me-1" title="Mới"/>Khách mới</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openInbox"><i class="fa fa-inbox me-1" title="Hộp thư"/>Hộp thư lễ tân</button>
+                    <button class="dmag-btn dmag-btn-primary" t-on-click="openFrontDesk"><i class="fa fa-columns me-1" title="Bảng điều phối"/>Bảng điều phối</button>
+                </div>
+            </header>
+
+            <div class="dmag-ai-sim-grid">
+                <!-- Điện thoại của khách -->
+                <section class="dmag-ai-phone">
+                    <div class="dmag-ai-phone-notch"/>
+                    <div class="dmag-ai-phone-head">
+                        <i class="fa fa-chevron-left" title="Quay lại"/>
+                        <div class="dmag-ai-oa-avatar">D</div>
+                        <div class="flex-grow-1">
+                            <div class="dmag-ai-oa-name">Nha khoa DMAG <i class="fa fa-check-circle" title="OA đã xác thực"/></div>
+                            <div class="dmag-ai-oa-sub">Official Account · thường trả lời ngay</div>
+                        </div>
+                        <i class="fa fa-ellipsis-h" title="Thêm"/>
+                    </div>
+                    <div class="dmag-ai-phone-log" t-ref="log">
+                        <div class="dmag-ai-sysmsg">Bạn đang nhắn với <b>trợ lý tự động</b> của phòng khám. Khiếu nại / ca khẩn sẽ được chuyển nhân viên ngay.</div>
+                        <div t-if="state.thread and state.thread.partner" class="dmag-ai-sysmsg">Đang đóng vai: <b t-esc="state.thread.partner.name"/></div>
+                        <t t-call="dmag_ai_customer.ChatBubbles">
+                            <t t-set="messages" t-value="messages"/>
+                            <t t-set="perspective" t-value="'customer'"/>
+                        </t>
+                        <div t-if="state.sending" class="dmag-ai-bubble-row"><div class="dmag-ai-bubble is-bot is-typing"><span/><span/><span/></div></div>
+                        <div t-if="lastQuick.length and !state.sending" class="dmag-ai-quick">
+                            <button t-foreach="lastQuick" t-as="q" t-key="q" t-on-click="() => this.send(q)" t-esc="q"/>
+                        </div>
+                    </div>
+                    <div class="dmag-ai-phone-input">
+                        <input t-ref="input" placeholder="Nhập tin nhắn…" t-model="state.text" t-on-keydown="onKey" t-att-disabled="state.sending"/>
+                        <button t-on-click="() => this.send()" t-att-disabled="state.sending or !state.text" title="Gửi"><i class="fa fa-paper-plane" title="Gửi"/></button>
+                    </div>
+                </section>
+
+                <!-- AI đã làm gì -->
+                <section class="dmag-ai-trace">
+                    <div class="dmag-panel-title">
+                        <span><i class="fa fa-cogs me-1" title="Công cụ"/>Bên trong Odoo – trợ lý đã gọi công cụ gì</span>
+                        <span class="dmag-hint" t-if="liveMode">Claude tự chọn công cụ (không ép tool_choice)</span>
+                        <span class="dmag-hint" t-else="">Giả lập: nhận diện ý định → gọi đúng các công cụ thật</span>
+                    </div>
+                    <div t-if="!botTurns.length" class="dmag-empty-sm">
+                        Nhắn thử ở điện thoại bên trái. Gợi ý kịch bản demo:
+                        <div class="dmag-phrases justify-content-center">
+                            <button t-foreach="DEMO_SCRIPT" t-as="s" t-key="s" class="dmag-phrase" t-on-click="() => this.send(s)" t-esc="s"/>
+                        </div>
+                    </div>
+                    <article t-foreach="botTurns" t-as="turn" t-key="turn.id" class="dmag-ai-turn">
+                        <div class="dmag-ai-turn-head">
+                            <span class="dmag-ai-turn-time" t-esc="turn.time"/>
+                            <span class="dmag-ai-turn-reply" t-esc="turn.body.split('\n')[0]"/>
+                            <AiBadge mode="turn.simulated ? 'simulate' : 'live'" estimated="turn.estimated_cost_vnd" cost="turn.cost_vnd"/>
+                        </div>
+                        <div t-if="!turn.trace.length" class="dmag-ai-step is-none">Không cần gọi công cụ.</div>
+                        <div t-foreach="turn.trace" t-as="step" t-key="step_index" t-att-class="'dmag-ai-step' + (step.error ? ' is-error' : '')">
+                            <t t-set="meta" t-value="toolMeta(step)"/>
+                            <t t-set="sum" t-value="summarizeTool(step)"/>
+                            <div class="dmag-ai-step-icon"><i t-att-class="'fa ' + meta.icon" t-att-title="meta.label"/></div>
+                            <div class="dmag-ai-step-main">
+                                <div class="dmag-ai-step-name"><t t-esc="meta.label"/> <code t-esc="step.tool"/></div>
+                                <div class="dmag-ai-step-in" t-esc="stringify(step.input)"/>
+                                <div t-if="sum.kind === 'chips'" class="dmag-ai-step-out">
+                                    <span class="text-muted me-1" t-esc="sum.text"/>
+                                    <span t-foreach="sum.items" t-as="c" t-key="c_index" class="dmag-chip is-info" t-esc="c"/>
+                                    <span t-if="!sum.items.length" class="text-danger">Không còn giờ trống</span>
+                                </div>
+                                <ul t-elif="sum.kind === 'list'" class="dmag-ai-step-out">
+                                    <li t-foreach="sum.items.slice(0, 5)" t-as="c" t-key="c_index" t-esc="c"/>
+                                </ul>
+                                <div t-elif="sum.kind === 'booking'" class="dmag-ai-step-out is-booking">
+                                    <i class="fa fa-check-circle me-1" title="Đã giữ chỗ"/><t t-esc="sum.text"/>
+                                    <button class="dmag-link ms-2" t-on-click="() => this.openVisit(sum.visitId)">Mở lịch</button>
+                                </div>
+                                <div t-elif="sum.kind === 'alert'" class="dmag-ai-step-out is-alert"><i class="fa fa-bell me-1" title="Chuyển"/><t t-esc="sum.text"/></div>
+                                <div t-elif="sum.kind === 'error'" class="dmag-ai-step-out is-alert" t-esc="sum.text"/>
+                                <div t-else="" class="dmag-ai-step-out" t-esc="sum.text"/>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+
+                <!-- Kết quả trên Odoo -->
+                <section class="dmag-ai-result">
+                    <div class="dmag-panel-title"><span><i class="fa fa-calendar me-1" title="Lịch"/>Lịch giữ chỗ từ hội thoại</span></div>
+                    <div t-if="state.thread and state.thread.state !== 'bot'" class="dmag-ai-handoff">
+                        <i class="fa fa-bell me-1" title="Chuyển"/><b>Đã chuyển nhân viên</b> – <t t-esc="state.thread.handoff_reason"/>
+                        <div class="small" t-esc="state.thread.handoff_summary"/>
+                        <button class="dmag-btn dmag-btn-sm dmag-btn-ghost mt-2" t-on-click="openInbox">Mở hộp thư lễ tân</button>
+                    </div>
+                    <div t-if="state.thread and !state.thread.visits.length" class="dmag-empty-sm">Chưa có lịch nào. Thử: “Cho em đặt lịch cạo vôi chiều nay”.</div>
+                    <div t-foreach="state.thread ? state.thread.visits : []" t-as="v" t-key="v.id" class="dmag-ai-booking">
+                        <div class="dmag-ai-booking-time"><t t-esc="v.time"/><small t-esc="v.date"/></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold" t-esc="v.patient"/>
+                            <div class="small text-muted"><t t-esc="v.name"/> · <t t-esc="v.services.join(', ') or 'Khám'"/></div>
+                            <div class="small"><t t-if="v.doctor">BS <t t-esc="v.doctor"/> · </t><t t-esc="v.chair"/></div>
+                            <span t-att-class="'dmag-state is-' + v.state" t-esc="v.state_label"/>
+                            <div class="d-flex gap-2 mt-2">
+                                <button t-if="v.state === 'draft'" class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.confirmVisit(v)">Lễ tân xác nhận</button>
+                                <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.openVisit(v.id)">Chi tiết</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dmag-panel-title mt-3"><span><i class="fa fa-columns me-1" title="Bảng điều phối"/>Bảng điều phối hôm nay – “Sắp đến”</span>
+                        <button class="dmag-link" t-on-click="loadBoard">Làm mới</button></div>
+                    <div t-if="!state.board.length" class="dmag-empty-sm">Chưa có lịch sắp đến hôm nay.</div>
+                    <div t-foreach="state.board" t-as="b" t-key="b.id" t-att-class="'dmag-ai-mini' + (isNew(b) ? ' is-new' : '')">
+                        <b t-esc="timeOf(b)"/>
+                        <span class="flex-grow-1 text-truncate" t-esc="b.patient"/>
+                        <span t-if="b.ai_booked" class="dmag-chip is-info">Zalo AI</span>
+                        <span t-if="b.noshow and b.noshow.show" t-att-class="'dmag-chip is-' + (b.noshow.level === 'high' ? 'danger' : 'warning')">
+                            <t t-esc="b.noshow.risk"/>%
+                        </span>
+                        <span t-att-class="'dmag-state is-' + b.state" t-esc="b.state === 'draft' ? 'Đã đặt' : 'Đã xác nhận'"/>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </t>
+</templates>

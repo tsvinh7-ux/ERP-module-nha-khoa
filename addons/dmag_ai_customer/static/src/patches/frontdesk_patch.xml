@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_customer.FrontDeskAi" t-inherit="dmag_clinic_workspace.FrontDesk" t-inherit-mode="extension">
+        <xpath expr="//article//div[hasclass('dmag-chips')]" position="inside">
+            <span t-if="visit.ai_booked" class="dmag-chip is-info" title="Khách tự đặt qua trợ lý Zalo AI – lễ tân gọi xác nhận rồi bấm Xác nhận">
+                <i class="fa fa-magic me-1" title="AI"/>Zalo AI
+            </span>
+            <span t-if="visit.noshow and visit.noshow.show"
+                  t-att-class="'dmag-chip dmag-ai-noshow is-' + (visit.noshow.level === 'high' ? 'danger' : 'warning')"
+                  t-att-title="noshowTooltip(visit)">
+                <i class="fa fa-user-times me-1" title="Nguy cơ không đến"/>Nguy cơ không đến <t t-esc="visit.noshow.risk"/>%
+            </span>
+        </xpath>
+        <xpath expr="//article//div[hasclass('dmag-card-body')]" position="inside">
+            <div t-if="visit.noshow and visit.noshow.show" class="dmag-ai-noshow-hint" t-att-title="noshowTooltip(visit)">
+                <i class="fa fa-phone me-1" title="Gợi ý"/><b>Gợi ý:</b> <t t-esc="visit.noshow.level === 'high' ? 'gọi xác nhận ngay hôm nay' : 'gọi / nhắn Zalo xác nhận'"/>
+                <span class="text-muted" t-if="visit.noshow.factors"> · <t t-esc="visit.noshow.factors"/></span>
+            </div>
+        </xpath>
+        <xpath expr="//article//div[hasclass('dmag-card-actions')]/button[last()]" position="before">
+            <button t-if="visit.state === 'done'" class="dmag-btn dmag-btn-sm dmag-btn-ghost" title="Soạn kịch bản gọi hỏi thăm + tin OA (AI-12)"
+                    t-on-click="() => this.aiCare(visit)"><i class="fa fa-magic me-1" title="AI"/>Chăm sóc</button>
+        </xpath>
+    </t>
+</templates>

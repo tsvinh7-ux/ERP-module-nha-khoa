@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="customer_source_zalo_ai" model="dmag.customer.source">
+            <field name="name">Zalo OA (trợ lý AI)</field>
+            <field name="code">ZALO_AI</field>
+            <field name="sequence">90</field>
+        </record>
+    </data>
+</odoo>

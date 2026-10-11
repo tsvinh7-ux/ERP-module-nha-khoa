@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="dmag_ai_insights.AiQaChat">
+        <div t-att-class="'dmag-qa' + (props.compact ? ' is-compact' : '')">
+            <div class="dmag-qa-head">
+                <div class="dmag-qa-title">
+                    <span class="dmag-ai-spark" aria-hidden="true"><i class="fa fa-comments-o"/></span>
+                    <div>
+                        <b>Hỏi đáp số liệu</b>
+                        <div class="dmag-ws-sub">AI-13 · chỉ đọc số liệu, trả lời kèm chứng từ</div>
+                    </div>
+                </div>
+                <div class="dmag-qa-head-actions">
+                    <span t-if="state.ctx" t-att-class="'dmag-ai-mode is-' + state.ctx.mode"
+                          t-att-title="state.ctx.mode === 'live' ? 'Đang gọi Claude API (' + state.ctx.model + ')' : 'Giả lập: bộ định tuyến tại chỗ tính số liệu thật, không gọi AI, không tốn phí'">
+                        <i t-att-class="'fa ' + (state.ctx.mode === 'live' ? 'fa-bolt' : 'fa-flask')" aria-hidden="true"/>
+                        <t t-esc="state.ctx.mode === 'live' ? 'Claude API' : 'Giả lập'"/>
+                    </span>
+                    <button t-if="state.messages.length" class="dmag-btn-icon" title="Xóa hội thoại" aria-label="Xóa hội thoại" t-on-click="clear"><i class="fa fa-eraser"/></button>
+                    <button t-if="props.onClose" class="dmag-btn-icon" title="Đóng" aria-label="Đóng" t-on-click="() => props.onClose()"><i class="fa fa-times"/></button>
+                </div>
+            </div>
+            <div class="dmag-qa-body" t-ref="scroller">
+                <div t-if="!state.messages.length" class="dmag-qa-empty">
+                    <p>Hỏi bằng tiếng Việt như nói với trợ lý. Ví dụ:</p>
+                    <div class="dmag-qa-samples" t-if="state.ctx">
+                        <button t-foreach="state.ctx.samples" t-as="s" t-key="s_index" class="dmag-qa-sample" t-on-click="() => this.ask(s)">
+                            <i class="fa fa-angle-right me-1" aria-hidden="true"/><t t-esc="s"/>
+                        </button>
+                    </div>
+                </div>
+                <t t-foreach="state.messages" t-as="m" t-key="m.id">
+                    <div t-if="m.role === 'user'" class="dmag-qa-msg is-user"><div class="dmag-qa-bubble" t-esc="m.text"/></div>
+                    <div t-else="" t-att-class="'dmag-qa-msg is-ai' + (m.error ? ' is-error' : '')">
+                        <div class="dmag-qa-bubble">
+                            <div class="dmag-qa-text" t-out="renderMd(m.answer.text)"/>
+                            <div t-if="m.answer.links and m.answer.links.length" class="dmag-qa-links">
+                                <button t-foreach="m.answer.links" t-as="l" t-key="l.id" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.openLink(l)" t-att-title="l.label">
+                                    <i class="fa fa-list-ul me-1" aria-hidden="true"/>Mở danh sách<span class="dmag-qa-link-label"> · <t t-esc="l.label"/></span>
+                                </button>
+                            </div>
+                            <div t-if="!m.error" class="dmag-qa-meta">
+                                <button t-if="m.answer.tool_trace and m.answer.tool_trace.length" class="dmag-link" t-on-click="() => this.toggleTrace(m.id)">
+                                    <i t-att-class="'fa me-1 ' + (state.openTrace[m.id] ? 'fa-caret-down' : 'fa-caret-right')" aria-hidden="true"/>
+                                    <t t-esc="m.answer.tool_trace.length"/> lần tra cứu công cụ
+                                </button>
+                                <span class="dmag-qa-cost" t-if="m.answer.simulated" title="Chi phí ước tính nếu câu này chạy bằng Claude API">Giả lập · nếu chạy thật ≈ <t t-esc="money(m.answer.estimated_cost_vnd)"/></span>
+                                <span class="dmag-qa-cost" t-elif="m.answer.mode === 'live'"><t t-esc="m.answer.model"/> · <t t-esc="money(m.answer.cost_vnd)"/></span>
+                            </div>
+                            <ol t-if="state.openTrace[m.id]" class="dmag-qa-trace">
+                                <li t-foreach="m.answer.tool_trace" t-as="t" t-key="t_index">
+                                    <span class="dmag-qa-tool"><t t-esc="toolLabel(t.tool)"/></span>
+                                    <code t-esc="t.tool + '(' + traceInput(t.input) + ')'"/>
+                                    <div class="dmag-qa-tool-out">→ <t t-esc="t.summary"/></div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </t>
+                <div t-if="state.busy" class="dmag-qa-msg is-ai"><div class="dmag-qa-bubble dmag-qa-typing"><span/><span/><span/> Đang tra số liệu…</div></div>
+            </div>
+            <div class="dmag-qa-input">
+                <textarea t-ref="input" rows="1" class="dmag-input" placeholder="Ví dụ: Vì sao doanh thu tháng này chậm?"
+                          t-model="state.question" t-on-keydown="onKey" aria-label="Câu hỏi"/>
+                <button class="dmag-btn dmag-btn-primary" t-att-disabled="state.busy or !state.question.trim()" t-on-click="() => this.ask()" aria-label="Gửi câu hỏi">
+                    <i class="fa fa-paper-plane" aria-hidden="true"/>
+                </button>
+            </div>
+            <div class="dmag-qa-foot">AI chỉ đọc số liệu qua bộ chỉ số của Bảng điều hành – không sửa dữ liệu. Không gửi thông tin bệnh nhân.</div>
+        </div>
+    </t>
+
+    <t t-name="dmag_ai_insights.AiQaPage">
+        <div class="dmag-ws dmag-ai-page">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div><h1>Hỏi đáp số liệu điều hành</h1><span class="dmag-ws-sub">AI-13 · Trợ lý AI</span></div>
+                </div>
+            </header>
+            <div class="dmag-qa-page">
+                <AiQaChat/>
+            </div>
+        </div>
+    </t>
+</templates>

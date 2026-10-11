@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.AiSummaryCard">
+        <section t-att-class="'dmag-ai-card dmag-ai-summary' + (state.open ? ' is-open' : '')">
+            <div class="dmag-ai-card-head">
+                <button class="dmag-ai-collapse" t-on-click="toggle" t-att-title="state.open ? 'Thu gọn' : 'Mở rộng'">
+                    <i t-att-class="'fa ' + (state.open ? 'fa-chevron-down' : 'fa-chevron-right')" title="Thu gọn / mở rộng"/>
+                </button>
+                <div class="dmag-ai-card-title">Tóm tắt hồ sơ 30 giây</div>
+                <AiMeta meta="state.data or {}" label="'AI-04'"/>
+                <div t-if="!state.open and state.data" class="dmag-ai-headline-inline" t-esc="state.data.headline"/>
+                <div class="ms-auto d-flex gap-2">
+                    <button t-if="!state.data and !state.loading and !state.consent" class="dmag-btn dmag-ai-btn dmag-btn-sm" t-on-click="load">
+                        <i class="fa fa-magic me-1" title="Tóm tắt"/>Tóm tắt
+                    </button>
+                    <button t-if="state.data" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-att-disabled="state.loading" t-on-click="load" title="Tạo lại tóm tắt">
+                        <i class="fa fa-refresh" title="Tạo lại"/>
+                    </button>
+                </div>
+            </div>
+            <t t-if="state.open">
+                <div t-if="state.loading" class="dmag-ai-loading"><span class="dmag-ai-spinner"/>AI đang đọc hồ sơ…</div>
+                <AiConsent t-elif="state.consent" info="state.consent" onDone.bind="load"/>
+                <t t-elif="state.data">
+                    <div class="dmag-ai-headline" t-esc="state.data.headline"/>
+                    <div class="dmag-ai-summary-grid">
+                        <div t-foreach="state.data.sections" t-as="sec" t-key="sec.key" t-att-class="'dmag-ai-sec is-' + sec.key">
+                            <div class="dmag-ai-sec-title"><i t-att-class="'fa ' + (ICONS[sec.key] or 'fa-circle-o') + ' me-1'" t-att-title="sec.title"/><t t-esc="sec.title"/></div>
+                            <ul><li t-foreach="sec.items" t-as="item" t-key="item_index" t-esc="item"/></ul>
+                        </div>
+                    </div>
+                    <div t-if="state.data.talking_points.length" class="dmag-ai-talk">
+                        <span class="dmag-ai-talk-label">Gợi ý hôm nay:</span>
+                        <span t-foreach="state.data.talking_points" t-as="tp" t-key="tp_index" class="dmag-ai-chip" t-esc="tp"/>
+                    </div>
+                </t>
+                <div t-else="" class="dmag-ai-empty">Bấm "Tóm tắt" để AI đọc tiền sử, dị ứng, lần khám gần nhất, kế hoạch dở dang và công nợ.</div>
+            </t>
+        </section>
+    </t>
+</templates>

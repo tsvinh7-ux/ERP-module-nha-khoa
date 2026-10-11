@@ -109,6 +109,9 @@ class DemoGenerator:
         self.env = env(user=SUPERUSER_ID, su=True, context=ctx)
         self.company = self.env['res.company'].browse(self.env.company.id)
         self.rng = random.Random(SEED)
+        # Hạt giống riêng cho các tình huống phục vụ AI (giảm giá, vật tư phát sinh…) – không làm đổi chuỗi
+        # ngẫu nhiên chính của lịch sử demo.
+        self.rng_ai = random.Random(SEED + 15)
         self.frozen = None
         self.max_time = None
         self.stats = Counter()
@@ -276,6 +279,8 @@ class DemoGenerator:
             self._okr()
         with self.section('Mục tiêu kinh doanh (Bảng điều hành mục tiêu)'):
             self._business_targets()
+        with self.section('Trợ lý AI: đồng ý AI, giả lập, nhật ký, bản tin, bất thường, dự báo'):
+            self._ai_demo()
         self._drop_outgoing_mail()
         self.env.flush_all()
         tagged = self._tag(self.watermarks)
@@ -864,7 +869,39 @@ class DemoGenerator:
             kwargs['lot_ids'] = [lot.id for lot in lots]
         res = Procedure.add_from_workspace(visit.id, product.id, **kwargs)
         self.stats['procedures'] += 1
+        self._extra_material(res, doctor_key)
         return res
+
+    # ------------------------------------------------------------------ tình huống cho AI-15 (bất thường)
+    def _plan_discounts(self, plan, doctor_key):
+        """Giảm giá trên kế hoạch như thực tế: bác sĩ 2 hay "chiều khách" (10 % – sát hạn mức) ở gần nửa số dịch vụ,
+        bác sĩ chính thỉnh thoảng giảm 5 % – để AI-15 có số liệu thật để so sánh."""
+        rng = self.rng_ai
+        for line in plan.option_ids.line_ids:
+            roll = rng.random()
+            if doctor_key == 'doctor2' and roll < 0.45:
+                self.try_('Giảm giá', self.as_user(line, doctor_key).write, {'discount': 10.0})
+            elif doctor_key != 'doctor2' and roll < 0.12:
+                self.try_('Giảm giá', self.as_user(line, doctor_key).write, {'discount': 5.0})
+
+    def _extra_material(self, proc_res, doctor_key):
+        """Vật tư dùng thêm ngoài định mức (hỏng vật liệu, ca khó) – bác sĩ 2 gặp nhiều hơn."""
+        if 'dmag.material.usage' not in self.env or not isinstance(proc_res, dict) or not proc_res.get('id'):
+            return
+        if self.rng_ai.random() >= (0.3 if doctor_key == 'doctor2' else 0.05):
+            return
+        proc = self.env['dmag.dental.procedure'].browse(proc_res['id'])
+        reqs = [(p, q) for p, q in proc._dmag_material_requirements().items() if p.tracking == 'none' and q > 0]
+        if not reqs:
+            return
+        product, qty = reqs[self.rng_ai.randrange(len(reqs))]
+        reason = self.rng_ai.choice(['Vật liệu bị nhiễm ẩm, làm lại', 'Ca khó, cần thêm', 'Rơi dụng cụ, thay mới',
+                                     'Khách nhạy cảm, gây tê bổ sung'])
+        self.try_('Vật tư phát sinh', self.M('dmag.material.usage', doctor_key).create, {
+            'procedure_id': proc.id, 'product_id': product.id,
+            'quantity': max(1.0, round(qty * self.rng_ai.choice([1.0, 1.5, 2.0]))) if product.uom_id.rounding >= 1
+            else round(qty * self.rng_ai.choice([1.0, 1.5, 2.0]), 2),
+            'reason': reason + ' ' + D.SAMPLE})
 
     def _record(self, visit, doctor_key, complaint, exam, assessment, diagnoses, note, advice):
         diag_ids = [self.base_ref(d).id for d in diagnoses]
@@ -1216,6 +1253,7 @@ class DemoGenerator:
         res = Plan.create_from_workspace(ps.partner.id, visit.id, options)
         plan = self.env['dmag.treatment.plan'].browse(res['id'])
         plan_doc = self.as_user(plan, doctor_key)
+        self._plan_discounts(plan, doctor_key)
         vals = {}
         if 'dmag_consultant_id' in plan._fields:
             vals['dmag_consultant_id'] = self.users['consultant'].id
@@ -1770,3 +1808,71 @@ class DemoGenerator:
             'date_from': next_month, 'company_id': company.id, 'objective': objectives['revenue'],
             'user_id': self.users['director'].id, 'note': 'Đề xuất của quản lý – chờ Giám đốc chốt. ' + D.SAMPLE})
         self.stats['business_targets'] = len(targets) + 1
+
+    # ======================================================================== Trợ lý AI
+    def _ai_demo(self):
+        """Trợ lý AI ở chế độ giả lập + dữ liệu mẫu tạo bằng CHÍNH các hàm nghiệp vụ AI (không chèn tay):
+
+        * ~90 % bệnh nhân demo đồng ý hỗ trợ bằng AI (NĐ 13/2023), chế độ AI = giả lập;
+        * hai lần hoàn tiền do lễ tân lập (tình huống cho AI-15);
+        * hỏi đáp số liệu (AI-13), dự báo (AI-16), quét bất thường (AI-15, một cảnh báo đã có giải trình, một có AI giải
+          thích), bản tin tuần (AI-14) → Trung tâm AI và Bảng điều hành có số liệu sử dụng & chi phí ước tính.
+        """
+        if 'dmag.ai.log' not in self.env:
+            return
+        company = self.company
+        self.remember(company, {'dmag_ai_mode': 'simulate'})
+        partners = self.env['res.partner'].browse(sorted(p.id for p in self.patients.values()))
+        consent = partners.filtered(lambda p: p.id % 10 != 3)
+        consent.write({'dmag_ai_consent': True})
+        self.stats['ai_consent'] = len(consent)
+        self._ai_refunds()
+        if 'dmag.ai.qa' in self.env:
+            qa = self.env['dmag.ai.qa'].with_user(self.users['director']).with_company(company)
+            for question in ('Tình hình tháng này ra sao?', 'Vì sao doanh thu tháng này chậm?',
+                             'Bác sĩ nào chốt kế hoạch thấp nhất quý này?', 'Tỷ lệ khách không đến tháng này?',
+                             'Dịch vụ nào mang lại doanh thu cao nhất 30 ngày qua?', 'Thực thu tháng trước bao nhiêu?'):
+                self.try_('Hỏi đáp số liệu', qa.ask, question)
+                self.stats['ai_questions'] += 1
+        if 'dmag.ai.forecast' in self.env:
+            self.try_('Dự báo', self.env['dmag.ai.forecast'].with_user(self.users['director']).with_company(
+                company).get_forecast)
+        if 'dmag.ai.anomaly' in self.env:
+            Anomaly = self.env['dmag.ai.anomaly'].with_user(self.users['manager']).with_company(company)
+            found = Anomaly._detect()
+            self.stats['ai_anomalies'] = len(found)
+            ranked = found.sorted(lambda a: (-a.severity_rank, a.id))
+            if ranked:
+                first = ranked[0]
+                first.manager_note = ('Đã rà từng chứng từ cùng nhân sự liên quan: phần lớn có lý do (chương trình tri ân '
+                                      'khách cũ), 2 trường hợp chưa có phiếu duyệt – đã nhắc nhở. ' + D.SAMPLE)
+                self.try_('Giải trình bất thường', first.action_review)
+            if len(ranked) > 1:
+                self.try_('AI giải thích bất thường', ranked[1].action_ai_narrative)
+        if 'dmag.ai.brief' in self.env:
+            brief = self.env['dmag.ai.brief'].with_user(self.users['director']).with_company(company)
+            self.try_('Bản tin tuần', brief._generate, trigger='cron')
+            self.stats['ai_briefs'] = 1
+        self.stats['ai_logs'] = self.env['dmag.ai.log'].search_count([('id', '>', self.watermarks.get('dmag.ai.log', 0))])
+
+    def _ai_refunds(self):
+        """Lễ tân lập 2 hóa đơn điều chỉnh giảm (hoàn tiền cho khách) trong tuần – chứng từ đã ghi sổ bị hoàn."""
+        Visit = self.env['dmag.dental.visit']
+        since = fields.Datetime.now() - timedelta(days=12)
+        visits = Visit.search([('company_id', '=', self.company.id), ('state', '=', 'done'),
+                               ('scheduled_start', '>=', since)], order='scheduled_start')
+        visits = visits.filtered(lambda v: v.payment_status == 'paid')
+        moves = visits.mapped('invoice_ids').filtered(lambda m: m.move_type == 'out_invoice' and m.state == 'posted'
+                                                      and 300000 <= m.amount_total <= 3000000)
+        receptionist = self.users['receptionist']
+        reasons = ['Hoàn tiền: khách đổi sang phương án khác ' + D.SAMPLE,
+                   'Hoàn tiền: tính trùng dịch vụ cạo vôi ' + D.SAMPLE]
+        for move, reason in zip(moves[:2], reasons):
+            def refund(move=move, reason=reason):
+                Move = self.env['account.move'].with_user(receptionist).sudo()
+                rev = Move.browse(move.id)._reverse_moves([{'ref': reason, 'date': self.today,
+                                                            'invoice_date': self.today}])
+                rev.action_post()
+                return rev
+            if self.try_('Hoàn tiền mẫu', refund):
+                self.stats['ai_refunds'] += 1

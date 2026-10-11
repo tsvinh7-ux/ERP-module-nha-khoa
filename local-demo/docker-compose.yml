@@ -19,7 +19,9 @@ services:
     restart: unless-stopped
 
   odoo:
-    image: odoo:17.0
+    # Ảnh odoo:17.0 + thư viện "anthropic" (Dockerfile cùng thư mục) để bật được AI thật (Claude API)
+    build: .
+    image: dmag-odoo-ai:17.0
     depends_on:
       db:
         condition: service_healthy

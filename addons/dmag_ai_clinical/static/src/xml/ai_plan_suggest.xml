@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.AiPlanSuggest">
+        <section class="dmag-ai-card dmag-ai-plan">
+            <div class="dmag-ai-card-head">
+                <div class="dmag-ai-card-title">AI gợi ý kế hoạch điều trị</div>
+                <AiMeta meta="props.result or {}" label="'AI-05'"/>
+                <button class="dmag-btn dmag-btn-ghost dmag-btn-sm ms-auto" t-on-click="() => this.props.onClose()" title="Đóng gợi ý"><i class="fa fa-times" title="Đóng"/></button>
+            </div>
+            <div t-if="props.loading" class="dmag-ai-loading"><span class="dmag-ai-spinner"/>AI đang đọc sơ đồ răng và danh mục dịch vụ…</div>
+            <AiConsent t-elif="props.consent" info="props.consent" onDone="props.onRetry"/>
+            <t t-elif="props.result">
+                <div class="dmag-ai-options">
+                    <div t-foreach="props.result.options" t-as="opt" t-key="opt.tier" t-att-class="'dmag-ai-option is-' + opt.tier">
+                        <div class="dmag-ai-option-head">
+                            <span t-att-class="'dmag-ai-tier is-' + opt.tier" t-esc="opt.tier === 'optimal' ? 'Tối ưu' : 'Cơ bản'"/>
+                            <b t-esc="opt.name"/>
+                        </div>
+                        <div class="dmag-ai-option-total"><t t-esc="formatVnd(opt.total)"/> <span class="small text-muted">· khoảng <t t-esc="opt.visits"/> buổi</span></div>
+                        <div class="small text-muted mb-2" t-esc="opt.summary"/>
+                        <div t-foreach="phases(opt)" t-as="ph" t-key="ph.phase" class="dmag-ai-phase">
+                            <div class="dmag-ai-phase-title">Giai đoạn <t t-esc="ph.phase"/></div>
+                            <div t-foreach="ph.lines" t-as="l" t-key="l_index" class="dmag-ai-plan-line">
+                                <span class="flex-grow-1"><b t-esc="l.product"/><t t-if="l.teeth.length"> · R<t t-esc="l.teeth.join(', ')"/></t>
+                                    <small class="d-block text-muted" t-esc="l.reason"/></span>
+                                <span class="text-nowrap" t-esc="formatVnd(l.subtotal)"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div t-if="props.result.sequence_note" class="dmag-ai-note"><i class="fa fa-sort-amount-asc me-1" title="Thứ tự"/><t t-esc="props.result.sequence_note"/></div>
+                <div class="dmag-ai-explain">
+                    <div class="dmag-ai-explain-title"><i class="fa fa-comments-o me-1" title="Giải thích"/>Giải thích cho khách (không thuật ngữ)</div>
+                    <div t-esc="props.result.patient_explanation"/>
+                </div>
+                <div class="dmag-row-end">
+                    <span class="small text-muted me-auto">Dịch vụ, giá lấy từ danh mục của phòng khám. Gợi ý không tự tạo kế hoạch.</span>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="() => this.props.onClose()">Bỏ qua</button>
+                    <button class="dmag-btn dmag-ai-btn-solid" t-on-click="() => this.props.onUse(props.result)">
+                        <i class="fa fa-arrow-down me-1" title="Dùng"/>Dùng gợi ý (điền khung lập kế hoạch)
+                    </button>
+                </div>
+            </t>
+        </section>
+    </t>
+</templates>

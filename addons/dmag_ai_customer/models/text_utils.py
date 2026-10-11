@@ -36,6 +36,13 @@ def has_raw(text, words):
     return any(re.search(r'(?<!\w)' + re.escape(w) + r'(?!\w)', low) for w in words)
 
 
+def match_words(text, words):
+    """Từ khóa nào xuất hiện: có dấu thì khớp chính xác ('hôi' ≠ 'hơi', 'sốt' ≠ 'sót'); cụm dài (≥ 8 ký tự)
+    khớp cả khi khách gõ không dấu."""
+    folded = fold(text)
+    return [w for w in words if has_raw(text, [w]) or (len(fold(w)) >= 8 and has_any(folded, [w]))]
+
+
 def digits(text):
     return ''.join(ch for ch in (text or '') if ch.isdigit())
 

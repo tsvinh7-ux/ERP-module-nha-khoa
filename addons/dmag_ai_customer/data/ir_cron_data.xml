@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_dmag_ai_noshow" model="ir.cron">
+            <field name="name">AI-08: huấn luyện &amp; chấm điểm nguy cơ không đến (hằng đêm)</field>
+            <field name="model_id" ref="model_dmag_ai_noshow_model"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_train_and_score()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="nextcall" eval="(DateTime.now().replace(hour=19, minute=30, second=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+        <record id="ir_cron_dmag_ai_followup" model="ir.cron">
+            <field name="name">AI-18: gửi câu hỏi theo dõi sau điều trị đến hạn</field>
+            <field name="model_id" ref="model_dmag_ai_followup"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_send_due()</field>
+            <field name="interval_number">30</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+        </record>
+        <record id="ir_cron_dmag_ai_zalo_reply" model="ir.cron">
+            <field name="name">AI-07: trợ lý Zalo trả lời tin đang chờ</field>
+            <field name="model_id" ref="model_dmag_ai_conversation"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_reply_pending()</field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+        </record>
+    </data>
+</odoo>

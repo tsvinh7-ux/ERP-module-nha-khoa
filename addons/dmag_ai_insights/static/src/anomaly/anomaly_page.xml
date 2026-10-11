@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_insights.AiAnomalyPage">
+        <div class="dmag-ws dmag-ai-page">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div><h1>Cảnh báo bất thường</h1>
+                        <span class="dmag-ws-sub">AI-15 · thống kê tại phòng khám (LOCAL) – không gửi dữ liệu ra ngoài<t t-if="state.data"> · lần quét gần nhất: <t t-esc="lastRun()"/></t></span></div>
+                </div>
+                <div class="dmag-ws-actions">
+                    <button class="dmag-btn dmag-btn-primary dmag-btn-sm" t-att-disabled="state.busy" t-on-click="scan">
+                        <i t-att-class="'fa me-1 ' + (state.busy ? 'fa-spinner fa-spin' : 'fa-search')" aria-hidden="true"/>Quét lại ngay
+                    </button>
+                </div>
+            </header>
+            <div t-if="state.data" class="dmag-ai-body">
+                <section class="dmag-ai-kpis is-4">
+                    <div class="dmag-ai-tile is-sev-high">
+                        <span class="dmag-ai-kpi-label"><i class="fa fa-exclamation-triangle me-1" aria-hidden="true"/>Mức cao – đang mở</span>
+                        <span class="dmag-ai-kpi-value" t-esc="state.data.open.high"/>
+                    </div>
+                    <div class="dmag-ai-tile is-sev-medium">
+                        <span class="dmag-ai-kpi-label"><i class="fa fa-exclamation-circle me-1" aria-hidden="true"/>Mức trung bình</span>
+                        <span class="dmag-ai-kpi-value" t-esc="state.data.open.medium"/>
+                    </div>
+                    <div class="dmag-ai-tile">
+                        <span class="dmag-ai-kpi-label"><i class="fa fa-info-circle me-1" aria-hidden="true"/>Mức thấp</span>
+                        <span class="dmag-ai-kpi-value" t-esc="state.data.open.low"/>
+                    </div>
+                    <div class="dmag-ai-tile dmag-ai-how">
+                        <span class="dmag-ai-kpi-label">Quy trình</span>
+                        <span class="dmag-ai-steps"><b>1</b> Hệ thống phát hiện <i class="fa fa-long-arrow-right" aria-hidden="true"/> <b>2</b> Quản lý giải trình <i class="fa fa-long-arrow-right" aria-hidden="true"/> <b>3</b> Giám đốc đóng</span>
+                    </div>
+                </section>
+                <div class="dmag-ai-filters">
+                    <div class="dmag-seg" role="group" aria-label="Trạng thái">
+                        <button t-att-class="state.filter === 'open' ? 'is-on' : ''" t-on-click="() => this.state.filter = 'open'">Đang mở</button>
+                        <button t-att-class="state.filter === 'all' ? 'is-on' : ''" t-on-click="() => this.state.filter = 'all'">Tất cả</button>
+                    </div>
+                    <button t-att-class="'dmag-chip dmag-chip-btn ' + (!state.kind ? 'is-info' : '')" t-on-click="() => this.state.kind = ''">Mọi loại</button>
+                    <button t-foreach="kindsPresent" t-as="k" t-key="k.key" t-att-class="'dmag-chip dmag-chip-btn ' + (state.kind === k.key ? 'is-info' : '')"
+                            t-on-click="() => this.state.kind = k.key"><t t-esc="k.label"/> · <t t-esc="k.count"/></button>
+                </div>
+                <div t-if="!rows.length" class="dmag-goal-empty"><i class="fa fa-check-circle text-success me-1" aria-hidden="true"/>Không có cảnh báo nào trong bộ lọc này.</div>
+                <div class="dmag-anom-list">
+                    <article t-foreach="rows" t-as="row" t-key="row.id" t-att-class="'dmag-anom is-' + row.severity + ' is-state-' + row.state">
+                        <t t-set="sv" t-value="sev(row.severity)"/>
+                        <div class="dmag-anom-head">
+                            <span t-att-class="'dmag-goal-status is-' + sv.tone"><i t-att-class="'fa ' + sv.icon" aria-hidden="true"/> <t t-esc="sv.label"/></span>
+                            <span class="dmag-anom-kind" t-esc="row.kind_label"/>
+                            <span t-att-class="'dmag-chip ' + stateTone(row.state)" t-esc="row.state_label"/>
+                            <span class="dmag-ws-sub ms-auto"><t t-esc="fmtDate(row.date)"/> · điểm thống kê <b t-esc="num(row.score, 1)"/></span>
+                        </div>
+                        <h3 class="dmag-anom-title" t-esc="row.name"/>
+                        <div class="dmag-anom-compare">
+                            <div><span class="dmag-ai-kpi-label">Quan sát</span><div t-esc="row.observed"/></div>
+                            <div><span class="dmag-ai-kpi-label">Chuẩn so sánh</span><div t-esc="row.norm"/></div>
+                            <div t-if="row.amount"><span class="dmag-ai-kpi-label">Số tiền liên quan</span><div class="dmag-anom-amount" t-esc="money(row.amount)"/></div>
+                        </div>
+                        <p class="dmag-anom-expl" t-esc="row.explanation"/>
+                        <div t-if="row.ai_narrative" class="dmag-anom-ai"><i class="fa fa-magic me-1" aria-hidden="true"/><t t-esc="row.ai_narrative"/></div>
+                        <div class="dmag-anom-actions">
+                            <button t-if="row.doc_count" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.docs(row)"><i class="fa fa-files-o me-1" aria-hidden="true"/>Xem chứng từ (<t t-esc="row.doc_count"/>)</button>
+                            <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-att-disabled="state.aiBusy[row.id]" t-on-click="() => this.narrate(row)"><i t-att-class="'fa me-1 ' + (state.aiBusy[row.id] ? 'fa-spinner fa-spin' : 'fa-magic')" aria-hidden="true"/>AI giải thích</button>
+                            <button t-if="['new', 'review'].includes(row.state)" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.toggle(row)"><i class="fa fa-pencil me-1" aria-hidden="true"/>Xử lý</button>
+                            <button class="dmag-link ms-auto" t-on-click="() => this.openForm(row)">Mở chi tiết &amp; lịch sử</button>
+                        </div>
+                        <div t-if="state.open[row.id] and ['new', 'review'].includes(row.state)" class="dmag-anom-flow">
+                            <label class="dmag-ai-kpi-label">Giải trình của Quản lý</label>
+                            <textarea class="dmag-input" rows="2" t-model="state.notes[row.id].manager_note" placeholder="Nguyên nhân, đã kiểm tra gì, đã xử lý gì…"/>
+                            <button t-if="row.state === 'new'" class="dmag-btn dmag-btn-primary dmag-btn-sm" t-on-click="() => this.step(row, 'action_review', 'manager_note')">Gửi giải trình cho Giám đốc</button>
+                            <t t-if="state.data.is_director">
+                                <label class="dmag-ai-kpi-label mt-2">Kết luận của Giám đốc</label>
+                                <textarea class="dmag-input" rows="2" t-model="state.notes[row.id].director_note" placeholder="Chấp nhận giải trình / yêu cầu xử lý…"/>
+                                <div class="d-flex gap-2">
+                                    <button class="dmag-btn dmag-btn-primary dmag-btn-sm" t-on-click="() => this.step(row, 'action_close', 'director_note')">Đóng cảnh báo</button>
+                                    <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.step(row, 'action_dismiss', 'director_note')">Không phải bất thường</button>
+                                </div>
+                            </t>
+                        </div>
+                        <div t-if="row.state === 'review' or row.state === 'closed'" class="dmag-anom-notes">
+                            <div t-if="row.manager_note"><b>Quản lý:</b> <t t-esc="row.manager_note"/></div>
+                            <div t-if="row.director_note"><b>Giám đốc:</b> <t t-esc="row.director_note"/></div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div t-else="" class="dmag-goal-empty m-4">Đang tải…</div>
+        </div>
+    </t>
+</templates>

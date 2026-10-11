@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.AiDictation">
+        <section class="dmag-ai-card dmag-ai-dictation">
+            <div class="dmag-ai-card-head">
+                <button t-att-class="'dmag-ai-mic' + (state.recording ? ' is-rec' : '')" t-att-disabled="props.locked or state.uploading"
+                        t-on-click="toggleRecord" t-att-title="state.recording ? 'Dừng ghi' : 'Bắt đầu đọc bệnh án'">
+                    <i t-att-class="'fa ' + (state.recording ? 'fa-stop' : 'fa-microphone')" title="Micro"/>
+                </button>
+                <div>
+                    <div class="dmag-ai-card-title">Ghi bệnh án bằng giọng nói <span class="dmag-ai-badge ms-1"><i class="fa fa-magic" title="AI"/> AI-01</span></div>
+                    <div class="small text-muted">
+                        <t t-if="state.recording"><span class="dmag-ai-rec-dot"/>Đang nghe · <t t-esc="timeText"/> · bấm ■ để dừng</t>
+                        <t t-elif="state.uploading"><span class="dmag-ai-spinner"/>Đang gửi âm thanh tới <t t-esc="providerLabel"/>…</t>
+                        <t t-else="">Bấm micro rồi đọc tự nhiên – AI điền đúng các mục mẫu 16/BV1, bạn duyệt từng mục.</t>
+                    </div>
+                </div>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <label class="dmag-ai-provider" title="Nguồn nhận dạng giọng nói">
+                        <i class="fa fa-headphones me-1" title="Nguồn"/>
+                        <select class="dmag-select" t-model="state.provider" t-att-disabled="state.recording">
+                            <option t-foreach="PROVIDERS" t-as="p" t-key="p[0]" t-att-value="p[0]" t-esc="p[1]"/>
+                        </select>
+                    </label>
+                    <button t-if="props.showCheck" class="dmag-btn dmag-ai-btn dmag-btn-sm" t-on-click="() => this.props.onCheck()">
+                        <i class="fa fa-check-square-o me-1" title="Kiểm tra"/>AI kiểm tra bệnh án
+                    </button>
+                </div>
+            </div>
+            <div t-if="state.expanded or state.transcript" class="dmag-ai-transcript">
+                <textarea rows="4" class="dmag-input w-100" t-model="state.transcript" t-att-readonly="state.recording"
+                          placeholder="Lời đọc sẽ hiện ở đây – có thể sửa trực tiếp trước khi cho AI điền bệnh án."/>
+                <div t-if="state.interim" class="dmag-ai-interim" t-esc="state.interim"/>
+                <AiConsent t-if="state.consent" info="state.consent" onDone.bind="structure"/>
+                <div class="dmag-row-end">
+                    <span class="small text-muted me-auto">Nguồn: <t t-esc="providerLabel"/> · <t t-esc="wordCount"/> từ</span>
+                    <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-att-disabled="state.recording or !state.transcript" t-on-click="clear">Xóa</button>
+                    <button class="dmag-btn dmag-ai-btn-solid" t-att-disabled="state.busy or props.locked or state.transcript.length &lt; 10" t-on-click="structure">
+                        <span t-if="state.busy" class="dmag-ai-spinner"/><i t-else="" class="fa fa-magic me-1" title="Điền"/>AI điền bệnh án 16/BV1
+                    </button>
+                </div>
+            </div>
+        </section>
+    </t>
+
+    <t t-name="dmag_ai_clinical.AiDictationReview">
+        <Dialog title="'Duyệt bệnh án do AI điền (AI-01)'" size="'xl'" contentClass="'dmag-ai-dialog'">
+            <div class="dmag-ai-dialog-top">
+                <AiMeta meta="props.result"/>
+                <span class="small text-muted">AI chỉ soạn nháp – chỉ những mục bạn đánh dấu mới được ghi vào bệnh án. Bệnh án chưa ký.</span>
+            </div>
+            <div t-if="props.result.notes" class="dmag-ai-note"><i class="fa fa-info-circle me-1" title="Lưu ý"/><t t-esc="props.result.notes"/></div>
+            <div t-if="numRows.length" class="dmag-ai-vitals">
+                <div class="dmag-ai-sec-title">Sinh hiệu</div>
+                <label t-foreach="numRows" t-as="row" t-key="row.key" t-att-class="'dmag-ai-vital' + (row.accept ? ' is-on' : '')">
+                    <input type="checkbox" t-model="row.accept"/>
+                    <span class="dmag-ai-vital-label" t-esc="row.label"/>
+                    <span t-if="row.current" class="dmag-ai-diff-cur is-replaced" t-esc="row.current"/>
+                    <input type="number" step="0.1" class="dmag-input-num" t-model="row.suggested"/>
+                </label>
+            </div>
+            <table class="dmag-ai-diff">
+                <thead>
+                    <tr>
+                        <th class="dmag-ai-diff-check"><input type="checkbox" t-att-checked="allSelected" t-on-change="toggleAll" title="Chọn tất cả"/></th>
+                        <th>Mục (16/BV1)</th><th>Hiện tại</th><th>AI gợi ý (sửa được)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="textRows" t-as="row" t-key="row.key" t-att-class="row.accept ? 'is-on' : ''">
+                        <td class="dmag-ai-diff-check"><input type="checkbox" t-model="row.accept"/></td>
+                        <td class="dmag-ai-diff-label">
+                            <t t-esc="row.label"/>
+                            <span t-if="!row.current" class="dmag-ai-tag is-new">Mới</span>
+                            <span t-else="" class="dmag-ai-tag is-change">Thay đổi</span>
+                        </td>
+                        <td t-att-class="'dmag-ai-diff-cur' + (row.accept and row.current ? ' is-replaced' : '')">
+                            <span t-if="!row.current" class="text-muted">—</span>
+                            <t t-else="" t-esc="row.current"/>
+                        </td>
+                        <td><textarea class="dmag-input w-100" t-att-rows="rowsFor(row)" t-model="row.suggested"/></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div t-if="state.icd.length" class="dmag-ai-icd">
+                <div class="fw-bold mb-1">Mã ICD-10 gợi ý <span class="small text-muted fw-normal">(chỉ từ danh mục chẩn đoán của phòng khám)</span></div>
+                <label t-foreach="state.icd" t-as="d" t-key="d.id" t-att-class="'dmag-ai-icd-item' + (d.already ? ' is-done' : '')">
+                    <input type="checkbox" t-model="d.accept" t-att-disabled="d.already"/>
+                    <b t-esc="d.code"/> <t t-esc="d.name"/>
+                    <span class="small text-muted" t-if="d.reason"> · <t t-esc="d.reason"/></span>
+                    <span t-if="d.already" class="dmag-ai-tag">Đã có</span>
+                </label>
+            </div>
+            <details class="dmag-ai-src">
+                <summary>Lời đọc gốc</summary>
+                <div t-esc="props.result.transcript"/>
+            </details>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">Hủy</button>
+                <button class="btn dmag-ai-btn-solid" t-att-disabled="state.saving or !selectedCount" t-on-click="apply">
+                    <i class="fa fa-check me-1" title="Áp dụng"/>Áp dụng <t t-esc="selectedCount"/> mục đã chọn
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

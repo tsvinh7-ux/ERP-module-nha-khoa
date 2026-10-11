@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_ai_brief_manager,dmag.ai.brief manager,model_dmag_ai_brief,dmag_dental_base.group_dmag_manager,1,1,1,0
+access_dmag_ai_brief_director,dmag.ai.brief director,model_dmag_ai_brief,dmag_dental_base.group_dmag_director,1,1,1,1
+access_dmag_ai_anomaly_manager,dmag.ai.anomaly manager,model_dmag_ai_anomaly,dmag_dental_base.group_dmag_manager,1,1,0,0
+access_dmag_ai_anomaly_director,dmag.ai.anomaly director,model_dmag_ai_anomaly,dmag_dental_base.group_dmag_director,1,1,1,1

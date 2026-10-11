@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_customer.BookingDialogAi" t-inherit="dmag_clinic_workspace.BookingDialog" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('dmag-days')]" position="after">
+            <div t-if="aiSlots.active and aiSlots.items.length" class="dmag-ai-suggest" t-att-title="aiSlots.method">
+                <span class="dmag-ai-suggest-label"><i class="fa fa-magic me-1" title="Gợi ý"/>Gợi ý <small>AI-11 · tại chỗ</small></span>
+                <button t-foreach="aiSlots.items" t-as="s" t-key="s.time"
+                        t-att-class="'dmag-ai-suggest-chip' + (state.time === s.time ? ' is-on' : '')"
+                        t-att-title="s.reasons.join('\n')" t-on-click="() => this.pickSuggestion(s)">
+                    <b t-esc="s.time"/>
+                    <span t-if="s.doctor" t-esc="s.doctor"/>
+                    <span t-if="s.chair" class="text-muted" t-esc="s.chair"/>
+                    <small t-esc="s.reasons[0]"/>
+                </button>
+            </div>
+        </xpath>
+    </t>
+</templates>

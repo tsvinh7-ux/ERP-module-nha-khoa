@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_dmag_ai_hub" model="ir.actions.client">
+        <field name="name">Trung tâm AI</field>
+        <field name="tag">dmag_ai_hub</field>
+    </record>
+    <record id="action_dmag_ai_qa" model="ir.actions.client">
+        <field name="name">Hỏi đáp số liệu</field>
+        <field name="tag">dmag_ai_qa</field>
+    </record>
+    <record id="action_dmag_ai_brief_screen" model="ir.actions.client">
+        <field name="name">Bản tin điều hành</field>
+        <field name="tag">dmag_ai_brief</field>
+    </record>
+    <record id="action_dmag_ai_anomaly_screen" model="ir.actions.client">
+        <field name="name">Cảnh báo bất thường</field>
+        <field name="tag">dmag_ai_anomalies</field>
+    </record>
+    <record id="action_dmag_ai_forecast_screen" model="ir.actions.client">
+        <field name="name">Dự báo doanh thu &amp; vật tư</field>
+        <field name="tag">dmag_ai_forecast</field>
+    </record>
+
+    <menuitem id="menu_dmag_ai_root" name="Trợ lý AI" parent="dmag_dental_base.menu_dmag_dental_root" sequence="4"/>
+    <menuitem id="menu_dmag_ai_hub" name="Trung tâm AI" parent="menu_dmag_ai_root" sequence="1" action="action_dmag_ai_hub"/>
+    <menuitem id="menu_dmag_ai_qa" name="Hỏi đáp số liệu" parent="menu_dmag_ai_root" sequence="20"
+              action="action_dmag_ai_qa" groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_ai_brief" name="Bản tin điều hành" parent="menu_dmag_ai_root" sequence="21"
+              action="action_dmag_ai_brief_screen" groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_ai_anomaly" name="Cảnh báo bất thường" parent="menu_dmag_ai_root" sequence="22"
+              action="action_dmag_ai_anomaly_screen" groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_ai_forecast" name="Dự báo doanh thu &amp; vật tư" parent="menu_dmag_ai_root" sequence="23"
+              action="action_dmag_ai_forecast_screen" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>

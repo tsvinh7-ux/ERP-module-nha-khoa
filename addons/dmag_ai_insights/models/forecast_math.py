@@ -124,3 +124,23 @@ def iqr_fence(values, k=1.5):
     """Ngưỡng trên Q3 + k × IQR (Tukey)."""
     q1, q3 = quantile(values, 0.25), quantile(values, 0.75)
     return q3 + k * (q3 - q1), q1, q3
+
+
+def split_spikes(series, k=3.0):
+    """Tách ca lớn bất thường (implant, chỉnh nha trọn gói…) khỏi chuỗi ngày.
+
+    Trả (chuỗi đã chặn trần, tốc độ phần vượt trần / ngày, phương sai phần vượt / ngày, trần). Mô hình hóa chuỗi đã
+    chặn bằng Holt-Winters rồi cộng lại kỳ vọng phần ca lớn → giữ đúng trung bình mà không để vài ngày đột biến
+    làm lệch mức / xu hướng / mùa vụ.
+    """
+    values = [float(v) for v in series]
+    positive = [v for v in values if v > 0]
+    if len(positive) < 8:
+        return values, 0.0, 0.0, None
+    cap, _q1, _q3 = iqr_fence(positive, k)
+    excess = [max(0.0, v - cap) for v in values]
+    capped = [min(v, cap) for v in values]
+    n = len(values)
+    rate = sum(excess) / n
+    var = sum(e * e for e in excess) / n - rate * rate
+    return capped, rate, max(0.0, var), cap

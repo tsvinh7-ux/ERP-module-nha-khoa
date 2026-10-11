@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_insights.AiForecastPage">
+        <div class="dmag-ws dmag-ai-page">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div><h1>Dự báo doanh thu &amp; vật tư</h1>
+                        <span class="dmag-ws-sub">AI-16 · chạy tại phòng khám (LOCAL) – không gửi dữ liệu ra ngoài, không tốn phí</span></div>
+                </div>
+                <div class="dmag-ws-actions">
+                    <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.load()"><i class="fa fa-refresh me-1" aria-hidden="true"/>Tính lại</button>
+                </div>
+            </header>
+            <t t-if="state.data">
+                <t t-set="r" t-value="state.data.revenue"/>
+                <div class="dmag-ai-body">
+                    <section class="dmag-ai-kpis">
+                        <div class="dmag-ai-hero">
+                            <span class="dmag-ai-kpi-label">Dự báo doanh thu tháng <t t-esc="r.month"/></span>
+                            <span class="dmag-ai-hero-value" t-esc="money(r.total)"/>
+                            <span class="dmag-ai-kpi-sub">Khoảng tin cậy 80%: <b t-esc="money(r.low)"/> – <b t-esc="money(r.high)"/></span>
+                        </div>
+                        <div class="dmag-ai-tile">
+                            <span class="dmag-ai-kpi-label">Khả năng đạt mục tiêu</span>
+                            <span class="dmag-ai-kpi-value" t-esc="r.prob_target !== null ? pct(r.prob_target) : '–'"/>
+                            <span class="dmag-ai-kpi-sub" t-if="r.target">Mục tiêu <t t-esc="money(r.target)"/></span>
+                            <span class="dmag-ai-kpi-sub" t-else="">Chưa đặt mục tiêu doanh thu</span>
+                            <div t-if="r.prob_target !== null" class="dmag-meter" role="meter" t-att-aria-valuenow="r.prob_target" aria-valuemin="0" aria-valuemax="100" aria-label="Khả năng đạt mục tiêu">
+                                <div t-att-class="'dmag-meter-fill ' + (r.prob_target >= 70 ? 'is-good' : r.prob_target >= 40 ? 'is-warn' : 'is-bad')" t-att-style="'width:' + r.prob_target + '%'"/>
+                            </div>
+                        </div>
+                        <div class="dmag-ai-tile">
+                            <span class="dmag-ai-kpi-label">Đã thực hiện đến hôm qua</span>
+                            <span class="dmag-ai-kpi-value" t-esc="money(r.actual_to_date)"/>
+                            <span class="dmag-ai-kpi-sub">còn dự báo thêm <t t-esc="money(r.remaining)"/></span>
+                        </div>
+                        <div class="dmag-ai-tile">
+                            <span class="dmag-ai-kpi-label">Từ lịch hẹn đã đặt</span>
+                            <span class="dmag-ai-kpi-value" t-esc="money(r.booked_part)"/>
+                            <span class="dmag-ai-kpi-sub">× tỷ lệ đến khám <t t-esc="pct(r.model.show_rate * 100)"/> × hệ số giá trị <t t-esc="num(r.model.conversion, 2)"/></span>
+                        </div>
+                        <div class="dmag-ai-tile">
+                            <span class="dmag-ai-kpi-label">Tháng sau (<t t-esc="state.data.next_month.month"/>)</span>
+                            <span class="dmag-ai-kpi-value" t-esc="money(state.data.next_month.total)"/>
+                            <span class="dmag-ai-kpi-sub">80%: <t t-esc="money(state.data.next_month.low)"/> – <t t-esc="money(state.data.next_month.high)"/></span>
+                        </div>
+                    </section>
+
+                    <div class="dmag-ai-two">
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Doanh thu lũy kế tháng <t t-esc="r.month"/> <span class="dmag-ws-sub">Rê chuột để xem từng ngày</span></div>
+                            <AiForecastChart data="r"/>
+                        </div>
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Doanh thu theo tháng <span class="dmag-ws-sub">6 tháng gần nhất + dự báo</span></div>
+                            <t t-set="hb" t-value="history"/>
+                            <svg t-att-viewBox="'0 0 ' + hb.W + ' ' + hb.H" width="100%" role="img" aria-label="Doanh thu theo tháng" class="dmag-fc-bars">
+                                <line class="dmag-fc-base" t-att-x1="hb.pad.l" t-att-x2="hb.W - hb.pad.r" t-att-y1="hb.base" t-att-y2="hb.base"/>
+                                <t t-foreach="hb.bars" t-as="b" t-key="b.i">
+                                    <g t-on-mouseenter="() => this.state.hoverBar = b.i" t-on-mouseleave="() => this.state.hoverBar = null">
+                                        <rect t-att-x="b.x - 10" t-att-y="hb.pad.t" t-att-width="b.w + 20" t-att-height="hb.base - hb.pad.t" class="dmag-hit"/>
+                                        <path t-att-d="barPath(b)" t-att-class="'dmag-fc-bar' + (b.kind === 'forecast' ? ' is-forecast' : '')"/>
+                                        <line t-if="b.hiY !== null" class="dmag-fc-whisker" t-att-x1="b.cx" t-att-x2="b.cx" t-att-y1="b.hiY" t-att-y2="b.loY"/>
+                                        <text class="dmag-fc-bar-label" t-att-x="b.cx" t-att-y="(b.hiY !== null ? b.hiY : b.top) - 6" text-anchor="middle" t-esc="money(b.value)"/>
+                                        <text class="dmag-fc-axis" t-att-x="b.cx" t-att-y="hb.H - 8" text-anchor="middle" t-esc="b.label"/>
+                                        <title t-esc="b.label + ': ' + money(b.value) + (b.kind === 'forecast' ? ' (dự báo, 80%: ' + money(b.low) + ' – ' + money(b.high) + ')' : '')"/>
+                                    </g>
+                                </t>
+                            </svg>
+                            <div class="dmag-fc-legend"><span><i class="is-actual"/>Thực tế</span><span><i class="is-forecast-bar"/>Dự báo (vạch: khoảng 80%)</span></div>
+                        </div>
+                    </div>
+
+                    <div class="dmag-panel dmag-ai-explain">
+                        <div class="dmag-panel-title">Cách tính (minh bạch cho Giám đốc)</div>
+                        <ol>
+                            <li><b>Phần đã có lịch</b> = Σ giá trị dịch vụ dự kiến của các lịch hẹn còn lại × tỷ lệ đến khám lịch sử (<t t-esc="pct(r.model.show_rate * 100)"/>) × hệ số quy đổi giá trị dự kiến → doanh thu thực (<t t-esc="num(r.model.conversion, 2)"/>); lịch chưa ghi dịch vụ tính theo giá trị TB <t t-esc="money(r.model.avg_ticket)"/>/lượt.</li>
+                            <li><b>Phần sẽ phát sinh</b>: chuỗi doanh thu <t t-esc="r.model.history_days"/> ngày làm việc gần nhất, mô hình <t t-esc="r.model.method === 'holt_winters' ? 'Holt-Winters (mức · xu hướng hãm · mùa vụ tuần 6 ngày)' : r.model.method"/>, tham số chọn tự động (α=<t t-esc="r.model.params.alpha"/>, β=<t t-esc="r.model.params.beta"/>, γ=<t t-esc="r.model.params.gamma"/>);
+                                <t t-if="r.model.pickup_reliable">trừ phần thường đã đặt trước (học từ thời điểm đặt lịch).</t><t t-else="">lịch sử chưa đủ để học tỷ trọng đặt trước → lấy giá trị lớn hơn giữa dự báo chuỗi và phần đã có lịch (không cộng trùng).</t></li>
+                            <li t-if="r.model.spike_cap"><b>Ca lớn đột biến</b> (ngày &gt; <t t-esc="money(r.model.spike_cap)"/>, ví dụ implant / chỉnh nha trọn gói) được tách khỏi chuỗi để không làm lệch xu hướng, rồi cộng lại theo tần suất lịch sử ≈ <t t-esc="money(r.model.spike_rate)"/>/ngày.</li>
+                            <li><b>Mùa vụ theo tháng</b>: <t t-if="r.model.monthly_seasonality">đã áp dụng chỉ số tháng từ lịch sử.</t><t t-else="">cần ≥ 13 tháng lịch sử (hiện có <t t-esc="r.model.months_history"/> tháng) – tạm dùng hệ số 1,0.</t></li>
+                            <li><b>Khoảng tin cậy 80%</b>: sai số dự báo một bước (±<t t-esc="money(r.model.sigma_day)"/>/ngày) cộng phương sai khách đến / không đến.</li>
+                        </ol>
+                    </div>
+
+                    <div class="dmag-panel" t-if="state.data.materials.installed">
+                        <t t-set="m" t-value="state.data.materials"/>
+                        <div class="dmag-panel-title">
+                            <span>Nhu cầu vật tư <t t-esc="m.horizon"/> ngày tới &amp; gợi ý đặt hàng</span>
+                            <span class="dmag-chips">
+                                <span t-if="m.critical" class="dmag-chip is-danger"><i class="fa fa-exclamation-triangle me-1" aria-hidden="true"/><t t-esc="m.critical"/> sắp hết</span>
+                                <span t-if="m.low" class="dmag-chip is-warning"><i class="fa fa-clock-o me-1" aria-hidden="true"/><t t-esc="m.low"/> không đủ 30 ngày</span>
+                                <span class="dmag-chip is-info">Giá trị cần đặt ≈ <t t-esc="money(m.reorder_value)"/></span>
+                            </span>
+                        </div>
+                        <div class="dmag-ws-sub mb-2">Nhu cầu = max(nhịp tiêu hao 60 ngày, lịch hẹn <t t-esc="m.planned_visits"/> lượt × định mức + <t t-esc="m.todo_lines"/> dịch vụ kế hoạch chưa làm × tỷ lệ thực hiện <t t-esc="pct(m.throughput * 100)"/>). Đặt hàng = nhu cầu + 7 ngày an toàn − tồn kho.</div>
+                        <div class="table-responsive">
+                        <table class="table table-sm dmag-ai-table">
+                            <thead><tr><th>Vật tư</th><th class="text-end">Tồn kho</th><th class="text-end">Nhịp tiêu hao</th><th class="text-end">Theo lịch + kế hoạch</th><th class="text-end">Nhu cầu 30 ngày</th><th class="text-end">Đủ dùng</th><th class="text-end">Nên đặt</th><th>Trạng thái</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="materials" t-as="row" t-key="row.product_id">
+                                    <t t-set="st" t-value="matStatus(row.status)"/>
+                                    <td><t t-esc="row.product"/> <span class="dmag-ws-sub" t-if="row.tracking === 'serial'">· theo serial</span></td>
+                                    <td class="text-end tabular"><t t-esc="num(row.on_hand, 1)"/> <span class="dmag-ws-sub" t-esc="row.uom"/></td>
+                                    <td class="text-end tabular" t-esc="num(row.run_rate, 1)"/>
+                                    <td class="text-end tabular" t-esc="num(row.scheduled, 1)"/>
+                                    <td class="text-end tabular"><b t-esc="num(row.demand, 1)"/></td>
+                                    <td class="text-end tabular" t-esc="row.cover_days === null ? '–' : num(row.cover_days) + ' ngày'"/>
+                                    <td class="text-end tabular"><b t-if="row.reorder" t-esc="num(row.reorder, 1)"/><span t-else="">–</span> <span class="dmag-ws-sub" t-if="row.reorder_value">≈ <t t-esc="money(row.reorder_value)"/></span></td>
+                                    <td><span t-att-class="'dmag-goal-status is-' + st.tone"><i t-att-class="'fa ' + st.icon" aria-hidden="true"/> <t t-esc="st.label"/></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                        <button t-if="state.data.materials.rows.length > 8" class="dmag-link" t-on-click="() => this.state.showAll = !this.state.showAll"
+                                t-esc="state.showAll ? 'Thu gọn' : 'Xem tất cả ' + state.data.materials.rows.length + ' vật tư'"/>
+                    </div>
+                </div>
+            </t>
+            <div t-else="" class="dmag-goal-empty m-4">Đang tính dự báo…</div>
+        </div>
+    </t>
+</templates>

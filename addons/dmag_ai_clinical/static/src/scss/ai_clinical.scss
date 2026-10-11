@@ -1,0 +1,250 @@
+// Phong cách AI thống nhất: nhãn "AI" nhỏ, điểm nhấn tím – xanh
+$ai-purple: #6E56CF;
+$ai-blue: #178BEC;
+$ai-soft: #F3F0FF;
+$ai-line: #DCD3FB;
+$ai-text: #1B2A3D;
+$ai-muted: #6B7A90;
+$ai-danger: #E5484D;
+$ai-warn: #F5A524;
+$ai-ok: #12A594;
+$ai-grad: linear-gradient(135deg, $ai-purple, $ai-blue);
+
+.dmag-ai-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: $ai-grad; color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .3px;
+    border-radius: 999px; padding: 1px 7px; line-height: 16px; white-space: nowrap; vertical-align: middle;
+}
+.dmag-ai-meta { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dmag-ai-mode {
+    font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 6px;
+    &.is-sim { background: #FFF4E0; color: #A15C00; }
+    &.is-live { background: #E6F6F2; color: #0B7A6D; }
+}
+.dmag-ai-cost { font-size: 11.5px; color: $ai-muted; }
+
+.dmag-ai-btn {
+    background: #fff; color: $ai-purple; border: 1px solid $ai-line; font-weight: 600;
+    &:hover:not([disabled]) { border-color: $ai-purple; background: $ai-soft; color: darken($ai-purple, 8%); }
+}
+.dmag-ai-btn-solid, .btn.dmag-ai-btn-solid {
+    background: $ai-grad; color: #fff !important; border: 0; font-weight: 600; border-radius: 10px; padding: 8px 14px;
+    box-shadow: 0 4px 12px rgba($ai-purple, .25);
+    &:hover:not([disabled]) { filter: brightness(1.06); }
+    &[disabled] { opacity: .55; box-shadow: none; }
+}
+
+.dmag-ai-card {
+    position: relative; background: #fff; border: 1px solid $ai-line; border-radius: 14px;
+    padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba($ai-purple, .06);
+    &::before {
+        content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: $ai-grad;
+    }
+}
+.dmag-ai-card-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dmag-ai-card-title { font-weight: 700; color: $ai-text; font-size: 14px; }
+.dmag-ai-collapse { border: 0; background: $ai-soft; color: $ai-purple; width: 26px; height: 26px; border-radius: 8px; }
+.dmag-ai-loading { display: flex; align-items: center; gap: 8px; color: $ai-muted; padding: 10px 2px; font-size: 13px; }
+.dmag-ai-spinner {
+    display: inline-block; width: 14px; height: 14px; margin-right: 6px; border-radius: 50%; vertical-align: -2px;
+    border: 2px solid rgba($ai-purple, .25); border-top-color: $ai-purple; animation: dmag-ai-spin .8s linear infinite;
+}
+@keyframes dmag-ai-spin { to { transform: rotate(360deg); } }
+.dmag-ai-empty { color: $ai-muted; font-size: 13px; padding: 8px 2px; }
+.dmag-ai-chip { background: $ai-soft; color: darken($ai-purple, 10%); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; }
+.dmag-ai-tag {
+    display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 6px; padding: 0 6px; margin-left: 6px;
+    background: #EEF2F7; color: $ai-muted;
+    &.is-new { background: #E6F6F2; color: #0B7A6D; }
+    &.is-change { background: #FFF4E0; color: #A15C00; }
+}
+.dmag-ai-note { background: #F7F9FC; border-radius: 10px; padding: 8px 10px; font-size: 12.5px; color: $ai-muted; margin: 8px 0; }
+
+// Đồng ý AI
+.dmag-ai-consent {
+    display: flex; align-items: center; gap: 12px; background: #FFF8EC; border: 1px solid #F7D9A6; color: #7A4B00;
+    border-radius: 12px; padding: 10px 12px; margin: 8px 0;
+}
+
+// AI-04 tóm tắt
+.dmag-ai-summary { margin: -4px 0 12px; }
+.dmag-ai-headline { font-size: 15px; font-weight: 600; color: $ai-text; margin: 10px 0 8px; }
+.dmag-ai-headline-inline { font-size: 13px; color: $ai-text; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dmag-ai-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dmag-ai-sec {
+    background: #FAFBFE; border: 1px solid #EEF1F6; border-radius: 10px; padding: 8px 10px;
+    ul { margin: 0; padding-left: 16px; font-size: 12.5px; color: $ai-text; }
+    li { margin: 1px 0; }
+    &.is-safety { background: #FFF5F5; border-color: #FAD4D5; .dmag-ai-sec-title { color: $ai-danger; } }
+}
+.dmag-ai-sec-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: $ai-muted; margin-bottom: 4px; }
+.dmag-ai-talk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.dmag-ai-talk-label { font-size: 12px; font-weight: 700; color: $ai-purple; }
+
+// AI-01 ghi âm
+.dmag-ai-dictation { margin-bottom: 14px; }
+.dmag-ai-mic {
+    width: 46px; height: 46px; border-radius: 50%; border: 0; background: $ai-grad; color: #fff; font-size: 19px;
+    box-shadow: 0 6px 16px rgba($ai-purple, .35); flex: none;
+    &.is-rec { background: $ai-danger; animation: dmag-ai-pulse 1.3s ease-out infinite; }
+    &[disabled] { opacity: .5; }
+}
+@keyframes dmag-ai-pulse {
+    0% { box-shadow: 0 0 0 0 rgba($ai-danger, .55); }
+    100% { box-shadow: 0 0 0 16px rgba($ai-danger, 0); }
+}
+.dmag-ai-rec-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: $ai-danger; margin-right: 6px; animation: dmag-ai-blink 1s infinite; }
+@keyframes dmag-ai-blink { 50% { opacity: .2; } }
+.dmag-ai-provider { display: inline-flex; align-items: center; font-size: 12px; color: $ai-muted; margin: 0; .dmag-select { font-size: 12.5px; padding: 4px 8px; } }
+.dmag-ai-transcript { margin-top: 10px; textarea { font-size: 13.5px; line-height: 1.5; } }
+.dmag-ai-interim { color: $ai-purple; font-style: italic; font-size: 13px; margin: 4px 2px; opacity: .8; }
+
+// Hộp thoại
+.dmag-ai-dialog { .modal-body { background: #FBFAFF; } }
+.dmag-ai-dialog-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.dmag-ai-diff {
+    width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 13px;
+    th { font-size: 11.5px; text-transform: uppercase; color: $ai-muted; font-weight: 700; padding: 0 8px; }
+    td { background: #fff; padding: 8px; vertical-align: top; border-top: 1px solid #EEF1F6; border-bottom: 1px solid #EEF1F6; }
+    td:first-child { border-left: 1px solid #EEF1F6; border-radius: 10px 0 0 10px; }
+    td:last-child { border-right: 1px solid #EEF1F6; border-radius: 0 10px 10px 0; width: 44%; }
+    tr.is-on td { border-color: $ai-line; background: #FDFCFF; }
+    textarea, input { font-size: 13px; }
+}
+.dmag-ai-diff-check { width: 34px; text-align: center; }
+.dmag-ai-diff-label { width: 20%; font-weight: 600; }
+.dmag-ai-diff-cur { width: 28%; color: $ai-muted; white-space: pre-wrap; &.is-replaced { text-decoration: line-through; opacity: .7; } }
+.dmag-ai-icd { background: #fff; border: 1px solid #EEF1F6; border-radius: 12px; padding: 10px 12px; margin-top: 10px; }
+.dmag-ai-icd-item { display: block; font-size: 13px; margin: 3px 0; input { margin-right: 6px; } &.is-done { opacity: .6; } }
+.dmag-ai-icd-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px dashed #EEF1F6; font-size: 13px; &:first-of-type { border-top: 0; } }
+.dmag-ai-src { margin-top: 10px; font-size: 12.5px; color: $ai-muted; summary { cursor: pointer; font-weight: 600; } }
+
+// AI-02 kiểm tra
+.dmag-ai-counts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.dmag-ai-count {
+    border-radius: 999px; padding: 3px 10px; font-size: 12.5px;
+    &.is-high { background: #FDECEC; color: $ai-danger; }
+    &.is-medium { background: #FFF4E0; color: #A15C00; }
+    &.is-low { background: #EEF2F7; color: $ai-muted; }
+}
+.dmag-ai-summary-line { font-size: 13px; color: $ai-text; font-weight: 600; }
+.dmag-ai-ok { background: #E9F8F5; color: #0B7A6D; border-radius: 10px; padding: 10px 12px; font-weight: 600; }
+.dmag-ai-issues {
+    list-style: none; padding: 0; margin: 0;
+    li {
+        display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid #EEF1F6;
+        border-left: 4px solid #CBD5E1; border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; font-size: 13px;
+        .fa { margin-top: 2px; }
+        &.is-high { border-left-color: $ai-danger; .fa { color: $ai-danger; } }
+        &.is-medium { border-left-color: $ai-warn; .fa { color: $ai-warn; } }
+        &.is-low .fa { color: $ai-muted; }
+    }
+}
+.dmag-ai-src-tag {
+    font-size: 10.5px; font-weight: 700; border-radius: 6px; padding: 0 6px; white-space: nowrap;
+    &.is-ai { background: $ai-soft; color: $ai-purple; }
+    &.is-rule { background: #EEF2F7; color: $ai-muted; }
+}
+
+// AI-03 đơn thuốc
+.dmag-ai-rx {
+    border-radius: 12px; padding: 10px 12px; margin: 10px 0; border: 1px solid #EEF1F6; background: #F7FBFA;
+    &.is-block { background: #FFF5F5; border-color: #F5B5B7; }
+    &.is-warn { background: #FFF9EE; border-color: #F7D9A6; }
+}
+.dmag-ai-rx-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.dmag-ai-rx.is-block .dmag-ai-rx-head .fa { color: $ai-danger; }
+.dmag-ai-rx.is-warn .dmag-ai-rx-head .fa { color: $ai-warn; }
+.dmag-ai-rx.is-ok .dmag-ai-rx-head .fa { color: $ai-ok; }
+.dmag-ai-rx-list { list-style: none; margin: 0; padding: 0; li { display: flex; gap: 8px; font-size: 13px; padding: 3px 0; } }
+.dmag-ai-level {
+    flex: none; font-size: 10.5px; font-weight: 800; border-radius: 6px; padding: 1px 7px; height: fit-content; margin-top: 1px;
+    &.is-block { background: $ai-danger; color: #fff; }
+    &.is-warn { background: #FFE6B8; color: #7A4B00; }
+    &.is-info { background: #E8F3FE; color: #11346A; }
+}
+.dmag-ai-explain {
+    background: #fff; border: 1px solid $ai-line; border-radius: 10px; padding: 8px 10px; margin-top: 8px; font-size: 13px;
+}
+.dmag-ai-explain-title { display: flex; align-items: center; gap: 8px; font-weight: 700; color: $ai-purple; margin-bottom: 4px; }
+.dmag-ai-pre { white-space: pre-line; }
+
+// AI-05 kế hoạch
+.dmag-ai-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+.dmag-ai-option {
+    border: 1px solid #EEF1F6; border-radius: 12px; padding: 10px 12px; background: #fff;
+    &.is-optimal { border-color: $ai-line; box-shadow: 0 0 0 2px rgba($ai-purple, .08); }
+}
+.dmag-ai-option-head { display: flex; align-items: center; gap: 8px; }
+.dmag-ai-option-total { font-size: 18px; font-weight: 800; color: $ai-text; margin: 4px 0; }
+.dmag-ai-tier {
+    font-size: 11px; font-weight: 800; border-radius: 6px; padding: 1px 7px; color: #fff;
+    &.is-optimal { background: $ai-grad; }
+    &.is-basic { background: #64748B; }
+}
+.dmag-ai-phase { margin-top: 6px; }
+.dmag-ai-phase-title { font-size: 11px; font-weight: 700; color: $ai-muted; text-transform: uppercase; }
+.dmag-ai-plan-line { display: flex; gap: 10px; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #EEF1F6; }
+
+// AI-06 đọc phim
+.dmag-ai-disclaimer {
+    background: #FFF4E0; border: 1px solid #F7D9A6; color: #7A4B00; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;
+    font-size: 13px;
+}
+.dmag-ai-xray { display: grid; grid-template-columns: 230px minmax(0, 1fr) 320px; gap: 14px; }
+.dmag-ai-xray-pick { max-height: 64vh; overflow: auto; }
+.dmag-ai-thumb, .dmag-ai-sample {
+    display: flex; gap: 8px; align-items: center; width: 100%; text-align: left; background: #fff; border: 1px solid #EEF1F6;
+    border-radius: 10px; padding: 5px; margin-bottom: 6px; font-size: 12px;
+    img { width: 64px; height: 34px; object-fit: cover; border-radius: 6px; background: #111; flex: none; }
+    &.is-on { border-color: $ai-purple; box-shadow: 0 0 0 2px rgba($ai-purple, .15); }
+}
+.dmag-ai-sample span { color: $ai-muted; font-size: 11.5px; line-height: 1.25; }
+.dmag-ai-xray-stage {
+    position: relative; background: #0B0B0F; border-radius: 12px; overflow: hidden; line-height: 0;
+    img { width: 100%; height: auto; display: block; }
+}
+.dmag-ai-box {
+    position: absolute; border: 2px solid var(--c); border-radius: 6px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .4);
+    transition: transform .12s;
+    &.is-low { border-style: dashed; }
+    &.is-hover { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(255, 255, 255, .6); z-index: 2; }
+}
+.dmag-ai-box-label {
+    position: absolute; left: -2px; top: -20px; background: var(--c); color: #fff; font-size: 11px; font-weight: 700;
+    line-height: 16px; padding: 1px 5px; border-radius: 5px; white-space: nowrap;
+}
+.dmag-ai-xray-findings { max-height: 64vh; overflow: auto; }
+.dmag-ai-finding {
+    background: #fff; border: 1px solid #EEF1F6; border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; font-size: 13px;
+    &.is-hover { border-color: $ai-purple; }
+}
+.dmag-ai-conf {
+    height: 5px; background: #EEF1F6; border-radius: 3px; margin: 5px 0 3px; overflow: hidden;
+    div { height: 100%; border-radius: 3px; }
+    .is-high { background: $ai-ok; } .is-mid { background: $ai-warn; } .is-low { background: $ai-danger; }
+}
+.dmag-ai-xray-odo { margin-top: 12px; background: #fff; border: 1px solid #EEF1F6; border-radius: 12px; padding: 8px 10px; }
+.dmag-ai-xray-banner {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #FFF9E8; border: 1px solid #F5C46B; color: #6B4A00;
+    border-radius: 10px; padding: 6px 10px; margin-bottom: 8px; font-size: 13px;
+}
+@media (max-width: 1200px) {
+    .dmag-ai-xray { grid-template-columns: 1fr; }
+    .dmag-ai-summary-grid { grid-template-columns: 1fr 1fr; }
+    .dmag-ai-options { grid-template-columns: 1fr; }
+}
+
+.dmag-ai-vitals {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #fff; border: 1px solid #EEF1F6;
+    border-radius: 12px; padding: 8px 10px; margin-bottom: 6px;
+    .dmag-ai-sec-title { width: 100%; margin: 0; }
+}
+.dmag-ai-vital {
+    display: inline-flex; align-items: center; gap: 6px; border: 1px solid #EEF1F6; border-radius: 10px; padding: 4px 8px;
+    font-size: 12.5px; margin: 0;
+    &.is-on { border-color: $ai-line; background: #FDFCFF; }
+    .dmag-input-num { width: 70px; }
+}
+.dmag-ai-vital-label { font-weight: 600; }
+.dmag-ai-box.is-lower .dmag-ai-box-label { top: auto; bottom: -20px; }

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Khởi động bản demo DMAG Dental ERP trên máy (cần Docker Desktop / Docker Engine).
 cd "$(dirname "$0")"
-docker compose up -d || exit 1
+docker compose up -d --build || exit 1
 PORT="${DMAG_PORT:-8069}"
 echo "Đang khởi động… Lần đầu mất khoảng 3–5 phút để sinh dữ liệu mẫu."
 echo "Theo dõi: docker compose logs -f odoo"

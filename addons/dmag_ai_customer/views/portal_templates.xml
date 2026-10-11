@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tab "Nụ cười" + trợ lý AI-17 trên mọi trang /my/dental -->
+    <template id="portal_dental_shell_ai" inherit_id="dmag_patient_portal.portal_dental_shell" name="Nha khoa – trợ lý AI">
+        <xpath expr="//nav[hasclass('dmag-tabs')]/div" position="inside">
+            <a href="/my/dental/smile" t-attf-class="#{'active' if dmag_page == 'smile' else ''}">Nụ cười</a>
+        </xpath>
+        <xpath expr="//div[hasclass('dmag-body')]" position="after">
+            <div t-if="viewer" id="dmag_ai_assistant" class="dmag-ai-chat" data-hotline="">
+                <button type="button" class="dmag-ai-fab" aria-label="Trợ lý nha khoa">
+                    <i class="fa fa-comments-o"/> <span>Hỏi trợ lý</span>
+                </button>
+                <section class="dmag-ai-panel" hidden="hidden" aria-label="Trợ lý nha khoa">
+                    <header class="dmag-ai-head">
+                        <div>
+                            <div class="dmag-ai-title">Trợ lý nha khoa</div>
+                            <div class="dmag-ai-sub">Giải thích kế hoạch, đơn thuốc, lời dặn của bạn – không thay bác sĩ</div>
+                        </div>
+                        <button type="button" class="dmag-ai-close" aria-label="Đóng">×</button>
+                    </header>
+                    <div class="dmag-ai-log">
+                        <div class="dmag-ai-msg is-bot">Xin chào <t t-out="viewer.name.split()[-1] if viewer.name else ''"/>! Mình có thể giải thích <b>kế hoạch điều trị</b>,
+                            <b>đơn thuốc</b>, <b>lời dặn sau khám</b> và <b>lịch hẹn</b> của bạn bằng lời dễ hiểu.</div>
+                    </div>
+                    <div class="dmag-ai-quick">
+                        <button type="button" data-q="Giải thích kế hoạch điều trị của tôi">Kế hoạch điều trị</button>
+                        <button type="button" data-q="Đơn thuốc của tôi uống thế nào?">Đơn thuốc</button>
+                        <button type="button" data-q="Sau buổi khám vừa rồi tôi cần chăm sóc thế nào?">Chăm sóc sau khám</button>
+                        <button type="button" data-q="Lịch hẹn tiếp theo của tôi?">Lịch hẹn</button>
+                    </div>
+                    <div class="dmag-ai-consent" hidden="hidden">
+                        Để trợ lý đọc hồ sơ của bạn, cần bạn <b>đồng ý xử lý dữ liệu bằng AI</b> (dữ liệu được ẩn danh trước khi
+                        xử lý, NĐ 13/2023). Bạn có thể rút lại bất cứ lúc nào tại quầy.
+                        <button type="button" class="dmag-ai-agree">Tôi đồng ý</button>
+                    </div>
+                    <form class="dmag-ai-form">
+                        <input type="text" name="q" autocomplete="off" placeholder="Hỏi về kế hoạch, thuốc, lời dặn…" maxlength="500"/>
+                        <button type="submit" aria-label="Gửi"><i class="fa fa-paper-plane"/></button>
+                    </form>
+                    <div class="dmag-ai-foot">AI có thể sai – thông tin chính thức theo bác sĩ. Khẩn cấp: gọi hotline phòng khám.</div>
+                </section>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- /my/dental: câu hỏi theo dõi sau điều trị đang chờ -->
+    <template id="portal_dental_home_ai" inherit_id="dmag_patient_portal.portal_dental_home" name="Nha khoa – theo dõi sau điều trị">
+        <xpath expr="//div[hasclass('dmag-grid')]" position="before">
+            <a t-foreach="dmag_ai_followups or []" t-as="fu" t-attf-href="/dmag/followup/#{fu['token']}" class="dmag-card dmag-ai-followup-card">
+                <div class="dmag-kicker">Theo dõi sau điều trị · <t t-out="fu['checkpoint']"/></div>
+                <div class="fw-bold">Bạn cảm thấy thế nào sau <t t-out="fu['procedures'] or 'buổi điều trị'"/>?</div>
+                <div class="dmag-muted small">Trả lời 4 câu hỏi ngắn để bác sĩ theo dõi →</div>
+            </a>
+        </xpath>
+    </template>
+
+    <!-- /my/dental/smile – AI-19 -->
+    <template id="portal_dental_smile" name="Nha khoa – mô phỏng nụ cười">
+        <t t-call="dmag_patient_portal.portal_dental_shell">
+            <div class="dmag-ai-illus-banner">MINH HỌA – không phải cam kết kết quả</div>
+            <t t-if="smile">
+                <div class="dmag-card">
+                    <h3 class="dmag-h3"><i class="fa fa-smile-o"/> Kết quả minh họa</h3>
+                    <img t-attf-src="/my/dental/smile/#{smile.id}/image" class="img-fluid rounded" alt="Ảnh minh họa nụ cười"/>
+                    <div class="mt-3" t-if="smile.observations">
+                        <div class="dmag-kicker">Nhận xét thẩm mỹ</div>
+                        <p class="dmag-pre" t-out="smile.observations"/>
+                    </div>
+                    <div t-if="smile.options">
+                        <div class="dmag-kicker">Lựa chọn tham khảo (theo bảng giá)</div>
+                        <p class="dmag-pre" t-out="smile.options"/>
+                    </div>
+                    <p class="dmag-muted small" t-out="smile.caution"/>
+                    <a href="/dental/booking" class="dmag-btn">Đặt lịch tư vấn thẩm mỹ</a>
+                </div>
+            </t>
+            <div class="dmag-card">
+                <h3 class="dmag-h3"><i class="fa fa-camera"/> Tải ảnh nụ cười</h3>
+                <p class="dmag-muted">Chụp chính diện, cười lộ răng, đủ sáng. Ảnh chỉ dùng để tạo minh họa cho bạn và lưu trong hồ sơ.</p>
+                <div t-if="error" class="alert alert-danger" t-out="error"/>
+                <form method="post" enctype="multipart/form-data" class="dmag-form">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="file" name="photo" accept="image/*" capture="user" class="form-control mb-3" required="required"/>
+                    <label class="dmag-consent d-block position-relative mb-3">
+                        <input type="checkbox" name="consent" value="1" class="form-check-input position-absolute" style="left: 10px; top: 12px;" required="required"/>
+                        Tôi đồng ý cho phòng khám xử lý ảnh này (có thể bằng AI, đã ẩn danh) để tạo minh họa. Đây không phải chẩn đoán.
+                    </label>
+                    <button type="submit" class="dmag-btn">Tạo minh họa</button>
+                </form>
+            </div>
+            <div t-if="smiles" class="dmag-card">
+                <h3 class="dmag-h3">Các lần trước</h3>
+                <a t-foreach="smiles" t-as="s" t-attf-href="/my/dental/smile?smile_id=#{s.id}" class="dmag-row">
+                    <span t-out="s.create_date.strftime('%d/%m/%Y')"/><span t-out="s.shade_now or ''"/>
+                </a>
+            </div>
+        </t>
+    </template>
+
+    <!-- /dmag/followup/<token> – AI-18 (công khai, di động) -->
+    <template id="followup_page" name="Theo dõi sau điều trị">
+        <t t-call="portal.frontend_layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <div class="dmag-portal dmag-ai-fu">
+                <div class="dmag-hero">
+                    <div class="container dmag-container">
+                        <div class="dmag-hero-kicker" t-out="fu.company_id.name"/>
+                        <h1 class="dmag-hero-title">Bạn cảm thấy thế nào?</h1>
+                        <p class="dmag-hero-sub">Sau <t t-out="fu.procedures or 'buổi điều trị'"/> · <t t-out="dict(fu._fields['checkpoint'].selection)[fu.checkpoint]"/></p>
+                    </div>
+                </div>
+                <div class="container dmag-container dmag-body">
+                    <div t-if="done" class="dmag-card text-center">
+                        <div class="dmag-ai-fu-ok"><i class="fa fa-check-circle"/></div>
+                        <p class="fw-bold">Cảm ơn bạn đã trả lời!</p>
+                        <p class="dmag-pre" t-out="reply"/>
+                        <p class="dmag-muted small" t-if="fu.company_id.phone">Hotline: <a t-attf-href="tel:#{fu.company_id.phone}" t-out="fu.company_id.phone"/></p>
+                    </div>
+                    <form t-else="" method="post" class="dmag-card dmag-form">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div t-if="error" class="alert alert-danger" t-out="error"/>
+                        <div class="dmag-ai-q">1. Mức đau hiện tại (0 = không đau, 10 = rất đau)</div>
+                        <div class="dmag-ai-pain">
+                            <t t-foreach="range(11)" t-as="n">
+                                <label t-attf-class="dmag-ai-pain-btn p#{n}"><input type="radio" name="pain" t-att-value="n" required="required"/><span t-out="n"/></label>
+                            </t>
+                        </div>
+                        <div class="dmag-ai-q">2. Chảy máu</div>
+                        <div class="dmag-ai-opts">
+                            <label><input type="radio" name="bleeding" value="none" checked="checked"/> Không</label>
+                            <label><input type="radio" name="bleeding" value="light"/> Rỉ ít</label>
+                            <label><input type="radio" name="bleeding" value="heavy"/> Chảy nhiều</label>
+                        </div>
+                        <div class="dmag-ai-q">3. Sưng</div>
+                        <div class="dmag-ai-opts">
+                            <label><input type="radio" name="swelling" value="none" checked="checked"/> Không</label>
+                            <label><input type="radio" name="swelling" value="mild"/> Sưng nhẹ</label>
+                            <label><input type="radio" name="swelling" value="severe"/> Sưng nhiều</label>
+                        </div>
+                        <div class="dmag-ai-q">4. Bạn có sốt không?</div>
+                        <div class="dmag-ai-opts">
+                            <label><input type="radio" name="fever" value="0" checked="checked"/> Không</label>
+                            <label><input type="radio" name="fever" value="1"/> Có</label>
+                        </div>
+                        <div class="dmag-ai-q">Mô tả thêm (không bắt buộc)</div>
+                        <textarea name="free_text" class="form-control" rows="3" placeholder="Ví dụ: ăn uống được, hơi ê khi uống nước lạnh…"/>
+                        <button type="submit" class="dmag-btn w-100 mt-3">Gửi cho bác sĩ</button>
+                        <p class="dmag-muted small mt-2">Khẩn cấp (chảy máu không cầm, sưng lan, sốt cao, khó thở): gọi
+                            <t t-out="fu.company_id.phone or 'phòng khám'"/> hoặc đến cơ sở y tế gần nhất.</p>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_clinical.RxPanel" t-inherit="dmag_clinic_workspace.RxPanel" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('dmag-rx-editor')]/div[hasclass('dmag-row-end')]" position="before">
+            <div t-if="aiRx.check" t-att-class="'dmag-ai-rx' + (aiRx.check.blocks ? ' is-block' : aiRx.check.warns ? ' is-warn' : ' is-ok')">
+                <div class="dmag-ai-rx-head">
+                    <i t-att-class="'fa ' + (aiRx.check.blocks ? 'fa-ban' : aiRx.check.warns ? 'fa-exclamation-triangle' : 'fa-shield')" title="An toàn"/>
+                    <b>An toàn đơn thuốc</b>
+                    <span class="small text-muted">quy tắc cố định · dị ứng · thai kỳ · trẻ em · chống đông · trùng hoạt chất · số ngày</span>
+                    <span class="ms-auto small">
+                        <t t-if="aiRx.check.blocks"><b class="text-danger"><t t-esc="aiRx.check.blocks"/> chặn</b> · </t>
+                        <t t-esc="aiRx.check.warns"/> cảnh báo
+                    </span>
+                </div>
+                <div t-if="!aiRx.check.findings.length" class="small"><i class="fa fa-check-circle text-success me-1" title="Ổn"/>Không phát hiện dị ứng, chống chỉ định hay trùng thuốc theo hồ sơ hiện có.</div>
+                <ul class="dmag-ai-rx-list">
+                    <li t-foreach="aiRx.check.findings" t-as="f" t-key="f_index" t-att-class="'is-' + f.level">
+                        <span t-att-class="'dmag-ai-level is-' + f.level"><i t-att-class="'fa ' + RX_LEVELS[f.level].icon + ' me-1'" t-att-title="RX_LEVELS[f.level].label"/><t t-esc="RX_LEVELS[f.level].label"/></span>
+                        <span><b t-esc="f.title"/>: <t t-esc="f.message"/></span>
+                    </li>
+                </ul>
+                <AiConsent t-if="aiRx.consent" info="aiRx.consent" onDone.bind="aiRxExplain"/>
+                <div t-if="aiRx.explain" class="dmag-ai-explain">
+                    <div class="dmag-ai-explain-title"><AiMeta meta="aiRx.meta"/> Giải thích dễ hiểu</div>
+                    <div class="dmag-ai-pre" t-esc="aiRx.explain"/>
+                </div>
+                <div class="d-flex gap-2 mt-2 align-items-center">
+                    <button t-if="aiRxExplainOn" class="dmag-btn dmag-ai-btn dmag-btn-sm" t-att-disabled="aiRx.explaining" t-on-click="aiRxExplain">
+                        <span t-if="aiRx.explaining" class="dmag-ai-spinner"/><i t-else="" class="fa fa-magic me-1" title="AI"/>AI giải thích
+                    </button>
+                    <t t-if="aiRx.pending and !aiRx.check.blocks">
+                        <span class="small ms-auto">Đã đọc cảnh báo và cân nhắc lợi ích / nguy cơ?</span>
+                        <button class="dmag-btn dmag-btn-primary dmag-btn-sm" t-att-disabled="state.saving" t-on-click="aiRxConfirmIssue">Đã xem – vẫn phát hành</button>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('dmag-rx-editor')]/div[hasclass('dmag-row-end')]" position="inside">
+            <button class="dmag-btn dmag-btn-ghost me-auto order-first" t-att-disabled="!state.draft.lines.length" t-on-click="aiRxCheck">
+                <i class="fa fa-shield me-1" title="Kiểm tra"/>Kiểm tra an toàn
+            </button>
+        </xpath>
+    </t>
+</templates>

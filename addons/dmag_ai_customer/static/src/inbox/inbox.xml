@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_customer.AiInbox">
+        <div class="dmag-ws dmag-ai-inbox">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <h1>Hộp thư trợ lý Zalo <span class="dmag-ai-code">AI-07</span></h1>
+                        <span class="dmag-ws-sub">
+                            Hội thoại trợ lý chuyển cho người · câu trả lời chờ duyệt ·
+                            <t t-if="state.inbox.reply_mode === 'approve'">chế độ <b>nhân viên duyệt trước khi gửi</b></t>
+                            <t t-else="">chế độ <b>tự động trả lời 24/7</b></t>
+                        </span>
+                    </div>
+                </div>
+                <div class="dmag-ws-actions">
+                    <AiBadge mode="state.inbox.mode"/>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="refresh"><i class="fa fa-refresh me-1" title="Làm mới"/>Làm mới</button>
+                    <button class="dmag-btn dmag-btn-primary" t-on-click="openSimulator"><i class="fa fa-mobile me-1" title="Mô phỏng"/>Mô phỏng Zalo</button>
+                </div>
+            </header>
+            <div class="dmag-ai-inbox-grid">
+                <aside class="dmag-ai-inbox-list">
+                    <div class="dmag-seg w-100">
+                        <button t-att-class="state.filter === 'attention' ? 'is-on' : ''" t-on-click="() => this.setFilter('attention')">
+                            Cần xử lý <span class="dmag-badge" t-if="state.inbox.counts.attention" t-esc="state.inbox.counts.attention"/></button>
+                        <button t-att-class="state.filter === 'bot' ? 'is-on' : ''" t-on-click="() => this.setFilter('bot')">Trợ lý đang trả lời</button>
+                        <button t-att-class="state.filter === 'all' ? 'is-on' : ''" t-on-click="() => this.setFilter('all')">Tất cả</button>
+                    </div>
+                    <div t-if="!state.inbox.conversations.length" class="dmag-empty-sm mt-3">Không có hội thoại.</div>
+                    <button t-foreach="state.inbox.conversations" t-as="c" t-key="c.id"
+                            t-att-class="'dmag-ai-conv' + (state.thread and state.thread.id === c.id ? ' is-on' : '') + ' is-' + c.state"
+                            t-on-click="() => this.open(c.id)">
+                        <div class="dmag-avatar"><i t-att-class="'fa ' + channelIcon(c.channel)" t-att-title="c.channel"/></div>
+                        <div class="dmag-ai-conv-main">
+                            <div class="d-flex justify-content-between gap-2">
+                                <b class="text-truncate" t-esc="c.name"/>
+                                <span class="dmag-hint text-nowrap" t-esc="timeAgo(c.last)"/>
+                            </div>
+                            <div class="dmag-ai-conv-preview" t-esc="c.preview"/>
+                            <div class="dmag-chips">
+                                <span t-if="c.state === 'handoff'" class="dmag-chip is-danger"><t t-esc="c.handoff_reason or 'Cần nhân viên'"/></span>
+                                <span t-if="c.state === 'human'" class="dmag-chip is-warning">Nhân viên đang xử lý</span>
+                                <span t-if="c.pending" class="dmag-chip is-warning"><t t-esc="c.pending"/> chờ duyệt</span>
+                                <span t-if="c.visits" class="dmag-chip is-ok"><t t-esc="c.visits"/> lịch giữ chỗ</span>
+                            </div>
+                        </div>
+                    </button>
+                </aside>
+
+                <section class="dmag-ai-inbox-thread">
+                    <t t-if="state.thread">
+                        <div class="dmag-ai-thread-head">
+                            <div>
+                                <div class="fw-bold fs-5" t-esc="state.thread.name"/>
+                                <div class="dmag-hint"><t t-esc="state.thread.state_label"/><t t-if="state.thread.phone"> · <t t-esc="state.thread.phone"/></t></div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button t-if="!['human', 'closed'].includes(state.thread.state)" class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.act('action_take_over')">Tiếp nhận</button>
+                                <button t-if="state.thread.state !== 'bot'" class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.act('action_back_to_bot')">Trả về trợ lý</button>
+                                <button t-if="state.thread.state !== 'closed'" class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.act('action_close')">Đóng</button>
+                                <button class="dmag-btn dmag-btn-sm dmag-btn-icon" title="Mở chi tiết" t-on-click="openForm"><i class="fa fa-external-link" title="Chi tiết"/></button>
+                            </div>
+                        </div>
+                        <div t-if="state.thread.state === 'handoff'" class="dmag-ai-handoff m-3 mb-0">
+                            <i class="fa fa-bell me-1" title="Chuyển"/><b>Trợ lý chuyển cho nhân viên – <t t-esc="state.thread.handoff_reason"/>:</b>
+                            <t t-esc="state.thread.handoff_summary"/>
+                        </div>
+                        <div class="dmag-ai-thread-log" t-ref="log">
+                            <t t-call="dmag_ai_customer.ChatBubbles">
+                                <t t-set="messages" t-value="state.thread.messages"/>
+                                <t t-set="perspective" t-value="'staff'"/>
+                            </t>
+                        </div>
+                        <div t-foreach="pendingMessages" t-as="m" t-key="m.id" class="dmag-ai-pending">
+                            <div class="dmag-ai-pending-title"><i class="fa fa-hourglass-half me-1" title="Chờ duyệt"/>Câu trả lời của trợ lý đang chờ duyệt</div>
+                            <textarea t-if="state.editing === m.id" class="dmag-input" rows="4" t-model="state.editText"/>
+                            <div t-else="" class="dmag-ai-pending-body" t-esc="m.body"/>
+                            <div class="d-flex gap-2">
+                                <t t-if="state.editing === m.id">
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.saveEdit(m)">Lưu &amp; gửi</button>
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.state.editing = null">Hủy</button>
+                                </t>
+                                <t t-else="">
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.approve(m)">Duyệt &amp; gửi</button>
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.startEdit(m)">Sửa</button>
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.discard(m)">Bỏ</button>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="dmag-ai-reply" t-if="state.thread.state !== 'closed'">
+                            <textarea class="dmag-input mb-0" rows="2" placeholder="Nhân viên trả lời khách…" t-model="state.reply"/>
+                            <button class="dmag-btn dmag-btn-primary" t-att-disabled="!state.reply.trim()" t-on-click="sendReply"><i class="fa fa-paper-plane me-1" title="Gửi"/>Gửi</button>
+                        </div>
+                    </t>
+                    <div t-else="" class="dmag-empty">Chọn một hội thoại.</div>
+                </section>
+
+                <aside class="dmag-ai-inbox-side" t-if="state.thread">
+                    <div class="dmag-panel">
+                        <div class="dmag-panel-title">Khách hàng</div>
+                        <t t-if="state.thread.partner">
+                            <div class="fw-bold" t-esc="state.thread.partner.name"/>
+                            <div class="dmag-hint" t-esc="state.thread.partner.code"/>
+                        </t>
+                        <div t-else="" class="dmag-hint">Chưa gắn hồ sơ – trợ lý tạo / gắn hồ sơ khi khách đồng ý đặt lịch.</div>
+                        <div class="dmag-hint mt-1">Chi phí AI hội thoại: <b t-esc="formatVnd(state.thread.cost_vnd)"/> (ước tính nếu chạy thật <t t-esc="formatVnd(state.thread.estimated_cost_vnd)"/>)</div>
+                    </div>
+                    <div class="dmag-panel">
+                        <div class="dmag-panel-title">Lịch giữ chỗ</div>
+                        <div t-if="!state.thread.visits.length" class="dmag-hint">Chưa có.</div>
+                        <div t-foreach="state.thread.visits" t-as="v" t-key="v.id" class="dmag-ai-mini">
+                            <b t-esc="v.time"/><span class="flex-grow-1"><t t-esc="v.date"/> · <t t-esc="v.services.join(', ') or 'Khám'"/></span>
+                            <button class="dmag-link" t-on-click="() => this.openVisit(v.id)" t-esc="v.state_label"/>
+                        </div>
+                    </div>
+                    <div class="dmag-panel" t-if="state.thread.feedback.length">
+                        <div class="dmag-panel-title">Phân loại phản hồi <span class="dmag-ai-code">AI-09</span></div>
+                        <div t-foreach="state.thread.feedback" t-as="f" t-key="f.id" class="mb-2">
+                            <div class="dmag-chips">
+                                <span t-att-class="'dmag-chip is-' + (['high', 'critical'].includes(f.severity) ? 'danger' : f.severity === 'medium' ? 'warning' : 'info')" t-esc="SEVERITY[f.severity]"/>
+                                <span class="dmag-chip" t-esc="f.topic"/>
+                                <span t-if="f.churn_risk" class="dmag-chip is-danger">Nguy cơ rời bỏ</span>
+                            </div>
+                            <div class="small mt-1" t-esc="f.suggested_action"/>
+                        </div>
+                    </div>
+                    <div class="dmag-panel">
+                        <div class="dmag-panel-title">Trả lời mẫu</div>
+                        <div class="dmag-phrases">
+                            <button class="dmag-phrase" t-on-click="() => this.useSuggestion('Dạ em là nhân viên phòng khám, em đã nhận thông tin và sẽ gọi lại cho anh/chị trong ít phút ạ.')">Nhận thông tin</button>
+                            <button class="dmag-phrase" t-on-click="() => this.useSuggestion('Dạ lịch hẹn của anh/chị đã được xác nhận. Hẹn gặp anh/chị ạ!')">Xác nhận lịch</button>
+                            <button class="dmag-phrase" t-on-click="() => this.useSuggestion('Dạ phòng khám rất xin lỗi về trải nghiệm chưa tốt. Quản lý sẽ gọi trực tiếp cho anh/chị trong hôm nay ạ.')">Xin lỗi khách</button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>
