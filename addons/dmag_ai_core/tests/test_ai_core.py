@@ -40,8 +40,11 @@ class TestAiCore(TransactionCase):
         self.assertGreater(log.estimated_cost_vnd, 0)
         self.assertNotIn('Nguyễn Thị Mai', log.request_preview)
         self.assertIn('[BN_1]', log.request_preview)
+        clerk = self.env['res.users'].create({
+            'name': 'Lễ tân AI', 'login': 'ai_clerk', 'email': 'ai_clerk@dmag.test',
+            'groups_id': [(6, 0, [self.env.ref('dmag_dental_base.group_dmag_manager').id])]})
         with self.assertRaises(AccessError):
-            log.with_user(self.env.ref('base.user_demo') if self.env.ref('base.user_demo', False) else self.env.user).write({'cost_vnd': 1})
+            log.with_user(clerk).write({'cost_vnd': 1})
 
     def test_consent_required(self):
         self.patient.dmag_ai_consent = False

@@ -501,11 +501,30 @@ SIMPLE_VISITS = {
                ['diag_k03_0'], ['exam', 'splint']),
 }
 NPS_COMMENTS = {
-    10: ['Bác sĩ rất nhẹ tay, giải thích kỹ.', 'Phòng khám sạch sẽ, không phải chờ lâu.', 'Sẽ giới thiệu bạn bè.'],
-    9: ['Dịch vụ tốt, nhân viên thân thiện.', 'Hài lòng với kết quả.'],
-    8: ['Ổn, nhưng chờ hơi lâu.'],
-    7: ['Chi phí hơi cao so với mong đợi.'],
-    5: ['Phải chờ gần 40 phút dù đã đặt lịch.'],
-    3: ['Ê buốt nhiều sau trám, gọi điện chưa ai phản hồi.'],
+    10: ['Bác sĩ rất nhẹ tay, giải thích kỹ.', 'Phòng khám sạch sẽ, không phải chờ lâu.', 'Sẽ giới thiệu bạn bè.',
+         'Lễ tân nhiệt tình, nhắc lịch qua Zalo rất tiện.', 'Nhổ răng khôn mà gần như không đau, cảm ơn bác sĩ!'],
+    9: ['Dịch vụ tốt, nhân viên thân thiện.', 'Hài lòng với kết quả.', 'Giá rõ ràng, được báo trước từng khoản.'],
+    8: ['Ổn, nhưng chờ hơi lâu.', 'Bác sĩ giỏi nhưng chỗ gửi xe hơi chật.'],
+    7: ['Chi phí hơi cao so với mong đợi.', 'Phải chờ 25 phút mới được vào ghế.'],
+    5: ['Phải chờ gần 40 phút dù đã đặt lịch.', 'Nhân viên thu ngân trả lời cộc lốc, không giải thích hóa đơn.'],
+    3: ['Ê buốt nhiều sau trám, gọi điện chưa ai phản hồi.', 'Đau nhức 2 ngày sau nhổ răng, thấy bị bỏ mặc.'],
 }
 CANCEL_REASONS = ['Bận việc đột xuất', 'Khách đổi lịch sang tuần sau', 'Khách bị ốm', 'Kẹt xe, xin hẹn lại']
+
+# Trợ lý AI (dmag_ai_*): bệnh nhân CHƯA đồng ý xử lý bằng AI (~10 %) và thông tin cho kiểm tra an toàn đơn thuốc
+AI_NO_CONSENT = ('vy', 'long', 'hanh', 'khanh')
+AI_PATIENT_EXTRA = {
+    'hai': {'current_medication': 'Warfarin 5 mg/ngày (rung nhĩ) – INR gần nhất 2,6.'},
+    'men': {'current_medication': 'Aspirin 81 mg/ngày; Bisoprolol 2,5 mg/ngày.'},
+    'hung': {'current_medication': 'Metformin 500 mg × 2 lần/ngày; Amlodipin 5 mg/ngày.'},
+    'quynh': {'is_pregnant': True, 'current_medication': 'Viên sắt + acid folic (thai 20 tuần).'},
+}
+# Tin nhắn Zalo OA mẫu (đường webhook): hỏi giá (chờ duyệt), ca khẩn, khiếu nại
+AI_ZALO_CHATS = [
+    ('zalo-demo-001', 'Minh Thư (Zalo)', '0938111222', ['Chào phòng khám, niềng răng trong suốt giá khoảng bao nhiêu ạ?',
+                                                         'Có trả góp không ạ?']),
+    ('zalo-demo-002', 'Anh Khoa (Zalo)', '0977333444', ['Răng khôn của em sưng to, sốt, há miệng không được, đau quá '
+                                                         'có khám gấp được không?']),
+    ('zalo-demo-003', 'Chị Loan (Zalo)', '0909555666', ['Hôm qua tôi đặt lịch 9h mà chờ tới 9h45, nhân viên còn cáu '
+                                                         'gắt. Rất thất vọng, tôi muốn gặp quản lý.']),
+]

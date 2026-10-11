@@ -56,13 +56,24 @@ thanh toán, chatter đều khớp thực tế. Hạt giống ngẫu nhiên cố
     (doanh thu chia theo tỷ trọng, tỷ lệ chốt, ca implant / chỉnh nha); nhóm theo 3 Objective ("Tăng trưởng doanh
     thu bền vững", "Mở rộng dịch vụ giá trị cao", "Trải nghiệm không đau, không chờ"); một đề xuất của Quản lý cho
     tháng sau đang chờ Giám đốc chốt. Mở **Nha khoa › Điều hành mục tiêu** bằng ``giamdoc.demo``.
-11. **Trợ lý AI** (``dmag_ai_core`` + ``dmag_ai_insights``): chế độ AI = **Giả lập** (không gọi AI thật, không tốn phí);
-    ~90 % bệnh nhân demo **đồng ý hỗ trợ bằng AI**; lịch sử có tình huống thật cho AI-15 (bác sĩ 2 hay giảm 10 % trên
-    kế hoạch, bác sĩ chính thỉnh thoảng 5 %; vật tư dùng thêm ngoài định mức có lý do; lễ tân lập 2 hóa đơn điều chỉnh
-    giảm / hoàn tiền tuần này). Sau đó bộ sinh gọi CHÍNH các hàm AI: 6 câu hỏi số liệu của Giám đốc (AI-13), dự báo
-    (AI-16), quét bất thường (AI-15 – một cảnh báo đã có giải trình của Quản lý, một có "AI giải thích"), bản tin tuần
-    (AI-14, gửi Giám đốc) → **Nha khoa › Trợ lý AI › Trung tâm AI** có số lần dùng và *chi phí nếu chạy thật*.
-    Dán khóa Claude tại *Cấu hình › Trợ lý AI › Cài đặt AI* để chuyển sang AI thật.
+11. **Trợ lý AI** (``dmag_ai_core``, ``dmag_ai_insights``, ``dmag_ai_clinical``, ``dmag_ai_customer``):
+
+    * chế độ AI = **Giả lập** (không gọi AI thật, không tốn phí); giờ làm việc cho trợ lý Zalo; 36/40 bệnh nhân
+      (kể cả ``benhnhan.demo`` và mọi khách khám hôm nay) **đồng ý hỗ trợ bằng AI**; bệnh nhân dùng Warfarin /
+      Aspirin / Metformin (``current_medication``) và một sản phụ (``is_pregnant``) để AI-03 cảnh báo;
+    * **lịch sử có quy luật thật** cho AI-08: ~15–20 % không đến, dồn vào khách đặt online (Zalo / Facebook / web)
+      từ sớm, chưa xác nhận, khách mới, người từng bỏ hẹn; ngày tạo lịch hẹn = lúc khách đặt; 2–3 lịch hôm nay /
+      ngày mai rủi ro cao → huấn luyện lại mô hình AI-08 và chấm điểm mọi lịch sắp tới (huy hiệu trên Bảng điều phối);
+    * phản hồi NPS đa dạng (chờ lâu, đau, giá, thái độ nhân viên, khen) → AI-09 phân loại; 3 hội thoại Zalo OA qua
+      đường webhook (hỏi giá – câu trả lời chờ lễ tân duyệt, ca khẩn, khiếu nại) + 1 hội thoại mô phỏng đặt lịch;
+    * thủ thuật xâm lấn 1–3 ngày trước có câu trả lời theo dõi sau điều trị (bình thường + một ca bất thường – AI-18);
+      phim X-quang mẫu gắn vào lượt khám của *Nguyễn Thị Mai* và *Đỗ Thanh Hương* (AI-06);
+    * tình huống cho AI-15: bác sĩ 2 hay giảm 10 % trên kế hoạch, bác sĩ chính thỉnh thoảng 5 %; vật tư dùng thêm
+      ngoài định mức có lý do; lễ tân lập 2 hóa đơn điều chỉnh giảm / hoàn tiền tuần này;
+    * cuối cùng gọi CHÍNH các hàm AI: 6 câu hỏi số liệu của Giám đốc (AI-13), dự báo (AI-16), quét bất thường (AI-15 –
+      một cảnh báo đã có giải trình của Quản lý, một có "AI giải thích"), bản tin tuần (AI-14), nội dung chăm sóc
+      (AI-12), trợ lý cổng bệnh nhân (AI-17) → **Nha khoa › Trợ lý AI › Trung tâm AI** có số lần dùng và *chi phí nếu
+      chạy thật*. Dán khóa Claude tại *Cấu hình › Trợ lý AI › Cài đặt AI* để chuyển sang AI thật.
 
 Tài khoản demo
 ==============

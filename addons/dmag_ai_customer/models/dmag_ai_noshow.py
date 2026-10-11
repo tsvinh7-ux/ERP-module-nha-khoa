@@ -120,6 +120,10 @@ def explain(model, row, raw, top=3):
     for key, value in ordered:
         if value <= 0.05 or len(out) >= top:
             break
+        # Nhãn "làm tăng nguy cơ" chỉ đúng khi đặc trưng có mặt (vd. không gắn "Hẹn cuối tuần" cho lịch thứ Hai,
+        # dù hệ số âm × giá trị dưới trung bình cũng cho đóng góp dương)
+        if key != 'lead' and not row.get(key):
+            continue
         out.append(labels[key][1].format(lead=int(raw.get('lead_days') or 0), ns=raw.get('prior_noshow') or 0,
                                          pv=raw.get('prior_visits') or 0))
     return out

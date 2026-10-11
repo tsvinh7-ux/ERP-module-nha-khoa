@@ -312,7 +312,7 @@ class AnomalyDetector:
             share_o = 100.0 * sum(1 for v in oth if v > 0) / len(oth)
             amount = sum(p.quantity * p.price_unit * (p.discount or 0) / 100.0 for p in plist)
             discounted = [p for p in plist if p.discount]
-            if z < self.Z_STAFF or amount < 500000 or fm.mean(own) < 1.5 * fm.mean(oth) + 0.3 or share < share_o + 3:
+            if z < self.Z_STAFF or amount < 500000 or fm.mean(own) < 1.5 * fm.mean(oth) + 0.3 or share < 1.5 * share_o + 1:
                 continue
             out.append({
                 'kind': 'discount_staff', 'fingerprint': 'discount_staff:%s:%s' % (doctor.id, self.today.isocalendar()[:2]),

@@ -162,6 +162,14 @@ class TestDemoData(TransactionCase):
         ratio = len(demo.filtered('dmag_ai_consent')) / len(demo)
         self.assertGreaterEqual(ratio, 0.85)
         self.assertLess(ratio, 1.0)
+        hai = demo.filtered(lambda p: p.name == 'Nghiêm Văn Hải')
+        self.assertIn('Warfarin', hai.current_medication or '')
+        self.assertTrue(demo.filtered('is_pregnant'))
+        visits = self.Visit.search([('state', 'in', ('done', 'no_show'))])
+        rate = len(visits.filtered(lambda v: v.state == 'no_show')) / len(visits)
+        self.assertGreater(rate, 0.08, 'Lịch sử demo cần đủ lượt không đến cho AI-08')
+        if 'dmag.ai.noshow.model' in self.env:
+            self.assertTrue(self.env['dmag.ai.noshow.model'].search_count([]))
         Log = self.env['dmag.ai.log']
         self.assertGreaterEqual(Log.search_count([('feature_id.code', '=', 'AI-13')]), 5)
         self.assertTrue(Log.search_count([('feature_id.code', '=', 'AI-16')]))

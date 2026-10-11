@@ -87,6 +87,7 @@ class PatientState:
         self.lab_order = False
         self.ortho_visit = False
         self.findings = {}
+        self.noshows = 0
         self.doctor_key = 'doctor'
 
     @property
@@ -130,6 +131,7 @@ class DemoGenerator:
         self.pstates = []
         self.batches = {}
         self.events = []
+        self.booked_at = {}  # id lượt khám -> thời điểm đặt lịch (UTC) – để create_date phản ánh lúc khách đặt
         self._seq = itertools.count()
         self.today = fields.Date.context_today(self.env['res.partner'])
         self.now = fields.Datetime.now()
@@ -247,6 +249,8 @@ class DemoGenerator:
             self._create_hr()
         with self.section('Bệnh nhân', optional=False):
             self._create_patients()
+        with self.section('Trợ lý AI: chế độ giả lập, đồng ý AI, thuốc đang dùng'):
+            self._ai_setup()
         start = self.local_dt(self.today - timedelta(days=HISTORY_DAYS + 7), 8)
         try:
             from freezegun import freeze_time  # có trong requirements chuẩn của Odoo 17
@@ -830,6 +834,7 @@ class DemoGenerator:
         if 'dmag_consultant_id' in self.env['dmag.dental.visit']._fields and plan:
             vals['dmag_consultant_id'] = self.users['consultant'].id
         visit = self.M('dmag.dental.visit', 'receptionist').create(vals)
+        self.booked_at[visit.id] = min(booked_at, start)
         self.stats['visits'] += 1
         if confirm:
             self.at(min(booked_at + timedelta(hours=2), start))
@@ -872,16 +877,35 @@ class DemoGenerator:
         self._extra_material(res, doctor_key)
         return res
 
+    # ------------------------------------------------------------------ tình huống cho AI-08 (không đến)
+    @staticmethod
+    def _is_online(partner):
+        name = (partner.customer_source_id.name or '').lower()
+        return any(w in name for w in ('online', 'zalo', 'web', 'facebook'))
+
+    @staticmethod
+    def _noshow_prob(ps, kind, online, lead, confirmed):
+        """Khả năng không đến theo các yếu tố thật của phòng khám: đặt online, đặt trước lâu, chưa xác nhận,
+        khách mới, từng bỏ hẹn – để mô hình AI-08 học được quy luật (tỷ lệ chung ~15–20 %)."""
+        p = 0.01
+        p += 0.10 if online else 0.0
+        p += 0.08 if kind == 'first' else 0.0
+        p += 0.08 if lead.days >= 7 else 0.0
+        p += 0.22 if not confirmed else 0.0
+        # từng bỏ hẹn: ảnh hưởng giảm dần khi khách đã đến đều đặn nhiều lần sau đó
+        p += min(0.25, 0.5 * ps.noshows / (ps.noshows + ps.visits + 1))
+        return min(p, 0.65)
+
     # ------------------------------------------------------------------ tình huống cho AI-15 (bất thường)
     def _plan_discounts(self, plan, doctor_key):
-        """Giảm giá trên kế hoạch như thực tế: bác sĩ 2 hay "chiều khách" (10 % – sát hạn mức) ở gần nửa số dịch vụ,
+        """Giảm giá trên kế hoạch như thực tế: bác sĩ 2 hay "chiều khách" (10 % – sát hạn mức) ở phần lớn dịch vụ,
         bác sĩ chính thỉnh thoảng giảm 5 % – để AI-15 có số liệu thật để so sánh."""
         rng = self.rng_ai
         for line in plan.option_ids.line_ids:
             roll = rng.random()
-            if doctor_key == 'doctor2' and roll < 0.45:
+            if doctor_key == 'doctor2' and roll < 0.7:
                 self.try_('Giảm giá', self.as_user(line, doctor_key).write, {'discount': 10.0})
-            elif doctor_key != 'doctor2' and roll < 0.12:
+            elif doctor_key != 'doctor2' and roll < 0.1:
                 self.try_('Giảm giá', self.as_user(line, doctor_key).write, {'discount': 5.0})
 
     def _extra_material(self, proc_res, doctor_key):
@@ -1100,12 +1124,18 @@ class DemoGenerator:
         """Mô phỏng trọn một lượt khám. ``stop_at``: trạng thái dừng (cho bảng điều phối hôm nay)."""
         rng = self.rng
         outcome = 'done'
+        # Đặc điểm lúc đặt lịch (dùng hạt giống AI riêng): kênh online, đặt trước bao lâu, đã xác nhận chưa
+        online = self._is_online(ps.partner)
+        far = online and kind == 'first' and self.rng_ai.random() < 0.6 or self.rng_ai.random() < 0.12
+        lead = timedelta(days=self.rng_ai.randint(8, 15) if far else self.rng_ai.randint(1, 6),
+                         hours=self.rng_ai.randint(0, 6))
+        confirmed = self.rng_ai.random() < (0.55 if online else 0.92)
         if final and not stop_at:
             roll = rng.random()
-            if roll < 0.06:
-                outcome = 'no_show'
-            elif roll < 0.11:
+            if 0.06 <= roll < 0.11:
                 outcome = 'cancel'
+            elif self.rng_ai.random() < self._noshow_prob(ps, kind, online, lead, confirmed):
+                outcome = 'no_show'
         if kind == 'treatment' and not ps.todo_lines():
             if ps.scenario == 'ortho' and ps.ortho_visit:
                 kind = 'ortho'
@@ -1116,7 +1146,8 @@ class DemoGenerator:
         chair = self._chair_for(ps)
         doctor_key = ps.doctor_key
         visit = self._book(ps, start, codes, doctor_key, chair, reason, plan=plan,
-                           confirm=stop_at != 'draft')
+                           booked_before=lead if not stop_at else None,
+                           confirm=stop_at != 'draft' and (confirmed or bool(stop_at)))
         if stop_at in ('draft', 'confirmed'):
             return visit
         day = self.to_local(start).date()
@@ -1126,6 +1157,7 @@ class DemoGenerator:
                 ps.next_due = day + timedelta(days=rng.randint(3, 7))
             return visit
         if outcome == 'no_show':
+            ps.noshows += 1
             self._no_show(visit, start + timedelta(minutes=45))
             if ps.next_due:
                 ps.next_due = day + timedelta(days=rng.randint(3, 7))
@@ -1821,12 +1853,19 @@ class DemoGenerator:
         if 'dmag.ai.log' not in self.env:
             return
         company = self.company
-        self.remember(company, {'dmag_ai_mode': 'simulate'})
-        partners = self.env['res.partner'].browse(sorted(p.id for p in self.patients.values()))
-        consent = partners.filtered(lambda p: p.id % 10 != 3)
-        consent.write({'dmag_ai_consent': True})
-        self.stats['ai_consent'] = len(consent)
+        self._fix_booking_dates()
+        # khách khám hôm nay được hỏi đồng ý AI ngay lúc check-in
+        today_done = self.env['dmag.dental.visit'].search([
+            ('company_id', '=', company.id), ('scheduled_start', '>=', self.local_dt(self.today, 0)),
+            ('state', 'in', ('arrived', 'in_chair', 'done'))])
+        today_done.mapped('patient_id').filtered(lambda p: not p.dmag_ai_consent).write({'dmag_ai_consent': True})
+        self.stats['ai_consent'] = len(self.env['res.partner'].browse(
+            [p.id for p in self.patients.values()]).filtered('dmag_ai_consent'))
+        self.try_('Lịch rủi ro không đến', self._ai_risky_bookings)
+        self.try_('Huấn luyện AI-08', self._ai_noshow_train)
         self._ai_refunds()
+        self.try_('Phim X-quang mẫu', self._ai_xray_samples)
+        self.try_('Theo dõi sau điều trị', self._ai_followups)
         self._ai_customer_samples()
         if 'dmag.ai.qa' in self.env:
             qa = self.env['dmag.ai.qa'].with_user(self.users['director']).with_company(company)
@@ -1856,6 +1895,100 @@ class DemoGenerator:
             self.stats['ai_briefs'] = 1
         self.stats['ai_logs'] = self.env['dmag.ai.log'].search_count([('id', '>', self.watermarks.get('dmag.ai.log', 0))])
 
+    def _ai_setup(self):
+        """Trợ lý AI chạy giả lập; ~90 % bệnh nhân đồng ý xử lý bằng AI; thuốc đang dùng / mang thai cho AI-03."""
+        company = self.company
+        if 'dmag_ai_mode' in company._fields:
+            self.remember(company, {'dmag_ai_mode': 'simulate'})
+        if 'dmag_ai_clinic_hours' in company._fields:
+            self.remember(company, {'dmag_ai_clinic_hours': 'Thứ 2 – Thứ 7: 8:00 – 19:00 (nghỉ Chủ nhật)'})
+        if 'dmag_ai_consent' in self.env['res.partner']._fields:
+            for key, partner in self.patients.items():
+                if key not in D.AI_NO_CONSENT:
+                    partner.write({'dmag_ai_consent': True})
+        for key, vals in D.AI_PATIENT_EXTRA.items():
+            partner = self.patients.get(key)
+            if partner:
+                partner.write({k: v for k, v in vals.items() if k in partner._fields})
+
+    def _fix_booking_dates(self):
+        """Ngày tạo lịch hẹn = lúc khách đặt (đồng hồ "đóng băng" không áp vào create_date của PostgreSQL)."""
+        rows = [(at, vid) for vid, at in self.booked_at.items() if at]
+        if not rows:
+            return
+        self.env.flush_all()
+        for at, vid in rows:
+            self.env.cr.execute('UPDATE dmag_dental_visit SET create_date = %s WHERE id = %s', (at, vid))
+        self.env['dmag.dental.visit'].invalidate_model(['create_date'])
+        self.booked_at = {}
+
+    def _ai_risky_bookings(self):
+        """2–4 lịch hôm nay / ngày mai có nguy cơ không đến cao: đặt online từ sớm, chưa xác nhận, từng bỏ hẹn."""
+        risky = sorted([ps for ps in self.pstates if not ps.is_child],
+                       key=lambda ps: (-ps.noshows, not self._is_online(ps.partner), ps.visits, ps.key))[:3]
+        tomorrow = next(self.working_days(self.today + timedelta(days=1), self.today + timedelta(days=7)))
+        slots = [(tomorrow, 14, 0), (tomorrow, 16, 30), (self.today, 17, 30)]
+        for ps, (day, hour, minute) in zip(risky, slots):
+            start = self.local_dt(day, hour, minute)
+            if start <= fields.Datetime.now():
+                start = self.local_dt(tomorrow, 9, 0)
+            Visit = self.env['dmag.dental.visit']
+            free = [c for c in self.chairs if not Visit.search_count([
+                ('chair_id', '=', c.id), ('state', 'not in', ('cancel', 'no_show')),
+                ('scheduled_start', '<', start + timedelta(minutes=60)),
+                ('scheduled_start', '>', start - timedelta(minutes=60))])]
+            for chair in free[:1]:  # ghế còn trống khung giờ đó
+                if self.try_('Lịch rủi ro', self._book, ps, start,
+                             ['scaling'] if 'scaling' in self.svc else ['exam'], ps.doctor_key, chair,
+                             'Khách tự đặt qua Zalo OA ' + D.SAMPLE, False, timedelta(days=11 + len(ps.key) % 4),
+                             False):
+                    break
+        self._fix_booking_dates()
+
+    def _ai_noshow_train(self):
+        Model = self.env.get('dmag.ai.noshow.model')
+        if Model is None or not hasattr(Model, 'train'):
+            return
+        model = Model.with_company(self.company).train(self.company)
+        upcoming = self.env['dmag.dental.visit'].search([('company_id', '=', self.company.id),
+                                                         ('state', 'in', ('draft', 'confirmed')),
+                                                         ('scheduled_start', '>=', fields.Datetime.now())])
+        Model.with_company(self.company).score_visits(upcoming)
+        self.stats['ai_noshow_samples'] = model.n_samples
+        self.stats['ai_noshow_high'] = len(upcoming.filtered(lambda v: v.dmag_noshow_level == 'high'))
+
+    def _ai_xray_samples(self):
+        Clinical = self.env.get('dmag.ai.clinical')
+        if Clinical is None or not hasattr(Clinical, 'ai06_add_sample'):
+            return
+        for key, sample in (('mai', 'xray_sample_1'), ('huongdo', 'xray_sample_2')):
+            partner = self.patients.get(key)
+            visit = self.env['dmag.dental.visit'].search([('patient_id', '=', partner.id), ('state', '!=', 'cancel')],
+                                                         order='scheduled_start desc', limit=1) if partner else False
+            if visit:
+                Clinical.with_user(self.users['doctor']).with_company(self.company).ai06_add_sample(visit.id, sample)
+                self.stats['ai_xray_samples'] += 1
+
+    def _ai_followups(self):
+        """Khách sau thủ thuật xâm lấn vài ngày trước trả lời câu hỏi theo dõi (đa số bình thường, một ca bất thường)."""
+        if 'dmag.ai.followup' not in self.env:
+            return
+        Followup = self.env['dmag.ai.followup']
+        since = fields.Datetime.now() - timedelta(days=7)
+        todo = Followup.search([('visit_id.done_time', '>=', since), ('state', 'not in', ('answered', 'alert',
+                                                                                          'closed'))],
+                               order='due_at')
+        due = todo.filtered(lambda f: f.due_at and f.due_at <= fields.Datetime.now())
+        answers = [(2, 'none', 'mild', False, 'Hơi ê nhẹ, ăn uống bình thường.'),
+                   (1, 'none', 'none', False, ''),
+                   (8, 'heavy', 'severe', True, 'Vẫn chảy máu nhiều, má sưng to, sốt 38,5 độ, đau không ngủ được.'),
+                   (3, 'light', 'mild', False, 'Rỉ máu ít khi đánh răng.')]
+        for fu, ans in zip(due[:4], answers):
+            if fu.state == 'scheduled' and hasattr(fu, 'action_send'):
+                self.try_('Gửi câu hỏi theo dõi', fu.action_send)
+            if self.try_('Trả lời theo dõi', fu.submit_answers, *ans[:4], free_text=ans[4], channel='portal') is not False:
+                self.stats['ai_followup_answers'] += 1
+
     def _ai_refunds(self):
         """Lễ tân lập 2 hóa đơn điều chỉnh giảm (hoàn tiền cho khách) trong tuần – chứng từ đã ghi sổ bị hoàn."""
         Visit = self.env['dmag.dental.visit']
@@ -1881,22 +2014,27 @@ class DemoGenerator:
     def _ai_customer_samples(self):
         """Tình huống mẫu cho các tính năng của ``dmag_ai_customer`` (nếu đã cài) – gọi hàm của chính module đó."""
         env = self.env
-        if 'dmag.ai.conversation' in env and hasattr(env['dmag.ai.conversation'], 'simulator_start'):
-            Conv = env['dmag.ai.conversation'].with_user(self.users['receptionist']).with_company(self.company)
-            scripts = [
-                ('Chị Hồng (Zalo)', '0901234567', ['Phòng khám mở cửa mấy giờ ạ?',
-                                                   'Cạo vôi răng giá bao nhiêu vậy?',
-                                                   'Cho mình đặt lịch cạo vôi chiều mai nhé']),
-                ('Anh Tuấn (Zalo)', '0912888999', ['Răng hàm mình đau nhức cả đêm, sưng má, có khám gấp được không?']),
-            ]
-            for name, phone, messages in scripts:
-                def chat(name=name, phone=phone, messages=messages):
-                    thread = Conv.simulator_start(name=name, phone=phone)
-                    conv = Conv.browse(thread['id']) if isinstance(thread, dict) and thread.get('id') else None
-                    for text in messages if conv else []:
-                        conv.simulator_send(text)
+        if 'dmag.ai.conversation' in env and hasattr(env['dmag.ai.conversation'], '_get_or_create'):
+            Conv = env['dmag.ai.conversation'].with_company(self.company)
+            # Tin nhắn Zalo OA thật (đường webhook): câu trả lời của trợ lý chờ lễ tân duyệt; ca khẩn / khiếu nại chuyển người
+            for uid, name, phone, messages in D.AI_ZALO_CHATS:
+                def chat(uid=uid, name=name, phone=phone, messages=messages):
+                    conv = Conv._get_or_create('zalo', external_user_id=uid, name=name, phone=phone)
+                    for text in messages:
+                        conv.receive_customer_message(text)
                     return conv
                 if self.try_('Hội thoại Zalo mẫu', chat):
+                    self.stats['ai_conversations'] += 1
+            if hasattr(Conv, 'simulator_start'):
+                Sim = Conv.with_user(self.users['receptionist'])
+                def simulate():
+                    thread = Sim.simulator_start(name='Chị Hồng (mô phỏng)', phone='0901234567')
+                    conv = Sim.browse(thread['id'])
+                    for text in ('Phòng khám mở cửa mấy giờ ạ?', 'Cạo vôi răng giá bao nhiêu vậy?',
+                                 'Cho mình đặt lịch cạo vôi chiều mai nhé'):
+                        conv.simulator_send(text)
+                    return conv
+                if self.try_('Mô phỏng Zalo', simulate):
                     self.stats['ai_conversations'] += 1
         if 'dmag.ai.feedback' in env and hasattr(env['dmag.ai.feedback'], 'action_classify_backlog'):
             self.try_('Phân loại phản hồi', env['dmag.ai.feedback'].with_user(self.users['manager']).with_company(

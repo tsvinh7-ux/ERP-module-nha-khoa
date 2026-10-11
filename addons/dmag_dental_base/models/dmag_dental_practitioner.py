@@ -12,7 +12,7 @@ class DmagDentalPractitioner(models.Model):
     """
     _name = 'dmag.dental.practitioner'
     _description = 'Nhân sự lâm sàng'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'role, sequence, name'
 
     name = fields.Char('Họ tên', required=True, tracking=True)
