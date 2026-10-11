@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.GoalDashboardPlaceholder">
+        <div class="dmag-ws">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <h1>Bảng điều hành mục tiêu</h1>
+                        <span class="dmag-ws-sub">Mục tiêu kinh doanh · OKR · KPI</span>
+                    </div>
+                </div>
+            </header>
+            <div class="dmag-panel m-4">
+                Cần cài module <b>DMAG – Điều hành mục tiêu</b> (<code>dmag_dental_goals</code>) để Giám đốc đặt mục tiêu
+                kinh doanh và theo dõi tiến độ trên màn hình này.
+            </div>
+        </div>
+    </t>
+</templates>

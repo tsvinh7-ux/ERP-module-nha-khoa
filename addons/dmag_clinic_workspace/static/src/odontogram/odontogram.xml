@@ -1,48 +1,244 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="dmag_clinic_workspace.Odontogram">
-        <t t-set="layout" t-value="rows"/>
-        <svg class="dmag-odontogram" t-att-viewBox="'0 0 ' + width + ' ' + height" preserveAspectRatio="xMidYMid meet">
-            <defs>
-                <pattern id="dmagPlannedHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                    <rect width="6" height="6" fill="#FFFFFF"/>
-                    <line x1="0" y1="0" x2="0" y2="6" stroke="#178BEC" stroke-width="2"/>
-                </pattern>
-            </defs>
-            <line t-att-x1="width / 2" y1="0" t-att-x2="width / 2" t-att-y2="height" class="dmag-midline"/>
-            <t t-foreach="layout" t-as="row" t-key="row.key">
-                <t t-foreach="row.teeth" t-as="tooth" t-key="tooth.code">
-                    <g t-att-class="'dmag-tooth' + (isSelected(tooth.code) ? ' is-selected' : '') + (hasFinding(tooth.code) ? ' has-finding' : '')">
-                        <text t-att-x="tooth.x + size / 2" t-att-y="tooth.labelY" class="dmag-tooth-label"
-                              text-anchor="middle" t-on-click="() => this.onToothClick(tooth)" t-esc="tooth.code"/>
-                        <rect t-att-x="tooth.x - 3" t-att-y="tooth.y - 3" t-att-width="size + 6" t-att-height="size + 6"
-                              rx="7" class="dmag-tooth-halo"/>
-                        <t t-foreach="surfacePolys(tooth)" t-as="poly" t-key="poly.slot">
-                            <t t-set="st" t-value="surfaceStyle(tooth, poly.surface)"/>
-                            <polygon t-att-points="poly.points"
-                                     t-att-fill="st.planned ? 'url(#dmagPlannedHatch)' : st.fill"
-                                     t-att-class="'dmag-surface' + (isSurfaceSelected(tooth.code, poly.surface) ? ' is-picked' : '')"
-                                     t-on-click="() => this.onSurfaceClick(tooth, poly.surface)">
-                                <title t-esc="tooth.code + ' – ' + poly.surface"/>
-                            </polygon>
-                        </t>
-                        <t t-foreach="symbolsFor(tooth)" t-as="sym" t-key="sym.id">
-                            <g t-att-class="'dmag-symbol' + (sym.layer === 'planned' ? ' is-planned' : '')" pointer-events="none">
-                                <t t-if="sym.symbol === 'cross'">
-                                    <line t-att-x1="tooth.x + 4" t-att-y1="tooth.y + 4" t-att-x2="tooth.x + size - 4" t-att-y2="tooth.y + size - 4" t-att-stroke="sym.color" stroke-width="5" stroke-linecap="round"/>
-                                    <line t-att-x1="tooth.x + size - 4" t-att-y1="tooth.y + 4" t-att-x2="tooth.x + 4" t-att-y2="tooth.y + size - 4" t-att-stroke="sym.color" stroke-width="5" stroke-linecap="round"/>
-                                </t>
-                                <rect t-elif="sym.symbol === 'ring'" t-att-x="tooth.x - 1" t-att-y="tooth.y - 1" t-att-width="size + 2" t-att-height="size + 2" rx="10" fill="none" t-att-stroke="sym.color" stroke-width="4"/>
-                                <t t-elif="sym.symbol === 'implant'">
-                                    <rect t-att-x="tooth.x + size / 2 - 5" t-att-y="tooth.y + 8" width="10" t-att-height="size - 16" rx="2" t-att-fill="sym.color"/>
-                                    <line t-foreach="[14, 21, 28]" t-as="dy" t-key="dy" t-att-x1="tooth.x + size / 2 - 9" t-att-y1="tooth.y + dy" t-att-x2="tooth.x + size / 2 + 9" t-att-y2="tooth.y + dy + 3" t-att-stroke="sym.color" stroke-width="2.5"/>
-                                </t>
-                                <line t-elif="sym.symbol === 'root'" t-att-x1="tooth.x + size / 2" t-att-y1="tooth.y + 5" t-att-x2="tooth.x + size / 2" t-att-y2="tooth.y + size - 5" t-att-stroke="sym.color" stroke-width="6" stroke-linecap="round"/>
-                                <line t-elif="sym.symbol === 'dash'" t-att-x1="tooth.x + 6" t-att-y1="tooth.y + size / 2" t-att-x2="tooth.x + size - 6" t-att-y2="tooth.y + size / 2" t-att-stroke="sym.color" stroke-width="5" stroke-dasharray="6 4" stroke-linecap="round"/>
-                            </g>
-                        </t>
+        <t t-set="L" t-value="layout"/>
+        <div t-att-class="'o-odo' + (interactive ? ' is-interactive' : ' is-readonly')">
+            <div class="o-odo-orient" aria-hidden="true">
+                <span class="o-odo-orient-side"><i class="fa fa-long-arrow-left" title="Phải bệnh nhân"/> Phải bệnh nhân</span>
+                <span class="o-odo-orient-mid">Bác sĩ nhìn đối diện bệnh nhân · đường giữa</span>
+                <span class="o-odo-orient-side">Trái bệnh nhân <i class="fa fa-long-arrow-right" title="Trái bệnh nhân"/></span>
+            </div>
+            <svg class="o-odo-svg" t-att-viewBox="'0 0 ' + L.width + ' ' + L.height"
+                 t-att-style="'max-width:' + Math.round(L.width * 1.25) + 'px'"
+                 preserveAspectRatio="xMidYMin meet" role="img"
+                 aria-label="Sơ đồ răng FDI, nhìn từ phía bác sĩ đối diện bệnh nhân: bên trái hình là bên phải bệnh nhân">
+                <defs>
+                    <pattern t-foreach="hatchColors" t-as="h" t-key="h.id" t-att-id="h.id" width="5" height="5"
+                             patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                        <rect width="2.2" height="5" t-att-fill="h.color"/>
+                    </pattern>
+                </defs>
+                <t t-foreach="L.blocks" t-as="block" t-key="block.key">
+                    <g class="o-odo-guides" aria-hidden="true">
+                        <text t-if="block.title" t-att-x="block.spanL" t-att-y="block.titleY" class="o-odo-block-title" t-esc="block.title.toUpperCase()"/>
+                        <!-- phía má / môi (ngoài cùng) -->
+                        <text t-att-x="block.quarterL" t-att-y="block.captionTop" class="o-odo-caption" text-anchor="middle">▲ Phía má / môi · mặt ngoài (B)</text>
+                        <text t-att-x="block.quarterR" t-att-y="block.captionTop" class="o-odo-caption" text-anchor="middle">▲ Phía má / môi · mặt ngoài (B)</text>
+                        <text t-att-x="block.quarterL" t-att-y="block.captionBottom" class="o-odo-caption" text-anchor="middle">▼ Phía má / môi · mặt ngoài (B)</text>
+                        <text t-att-x="block.quarterR" t-att-y="block.captionBottom" class="o-odo-caption" text-anchor="middle">▼ Phía má / môi · mặt ngoài (B)</text>
+                        <!-- dải giữa 2 hàm: phía khẩu cái / lưỡi -->
+                        <rect t-att-x="block.spanL" t-att-y="block.bandTop + 3" t-att-width="block.spanR - block.spanL"
+                              t-att-height="34" rx="10" class="o-odo-band"/>
+                        <line t-att-x1="block.spanL + 8" t-att-x2="block.spanR - 8" t-att-y1="block.bandMid" t-att-y2="block.bandMid" class="o-odo-plane"/>
+                        <text t-att-x="block.spanL + 10" t-att-y="block.bandMid - 5" class="o-odo-arch">HÀM TRÊN</text>
+                        <text t-att-x="block.spanL + 10" t-att-y="block.bandMid + 13" class="o-odo-arch">HÀM DƯỚI</text>
+                        <text t-att-x="block.spanR - 10" t-att-y="block.bandMid - 5" class="o-odo-arch" text-anchor="end">HÀM TRÊN</text>
+                        <text t-att-x="block.spanR - 10" t-att-y="block.bandMid + 13" class="o-odo-arch" text-anchor="end">HÀM DƯỚI</text>
+                        <text t-att-x="(block.quarterL + L.mid) / 2 - 10" t-att-y="block.bandMid - 5" class="o-odo-band-text" text-anchor="middle">▲ phía khẩu cái · mặt trong (L/P)</text>
+                        <text t-att-x="(block.quarterR + L.mid) / 2 + 10" t-att-y="block.bandMid - 5" class="o-odo-band-text" text-anchor="middle">▲ phía khẩu cái · mặt trong (L/P)</text>
+                        <text t-att-x="(block.quarterL + L.mid) / 2 - 10" t-att-y="block.bandMid + 13" class="o-odo-band-text" text-anchor="middle">▼ phía lưỡi · mặt trong (L)</text>
+                        <text t-att-x="(block.quarterR + L.mid) / 2 + 10" t-att-y="block.bandMid + 13" class="o-odo-band-text" text-anchor="middle">▼ phía lưỡi · mặt trong (L)</text>
+                        <!-- đường giữa -->
+                        <line t-att-x1="L.mid" t-att-x2="L.mid" t-att-y1="block.captionTop + 4" t-att-y2="block.captionBottom - 12" class="o-odo-midline"/>
                     </g>
+
+                    <t t-foreach="block.teeth" t-as="tooth" t-key="tooth.code">
+                        <g t-att-class="toothClass(tooth)">
+                            <rect t-att-x="tooth.cx - 24" t-att-y="tooth.colTop" width="48"
+                                  t-att-height="tooth.colBottom - tooth.colTop" rx="10" class="o-odo-col"/>
+
+                            <!-- Hình mặt bên: thân + chân răng, nhìn từ phía má / môi -->
+                            <g t-att-transform="tooth.sideTransform" class="o-odo-side">
+                                <g class="o-odo-root" t-on-click="() => this.onToothClick(tooth)"
+                                   t-on-mouseenter="(ev) => this.showTip(ev, tooth, null)" t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                    <t t-if="!tooth.visual.implant">
+                                        <path t-if="tooth.side.root.back" t-att-d="tooth.side.root.back" class="o-odo-root-back"/>
+                                        <path t-att-d="tooth.side.root.path" t-att-fill="tooth.visual.residual ? paint(tooth.visual.residual, ROOT_FILL) : ROOT_FILL"
+                                              class="o-odo-root-shape"
+                                              t-att-style="tooth.visual.residual ? 'stroke:' + tooth.visual.residual.color + ';stroke-width:1.8px' : null"/>
+                                    </t>
+                                    <t t-else="">
+                                        <path t-att-d="tooth.side.root.path" class="o-odo-root-ghost"/>
+                                        <path t-att-d="tooth.side.implant.body" t-att-fill="paint(tooth.visual.implant, '#12A594')"
+                                              t-att-stroke="tooth.visual.implant.color" stroke-width="1.2"/>
+                                        <path t-foreach="tooth.side.implant.threads" t-as="th" t-key="th_index" t-att-d="th"
+                                              t-att-stroke="tooth.visual.implant.color" stroke-width="1.6" stroke-linecap="round"/>
+                                    </t>
+                                    <t t-set="endo" t-value="tooth.visual.canal || tooth.visual.pulp || tooth.visual.apex"/>
+                                    <t t-if="endo and !tooth.visual.implant">
+                                        <path t-if="tooth.visual.pulp" t-att-d="tooth.side.root.pulp" t-att-fill="tooth.visual.pulp.color" opacity="0.85"/>
+                                        <path t-foreach="tooth.side.root.canals" t-as="cn" t-key="cn_index" t-att-d="cn" fill="none"
+                                              t-att-stroke="endo.color" t-att-stroke-width="tooth.visual.canal ? 3.2 : 1.8"
+                                              t-att-stroke-dasharray="endo.planned ? '3 2.5' : null" stroke-linecap="round"/>
+                                        <t t-if="tooth.visual.apex">
+                                            <circle t-foreach="tooth.side.root.apexes" t-as="ap" t-key="ap_index" t-att-cx="ap[0]" t-att-cy="ap[1]" r="5"
+                                                    t-att-fill="tooth.visual.apex.color" fill-opacity="0.25" t-att-stroke="tooth.visual.apex.color" stroke-width="1.6"
+                                                    t-att-stroke-dasharray="tooth.visual.apex.planned ? '2 2' : null"/>
+                                        </t>
+                                    </t>
+                                    <title t-esc="'Răng ' + tooth.code + ' – ' + tooth.info.name + ' (chân răng)'"/>
+                                </g>
+                                <!-- thân răng chia mặt: dải nhai/rìa cắn, gần, xa, mặt ngoài -->
+                                <clipPath t-att-id="uid + '-s-' + tooth.code"><path t-att-d="tooth.side.crown"/></clipPath>
+                                <t t-if="!tooth.visual.residual">
+                                    <g t-att-clip-path="'url(#' + uid + '-s-' + tooth.code + ')'">
+                                        <polygon t-foreach="tooth.side.regions" t-as="rg" t-key="rg.slot" t-att-points="rg.points"
+                                                 t-att-fill="surfaceFill(tooth, rg.surface)"
+                                                 t-att-class="'o-odo-region' + (isPicked(tooth, rg.surface) ? ' is-picked' : '')"
+                                                 t-on-click="() => this.onSurfaceClick(tooth, rg.surface)"
+                                                 t-on-mouseenter="(ev) => this.showTip(ev, tooth, rg.surface)" t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                            <title t-esc="regionTitle(tooth, rg.surface)"/>
+                                        </polygon>
+                                        <t t-foreach="tooth.side.regions" t-as="rg" t-key="rg.slot + '-p'">
+                                            <polygon t-if="tooth.visual.planSurfaces[rg.surface]" t-att-points="rg.points" class="o-odo-plan-overlay"
+                                                     t-att-fill="paint(tooth.visual.planSurfaces[rg.surface])"/>
+                                        </t>
+                                        <path t-if="tooth.visual.crown" t-att-d="tooth.side.crown" t-att-fill="paint(tooth.visual.crown, tooth.visual.crown.color)"
+                                              t-att-fill-opacity="tooth.visual.crown.planned ? 0.55 : 0.3" pointer-events="none"/>
+                                    </g>
+                                    <path t-att-d="tooth.side.crown" class="o-odo-crown-line" t-att-style="ringStyle(tooth.visual.crown, 2.6)"/>
+                                </t>
+                                <path t-else="" t-att-d="tooth.side.crown" class="o-odo-crown-lost"/>
+                                <line t-if="tooth.visual.calculus" t-att-x1="-tooth.side.root.neck - 2" t-att-x2="tooth.side.root.neck + 2"
+                                      t-att-y1="tooth.side.cej + 1" t-att-y2="tooth.side.cej + 1" t-att-stroke="tooth.visual.calculus.color"
+                                      stroke-width="3.5" stroke-dasharray="3 2" pointer-events="none"/>
+                            </g>
+
+                            <!-- Hình mặt nhai: 5 mặt trên viền giải phẫu -->
+                            <g t-att-transform="tooth.mapTransform" class="o-odo-map">
+                                <clipPath t-att-id="uid + '-o-' + tooth.code"><path t-att-d="tooth.occ.outline"/></clipPath>
+                                <g t-att-clip-path="'url(#' + uid + '-o-' + tooth.code + ')'">
+                                    <polygon t-foreach="tooth.occ.regions" t-as="rg" t-key="rg.slot" t-att-points="rg.points"
+                                             t-att-fill="surfaceFill(tooth, rg.surface)"
+                                             t-att-class="'o-odo-region' + (isPicked(tooth, rg.surface) ? ' is-picked' : '')"
+                                             t-on-click="() => this.onSurfaceClick(tooth, rg.surface)"
+                                             t-on-mouseenter="(ev) => this.showTip(ev, tooth, rg.surface)" t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <title t-esc="regionTitle(tooth, rg.surface)"/>
+                                    </polygon>
+                                    <t t-foreach="tooth.occ.regions" t-as="rg" t-key="rg.slot + '-p'">
+                                        <polygon t-if="tooth.visual.planSurfaces[rg.surface]" t-att-points="rg.points" class="o-odo-plan-overlay"
+                                                 t-att-fill="paint(tooth.visual.planSurfaces[rg.surface])"/>
+                                    </t>
+                                </g>
+                                <path t-att-d="tooth.occ.center" t-att-fill="surfaceFill(tooth, tooth.occ.centerSurface)"
+                                      t-att-class="'o-odo-region is-center' + (isPicked(tooth, tooth.occ.centerSurface) ? ' is-picked' : '')"
+                                      t-on-click="() => this.onSurfaceClick(tooth, tooth.occ.centerSurface)"
+                                      t-on-mouseenter="(ev) => this.showTip(ev, tooth, tooth.occ.centerSurface)" t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                    <title t-esc="regionTitle(tooth, tooth.occ.centerSurface)"/>
+                                </path>
+                                <path t-if="tooth.visual.planSurfaces[tooth.occ.centerSurface]" t-att-d="tooth.occ.center" class="o-odo-plan-overlay"
+                                      t-att-fill="paint(tooth.visual.planSurfaces[tooth.occ.centerSurface])"/>
+                                <path t-if="tooth.occ.grooves and !tooth.visual.surfaces[tooth.occ.centerSurface]" t-att-d="tooth.occ.grooves" class="o-odo-groove"/>
+                                <path t-att-d="tooth.occ.outline" class="o-odo-outline" t-att-style="ringStyle(tooth.visual.crown, 3)"/>
+                            </g>
+
+                            <!-- Ký hiệu cả răng (không lật) -->
+                            <g pointer-events="none">
+                                <rect t-if="tooth.visual.bridge" t-att-x="tooth.cx - 25" t-att-y="tooth.crownMidY - 2.5" width="50" height="5" rx="2"
+                                      t-att-fill="paint(tooth.visual.bridge, tooth.visual.bridge.color)" opacity="0.9"/>
+                                <t t-if="tooth.visual.mobility">
+                                    <path t-att-d="'M' + (tooth.cx - 12) + ',' + tooth.rootMidY + ' l5,-4 m-5,4 l5,4 M' + (tooth.cx - 12) + ',' + tooth.rootMidY + ' L' + (tooth.cx + 12) + ',' + tooth.rootMidY + ' l-5,-4 m5,4 l-5,4'"
+                                          fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                                    <path t-att-d="'M' + (tooth.cx - 12) + ',' + tooth.rootMidY + ' l5,-4 m-5,4 l5,4 M' + (tooth.cx - 12) + ',' + tooth.rootMidY + ' L' + (tooth.cx + 12) + ',' + tooth.rootMidY + ' l-5,-4 m5,4 l-5,4'"
+                                          fill="none" t-att-stroke="tooth.visual.mobility.color" stroke-width="2.2" stroke-linecap="round"/>
+                                </t>
+                                <t t-if="tooth.visual.missing">
+                                    <line t-att-x1="tooth.cx - 17" t-att-y1="tooth.crossTop" t-att-x2="tooth.cx + 17" t-att-y2="tooth.crossBottom"
+                                          t-att-stroke="tooth.visual.missing.color" stroke-width="3.4" stroke-linecap="round"
+                                          t-att-stroke-dasharray="tooth.visual.missing.planned ? '7 5' : null"/>
+                                    <line t-att-x1="tooth.cx + 17" t-att-y1="tooth.crossTop" t-att-x2="tooth.cx - 17" t-att-y2="tooth.crossBottom"
+                                          t-att-stroke="tooth.visual.missing.color" stroke-width="3.4" stroke-linecap="round"
+                                          t-att-stroke-dasharray="tooth.visual.missing.planned ? '7 5' : null"/>
+                                </t>
+                            </g>
+
+                            <!-- Số răng -->
+                            <g class="o-odo-num" t-att-tabindex="interactive ? 0 : null" t-att-role="interactive ? 'button' : null"
+                               t-att-aria-pressed="interactive ? (tooth.selected ? 'true' : 'false') : null"
+                               t-att-aria-label="'Răng ' + tooth.code + ' – ' + tooth.info.name"
+                               t-on-click="() => this.onToothClick(tooth)" t-on-keydown="(ev) => this.onToothKey(ev, tooth)"
+                               t-on-mouseenter="(ev) => this.showTip(ev, tooth, null)" t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                <rect t-att-x="tooth.cx - 15" t-att-y="tooth.numY - 9.5" width="30" height="19" rx="9.5" class="o-odo-num-pill"/>
+                                <text t-att-x="tooth.cx" t-att-y="tooth.numY + 4.5" text-anchor="middle" class="o-odo-num-text" t-esc="tooth.code"/>
+                                <circle t-if="tooth.hasPlan" t-att-cx="tooth.cx + 14" t-att-cy="tooth.numY - 8" r="3.2" class="o-odo-plan-dot"/>
+                            </g>
+                        </g>
+                    </t>
                 </t>
+            </svg>
+
+            <div t-if="state.tip" t-att-class="'o-odo-tip' + (state.tip.flip ? ' is-flip' : '')"
+                 t-att-style="'left:' + Math.round(state.tip.x) + 'px; top:' + Math.round(state.tip.y) + 'px'" role="tooltip">
+                <div class="o-odo-tip-title"><t t-esc="state.tip.title"/><t t-if="state.tip.surface"> · <b t-esc="state.tip.surface"/></t></div>
+                <div t-if="state.tip.hint" class="o-odo-tip-hint" t-esc="state.tip.hint"/>
+                <div t-foreach="state.tip.lines" t-as="ln" t-key="ln.id" class="o-odo-tip-line">
+                    <i t-att-class="'o-odo-sw' + (ln.planned ? ' is-planned' : '')" t-att-style="'--c:' + ln.color"/>
+                    <span t-esc="ln.text"/><small t-esc="ln.layer"/>
+                </div>
+            </div>
+
+            <div t-if="props.showLegend" class="o-odo-legend">
+                <div class="o-odo-legend-key">
+                    <svg viewBox="-46 -40 92 80" class="o-odo-key-svg" role="img" aria-label="Ví dụ răng 16 nhìn từ mặt nhai">
+                        <t t-set="kt" t-value="keyTooth"/>
+                        <clipPath t-att-id="uid + '-key'"><path t-att-d="kt.occ.outline"/></clipPath>
+                        <g t-att-clip-path="'url(#' + uid + '-key)'">
+                            <polygon t-foreach="kt.occ.regions" t-as="rg" t-key="rg.slot" t-att-points="rg.points" class="o-odo-key-region"/>
+                        </g>
+                        <path t-att-d="kt.occ.center" class="o-odo-key-region is-center"/>
+                        <path t-att-d="kt.occ.outline" class="o-odo-outline"/>
+                        <text x="1" y="-14" class="o-odo-key-letter">B</text>
+                        <text x="-1" y="22" class="o-odo-key-letter">L/P</text>
+                        <text x="-18" y="4" class="o-odo-key-letter">D</text>
+                        <text x="19" y="4" class="o-odo-key-letter">M</text>
+                        <text x="0" y="4" class="o-odo-key-letter">O</text>
+                        <text x="0" y="-31" class="o-odo-key-dir">má ↑</text>
+                        <text x="0" y="38" class="o-odo-key-dir">↓ khẩu cái</text>
+                    </svg>
+                    <div class="o-odo-key-caption">Ví dụ răng 16<br/>(nhìn từ mặt nhai)</div>
+                </div>
+                <div class="o-odo-legend-main">
+                    <div class="o-odo-legend-row">
+                        <span t-foreach="surfaceKey" t-as="sk" t-key="sk.tag" class="o-odo-legend-surface">
+                            <b t-esc="sk.tag"/> <t t-esc="sk.name"/> <small t-esc="sk.hint"/>
+                        </span>
+                    </div>
+                    <div class="o-odo-legend-row">
+                        <span class="o-odo-legend-item"><i class="o-odo-sw" style="--c:#E5484D"/>Hiện trạng: tô đặc</span>
+                        <span class="o-odo-legend-item"><i class="o-odo-sw is-planned" style="--c:#178BEC"/>Kế hoạch: gạch chéo / nét đứt</span>
+                        <span class="o-odo-legend-item"><i class="o-odo-sw" style="--c:#0090FF"/>Đã điều trị: tô đặc</span>
+                        <span t-foreach="legendConditions" t-as="lc" t-key="lc.key" class="o-odo-legend-item">
+                            <t t-call="dmag_clinic_workspace.OdontogramSymbol"/>
+                            <t t-esc="lc.name"/>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- Biểu tượng nhỏ của một tình trạng trong chú giải -->
+    <t t-name="dmag_clinic_workspace.OdontogramSymbol">
+        <svg class="o-odo-legend-icon" viewBox="0 0 16 16" aria-hidden="true">
+            <t t-if="lc.symbol === 'cross'">
+                <path d="M3,3 L13,13 M13,3 L3,13" t-att-stroke="lc.color" stroke-width="2.6" stroke-linecap="round"/>
+            </t>
+            <t t-elif="lc.symbol === 'ring'">
+                <rect x="2.5" y="2.5" width="11" height="11" rx="4" fill="none" t-att-stroke="lc.color" stroke-width="2.4"/>
+            </t>
+            <t t-elif="lc.symbol === 'implant'">
+                <path d="M6,2 L10,2 L9,13 L7,13 Z" t-att-fill="lc.color"/>
+                <path d="M4.5,5 L11.5,6 M4.5,8 L11.5,9 M5,11 L11,12" t-att-stroke="lc.color" stroke-width="1.3"/>
+            </t>
+            <t t-elif="lc.symbol === 'root'">
+                <path d="M5,2 Q8,1 11,2 L9.5,14 Q8,15 6.5,14 Z" fill="#F3EBDC" stroke="#B8A98F" stroke-width="0.8"/>
+                <path d="M8,3 L8,13" t-att-stroke="lc.color" stroke-width="2.4" stroke-linecap="round"/>
+            </t>
+            <t t-elif="lc.symbol === 'dash'">
+                <path d="M2,8 L14,8" t-att-stroke="lc.color" stroke-width="3" stroke-dasharray="3 2"/>
+            </t>
+            <t t-else="">
+                <rect x="2" y="2" width="12" height="12" rx="3.5" t-att-fill="lc.color"/>
             </t>
         </svg>
     </t>

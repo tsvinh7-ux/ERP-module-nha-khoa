@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Thẻ chỉ số: thực tế · mục tiêu · % đạt · dự báo · cần thêm/ngày · xu hướng -->
+    <t t-name="dmag_dental_goals.GoalCard">
+        <t t-set="st" t-value="status(card.status)"/>
+        <t t-set="bl" t-value="bullet(card)"/>
+        <div t-att-class="'dmag-goal-card is-' + st.tone + (card.action ? ' is-link' : '')"
+             t-att-title="card.formula" t-on-click="() => this.open(card.action)">
+            <div class="dmag-goal-card-top">
+                <span class="dmag-goal-card-label" t-esc="card.label"/>
+                <span t-att-class="'dmag-goal-status is-' + st.tone"><i t-att-class="'fa ' + st.icon" aria-hidden="true"/> <t t-esc="card.status_label"/></span>
+            </div>
+            <div class="dmag-goal-card-value">
+                <span class="dmag-goal-actual" t-esc="fmt(card.unit, card.actual)"/>
+                <span class="dmag-goal-target">/ <t t-esc="targetText(card)"/></span>
+            </div>
+            <div class="dmag-goal-card-meta">
+                <span t-if="card.achieved_pct !== null">Đạt <b t-esc="pct(card.achieved_pct)"/></span>
+                <span t-if="card.target_source" t-att-class="'dmag-goal-src is-' + card.target_source" t-esc="sourceLabel(card.target_source)"/>
+            </div>
+            <div class="dmag-bullet" role="img"
+                 t-att-aria-label="card.label + ': thực tế ' + fmt(card.unit, card.actual) + ', mục tiêu ' + targetText(card)">
+                <div t-if="bl.forecast !== null" class="dmag-bullet-forecast" t-att-style="'width:' + bl.forecast + '%'"/>
+                <div class="dmag-bullet-actual" t-att-style="'width:' + bl.actual + '%'"/>
+                <div t-if="bl.pace !== null" class="dmag-bullet-pace" t-att-style="'left:' + bl.pace + '%'" title="Nhịp cần đạt đến hôm nay"/>
+                <div t-if="bl.target !== null" class="dmag-bullet-target" t-att-style="'left:' + bl.target + '%'" title="Mục tiêu"/>
+            </div>
+            <div class="dmag-goal-lines">
+                <t t-if="card.kind === 'sum'">
+                    <div t-if="card.forecast !== null and !state.data.period.is_past">Dự báo cuối kỳ <b t-esc="fmt(card.unit, card.forecast)"/>
+                        <t t-if="card.forecast_pct !== null"> (<t t-esc="pct(card.forecast_pct)"/> mục tiêu)</t></div>
+                    <div t-if="card.gap and card.per_day">Còn thiếu <b t-esc="fmt(card.unit, card.gap)"/> → cần thêm <b t-esc="fmt(card.unit, card.per_day)"/>/ngày làm việc còn lại</div>
+                    <div t-elif="card.gap and state.data.period.is_past">Thiếu <b t-esc="fmt(card.unit, card.gap)"/> so với mục tiêu</div>
+                </t>
+                <t t-else="">
+                    <div t-if="card.gap !== null and card.gap > 0">Cách mục tiêu <b t-esc="card.unit === 'money' ? fmt('money', card.gap) : dec(card.gap)"/><t t-esc="card.unit === 'pct' ? ' điểm %' : card.unit === 'min' ? ' phút' : card.unit === 'score' ? ' điểm' : ''"/></div>
+                    <div t-elif="card.gap !== null">Vượt mục tiêu</div>
+                </t>
+                <div t-if="card.owner or card.objective" class="dmag-goal-owner">
+                    <i class="fa fa-user-o" aria-hidden="true"/> <t t-esc="card.owner or '—'"/>
+                </div>
+            </div>
+            <div class="dmag-goal-card-foot">
+                <t t-set="sp" t-value="spark(card)"/>
+                <span t-if="card.delta !== undefined and card.delta !== null" t-att-class="'dmag-delta ' + deltaTone(card)"
+                      t-att-title="'So với cùng thời điểm kỳ trước (' + state.data.period.prev_label + '): ' + fmt(card.unit, card.prev)">
+                    <t t-esc="deltaText(card)"/> <small>so kỳ trước</small>
+                </span>
+                <span t-else="" class="dmag-delta is-flat"><small>Chưa có số liệu kỳ trước</small></span>
+                <svg t-if="sp" class="dmag-spark" t-att-viewBox="'0 0 ' + sp.W + ' ' + sp.H" t-att-width="sp.W" t-att-height="sp.H" role="img" aria-label="Xu hướng 6 kỳ gần nhất">
+                    <path t-att-d="sp.d" class="dmag-spark-line"/>
+                    <t t-foreach="sp.coords" t-as="c" t-key="c_index">
+                        <g t-if="c.y !== null">
+                            <circle t-att-cx="c.x" t-att-cy="c.y" r="9" class="dmag-spark-hit"><title t-esc="sparkTitle(card, c)"/></circle>
+                            <circle t-if="c_last" t-att-cx="c.x" t-att-cy="c.y" r="4" t-att-class="'dmag-spark-dot' + (c.partial ? ' is-partial' : '')"/>
+                        </g>
+                    </t>
+                </svg>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="dmag_dental_goals.GoalDashboard">
+        <div class="dmag-ws dmag-goals" t-ref="root">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <h1>Bảng điều hành mục tiêu</h1>
+                        <span class="dmag-ws-sub">Mục tiêu kinh doanh · OKR · KPI</span>
+                    </div>
+                </div>
+                <div class="dmag-ws-actions">
+                    <div class="dmag-seg" role="group" aria-label="Loại kỳ">
+                        <button t-att-class="state.periodType === 'month' ? 'is-on' : ''" t-on-click="() => this.setPeriodType('month')">Tháng</button>
+                        <button t-att-class="state.periodType === 'quarter' ? 'is-on' : ''" t-on-click="() => this.setPeriodType('quarter')">Quý</button>
+                        <button t-att-class="state.periodType === 'year' ? 'is-on' : ''" t-on-click="() => this.setPeriodType('year')">Năm</button>
+                    </div>
+                    <div class="dmag-goal-nav" t-if="state.data">
+                        <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" title="Kỳ trước" aria-label="Kỳ trước" t-on-click="() => this.shift(-1)"><i class="fa fa-chevron-left"/></button>
+                        <span class="dmag-goal-period" t-esc="state.data.period.label"/>
+                        <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" title="Kỳ sau" aria-label="Kỳ sau" t-on-click="() => this.shift(1)"><i class="fa fa-chevron-right"/></button>
+                        <button t-if="state.dateRef" class="dmag-link ms-1" t-on-click="() => this.thisPeriod()">Kỳ hiện tại</button>
+                    </div>
+                    <select t-if="state.data and state.data.companies.length > 1" class="dmag-select" t-on-change="setCompany" aria-label="Phòng khám">
+                        <option value="" t-att-selected="!state.companyId">Tất cả phòng khám</option>
+                        <option t-foreach="state.data.companies" t-as="c" t-key="c.id" t-att-value="c.id" t-att-selected="state.companyId === c.id" t-esc="c.name"/>
+                    </select>
+                    <button t-if="state.data and state.data.targets.action" class="dmag-btn dmag-btn-primary dmag-btn-sm"
+                            t-on-click="() => this.open(state.data.targets.action)">
+                        <i class="fa fa-bullseye me-1" aria-hidden="true"/><t t-esc="state.data.can_edit_targets ? 'Đặt / chốt mục tiêu' : 'Đề xuất mục tiêu'"/>
+                    </button>
+                </div>
+            </header>
+
+            <t t-if="state.data">
+                <t t-set="d" t-value="state.data"/>
+                <div t-att-class="'dmag-goal-body' + (state.loading ? ' is-loading' : '')">
+                    <!-- Dải kỳ: % kỳ đã qua -->
+                    <div class="dmag-goal-strip">
+                        <div class="dmag-goal-strip-main">
+                            <div class="dmag-goal-strip-text">
+                                <b t-esc="d.period.label"/>
+                                <span class="text-muted"> · <t t-esc="d.period.from.slice(8,10) + '/' + d.period.from.slice(5,7)"/> → <t t-esc="d.period.to.slice(8,10) + '/' + d.period.to.slice(5,7) + '/' + d.period.to.slice(0,4)"/> · <t t-esc="d.company_names"/></span>
+                            </div>
+                            <div class="dmag-goal-elapsed">
+                                <div class="dmag-goal-elapsed-track"><div t-att-style="'width:' + d.period.elapsed_pct + '%'"/></div>
+                                <span t-if="d.period.is_past">Kỳ đã kết thúc – <t t-esc="d.period.wd_total"/> ngày làm việc</span>
+                                <span t-elif="d.period.is_future">Kỳ chưa bắt đầu – <t t-esc="d.period.wd_total"/> ngày làm việc</span>
+                                <span t-else="">Đã qua <b t-esc="pct(d.period.elapsed_pct)"/> kỳ (<t t-esc="d.period.wd_elapsed"/>/<t t-esc="d.period.wd_total"/> ngày làm việc) · còn <b t-esc="d.period.wd_left"/> ngày</span>
+                            </div>
+                        </div>
+                        <div class="dmag-goal-strip-side">
+                            <span class="dmag-chip is-info"><t t-esc="d.targets.count"/> mục tiêu đã chốt</span>
+                            <span t-if="d.targets.drafts" class="dmag-chip is-warning"><t t-esc="d.targets.drafts"/> đề xuất chờ chốt</span>
+                            <button t-if="d.alerts.length" class="dmag-chip is-danger dmag-chip-btn" t-on-click="() => this.scrollTo('dmag-goal-alerts')">
+                                <i class="fa fa-bell me-1" aria-hidden="true"/><t t-esc="d.alerts.length"/> cảnh báo cần xử lý
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Mục tiêu kinh doanh -->
+                    <section class="dmag-goal-section">
+                        <div class="dmag-goal-section-head">
+                            <h2>1. Mục tiêu kinh doanh</h2>
+                            <div class="dmag-goal-legend" aria-hidden="true">
+                                <span><i class="dmag-lg-actual"/>Thực tế</span>
+                                <span><i class="dmag-lg-forecast"/>Dự báo cuối kỳ</span>
+                                <span><i class="dmag-lg-target"/>Mục tiêu</span>
+                                <span><i class="dmag-lg-pace"/>Nhịp cần đạt đến hôm nay</span>
+                            </div>
+                        </div>
+                        <div class="dmag-goal-grid">
+                            <t t-foreach="d.north_star" t-as="card" t-key="card.key">
+                                <t t-call="dmag_dental_goals.GoalCard"/>
+                            </t>
+                        </div>
+                    </section>
+
+                    <!-- 2. OKR -->
+                    <section class="dmag-goal-section">
+                        <div class="dmag-goal-section-head">
+                            <h2>2. OKR – Mục tiêu &amp; kết quả then chốt</h2>
+                            <span class="dmag-ws-sub" t-if="d.okr.okr_scale">Từ OKR Scale (chu kỳ trùng kỳ đang xem) và mục tiêu Giám đốc đặt</span>
+                            <span class="dmag-ws-sub" t-else="">Nhóm các mục tiêu đã chốt theo Objective (chưa cài OKR Scale)</span>
+                        </div>
+                        <div t-if="!d.okr.objectives.length and !d.okr.target_objectives.length" class="dmag-goal-empty">
+                            Chưa có Objective cho kỳ này. Giám đốc ghi trường <b>Mục tiêu (Objective)</b> khi đặt mục tiêu kinh doanh
+                            để nhóm các chỉ số thành OKR<t t-if="d.okr.okr_scale">, hoặc tạo Objective trong OKR Scale</t>.
+                        </div>
+                        <div class="dmag-okr-grid">
+                            <div t-foreach="d.okr.objectives" t-as="obj" t-key="'o' + obj.id" class="dmag-okr">
+                                <div class="dmag-okr-head" t-on-click="() => this.open(obj.action)">
+                                    <div>
+                                        <div class="dmag-okr-name"><i class="fa fa-flag-o me-1" aria-hidden="true"/><t t-esc="obj.name"/></div>
+                                        <div class="dmag-ws-sub"><t t-esc="obj.cycle"/> · <t t-esc="obj.owner"/></div>
+                                    </div>
+                                    <b class="dmag-okr-pct" t-esc="pct(obj.progress)"/>
+                                </div>
+                                <div class="dmag-meter-lite"><div t-att-style="'width:' + Math.min(100, obj.progress) + '%'"/></div>
+                                <div t-foreach="obj.krs" t-as="kr" t-key="kr.id" t-att-class="'dmag-kr' + (kr.breached ? ' is-breached' : '')">
+                                    <div class="dmag-kr-main">
+                                        <span class="dmag-kr-name" t-esc="kr.name"/>
+                                        <span class="dmag-ws-sub"><t t-esc="kr.owner"/><t t-if="kr.confidence"> · tự tin <t t-esc="kr.confidence"/>/10</t></span>
+                                    </div>
+                                    <span class="dmag-kr-val"><t t-esc="dec(kr.current)"/> / <t t-esc="dec(kr.target)"/> <t t-esc="kr.unit"/></span>
+                                    <div class="dmag-kr-bar"><div class="dmag-meter-lite"><div t-att-style="'width:' + Math.min(100, kr.progress) + '%'"/></div></div>
+                                    <span t-if="kr.breached" class="dmag-goal-status is-bad"><i class="fa fa-bolt" aria-hidden="true"/> Cầu chì</span>
+                                    <span t-else="" t-att-class="'dmag-goal-status is-' + okrStatus(kr.status).tone" t-esc="okrStatus(kr.status).label"/>
+                                </div>
+                            </div>
+                            <div t-foreach="d.okr.target_objectives" t-as="obj" t-key="'t' + obj_index" class="dmag-okr">
+                                <t t-set="ost" t-value="status(obj.status)"/>
+                                <div class="dmag-okr-head">
+                                    <div>
+                                        <div class="dmag-okr-name"><i class="fa fa-flag-o me-1" aria-hidden="true"/><t t-esc="obj.name"/></div>
+                                        <div class="dmag-ws-sub">Objective kỳ <t t-esc="d.period.label"/><t t-if="obj.owner"> · <t t-esc="obj.owner"/></t></div>
+                                    </div>
+                                    <span t-att-class="'dmag-goal-status is-' + ost.tone"><i t-att-class="'fa ' + ost.icon" aria-hidden="true"/> <t t-esc="obj.status_label"/></span>
+                                </div>
+                                <div class="dmag-okr-progress"><div class="dmag-meter-lite"><div t-att-style="'width:' + obj.progress + '%'"/></div><b t-esc="pct(obj.progress)"/></div>
+                                <div t-foreach="obj.krs" t-as="kr" t-key="kr.key" class="dmag-kr is-link" t-on-click="() => this.open(kr.action)" t-att-title="kr.formula">
+                                    <t t-set="kst" t-value="status(kr.status)"/>
+                                    <div class="dmag-kr-main">
+                                        <span class="dmag-kr-name">KR: <t t-esc="kr.label"/></span>
+                                        <span class="dmag-ws-sub" t-if="kr.owner"><t t-esc="kr.owner"/></span>
+                                    </div>
+                                    <span class="dmag-kr-val"><t t-esc="fmt(kr.unit, kr.actual)"/> / <t t-esc="targetText(kr)"/></span>
+                                    <div class="dmag-kr-bar"><div class="dmag-meter-lite"><div t-att-style="'width:' + kr.progress + '%'"/></div></div>
+                                    <span t-att-class="'dmag-goal-status is-' + kst.tone"><i t-att-class="'fa ' + kst.icon" aria-hidden="true"/> <t t-esc="kr.status_label"/></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-if="d.okr.guardrails.length" class="dmag-guardrails">
+                            <span class="dmag-guardrails-title">Chỉ số cầu chì (y đức / trải nghiệm):</span>
+                            <button t-foreach="d.okr.guardrails" t-as="g" t-key="g.id" t-att-class="'dmag-chip dmag-chip-btn ' + (g.breached ? 'is-danger' : 'is-ok')"
+                                    t-on-click="() => this.open(d.okr.guardrail_action)">
+                                <i t-att-class="'fa ' + (g.breached ? 'fa-bolt' : 'fa-check')" aria-hidden="true"/> <t t-esc="g.name"/>: <t t-esc="dec(g.value)"/><t t-esc="g.unit"/> / ngưỡng <t t-esc="dec(g.threshold)"/><t t-esc="g.unit"/>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- 3. KPI vận hành theo hành trình khách hàng -->
+                    <section class="dmag-goal-section">
+                        <div class="dmag-goal-section-head">
+                            <h2>3. KPI vận hành theo hành trình khách hàng</h2>
+                            <span class="dmag-ws-sub">Tỷ lệ chuyển đổi từng bước so với mục tiêu · bấm để xem danh sách</span>
+                        </div>
+                        <div class="dmag-goal-two">
+                            <div class="dmag-panel dmag-funnel">
+                                <div class="dmag-panel-title">Phễu khách hàng trong kỳ</div>
+                                <div t-foreach="d.funnel.steps" t-as="step" t-key="step.key" class="dmag-funnel-row is-link" t-on-click="() => this.open(step.action)">
+                                    <div class="dmag-funnel-label">
+                                        <span class="dmag-funnel-no" t-esc="step_index + 1"/>
+                                        <span t-esc="step.label"/>
+                                    </div>
+                                    <div class="dmag-funnel-bar">
+                                        <div t-att-style="'width:' + funnelWidth(step) + '%'" t-att-class="'is-step' + step_index"/>
+                                        <span class="dmag-funnel-count"><b t-esc="step.count"/> <t t-esc="step.unit"/></span>
+                                    </div>
+                                    <div class="dmag-funnel-rate">
+                                        <t t-if="step.rate">
+                                            <t t-set="rst" t-value="status(step.rate.status)"/>
+                                            <div class="dmag-funnel-rate-val"><b t-esc="fmt('pct', step.rate.actual)"/> <span class="text-muted">/ <t t-esc="targetText(step.rate)"/></span></div>
+                                            <span t-att-class="'dmag-goal-status is-' + rst.tone"><i t-att-class="'fa ' + rst.icon" aria-hidden="true"/> <t t-esc="step.rate.status_label"/></span>
+                                            <span t-if="step.rate.target_source" t-att-class="'dmag-goal-src is-' + step.rate.target_source" t-esc="sourceLabel(step.rate.target_source)"/>
+                                        </t>
+                                        <t t-else=""><span class="text-muted small">Điểm bắt đầu<t t-if="d.funnel.no_show"> · <t t-esc="d.funnel.no_show"/> lượt không đến</t></span></t>
+                                    </div>
+                                </div>
+                                <div class="dmag-funnel-after">
+                                    <div t-foreach="d.funnel.after_care" t-as="card" t-key="card.key" class="dmag-funnel-after-item is-link" t-on-click="() => this.open(card.action)" t-att-title="card.formula">
+                                        <t t-set="ast" t-value="status(card.status)"/>
+                                        <span class="dmag-funnel-after-label" t-esc="card.label"/>
+                                        <b t-esc="fmt(card.unit, card.actual)"/>
+                                        <span class="text-muted small">/ <t t-esc="targetText(card)"/></span>
+                                        <span t-att-class="'dmag-goal-status is-' + ast.tone"><i t-att-class="'fa ' + ast.icon" aria-hidden="true"/> <t t-esc="card.status_label"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dmag-goal-grid is-compact">
+                                <t t-foreach="d.service" t-as="card" t-key="card.key">
+                                    <t t-call="dmag_dental_goals.GoalCard"/>
+                                </t>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 4. KPI theo người / bộ phận -->
+                    <section class="dmag-goal-section">
+                        <div class="dmag-goal-section-head">
+                            <h2>4. KPI theo người / bộ phận</h2>
+                        </div>
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Bảng điểm bác sĩ</div>
+                            <div class="dmag-table-wrap">
+                                <table class="dmag-goal-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Bác sĩ</th>
+                                            <th class="text-end">Doanh thu</th>
+                                            <th class="dmag-col-bar">Tiến độ so mục tiêu</th>
+                                            <th class="text-end">Dự báo</th>
+                                            <th class="text-end">Chốt KH<div class="dmag-th-sub">mục tiêu <t t-esc="d.people.plan_target !== null ? pct(d.people.plan_target) : '–'"/></div></th>
+                                            <th class="text-end">NPS<div class="dmag-th-sub">mục tiêu <t t-esc="d.people.nps_target !== null ? d.people.nps_target : '–'"/></div></th>
+                                            <th class="text-end">Lượt hoàn tất</th>
+                                            <th class="text-end">Khách mới</th>
+                                            <th class="text-end">Lãi gộp</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-if="!d.people.doctors.length"><td colspan="10" class="text-muted">Chưa có bác sĩ.</td></tr>
+                                        <t t-foreach="d.people.doctors" t-as="doc" t-key="doc.id">
+                                            <t t-set="rv" t-value="doc.revenue"/>
+                                            <t t-set="dst" t-value="status(rv.status)"/>
+                                            <tr class="is-link" t-on-click="() => this.open(doc.action)">
+                                                <td>
+                                                    <div class="fw-bold" t-esc="doc.name"/>
+                                                    <div class="dmag-ws-sub"><t t-esc="doc.title"/><t t-if="doc.level"> · <t t-esc="doc.level"/></t></div>
+                                                    <div t-if="doc.extra.length" class="dmag-chips">
+                                                        <span t-foreach="doc.extra" t-as="x" t-key="x.key" t-att-class="'dmag-chip ' + (status(x.status).tone === 'good' ? 'is-ok' : status(x.status).tone === 'bad' ? 'is-danger' : status(x.status).tone === 'warn' ? 'is-warning' : '')">
+                                                            <t t-esc="x.short"/>: <t t-esc="fmt(x.unit, x.actual)"/>/<t t-esc="fmt(x.unit, x.target)"/>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end tabular"><b t-esc="moneyShort(rv.actual)"/><div class="dmag-ws-sub">/ <t t-esc="rv.target !== null ? moneyShort(rv.target) : 'chưa đặt'"/></div></td>
+                                                <td class="dmag-col-bar">
+                                                    <t t-set="bb" t-value="bullet(rv)"/>
+                                                    <div class="dmag-bullet is-thin">
+                                                        <div t-if="bb.forecast !== null" class="dmag-bullet-forecast" t-att-style="'width:' + bb.forecast + '%'"/>
+                                                        <div class="dmag-bullet-actual" t-att-style="'width:' + bb.actual + '%'"/>
+                                                        <div t-if="bb.pace !== null" class="dmag-bullet-pace" t-att-style="'left:' + bb.pace + '%'"/>
+                                                        <div t-if="bb.target !== null" class="dmag-bullet-target" t-att-style="'left:' + bb.target + '%'"/>
+                                                    </div>
+                                                    <div class="dmag-ws-sub"><t t-if="rv.achieved_pct !== null">Đạt <t t-esc="pct(rv.achieved_pct)"/></t><t t-if="rv.per_day"> · cần <t t-esc="moneyShort(rv.per_day)"/>/ngày</t></div>
+                                                </td>
+                                                <td class="text-end tabular" t-esc="moneyShort(rv.forecast)"/>
+                                                <td t-att-class="'text-end tabular' + (doc.plan_acceptance !== null and d.people.plan_target !== null and doc.plan_acceptance &lt; d.people.plan_target ? ' is-under' : '')" t-esc="fmt('pct', doc.plan_acceptance)"/>
+                                                <td t-att-class="'text-end tabular' + (doc.nps !== null and d.people.nps_target !== null and doc.nps &lt; d.people.nps_target ? ' is-under' : '')" t-esc="fmt('score', doc.nps)"/>
+                                                <td class="text-end tabular" t-esc="doc.cases"/>
+                                                <td class="text-end tabular" t-esc="fmt('count', doc.new_patients)"/>
+                                                <td class="text-end tabular" t-esc="moneyShort(doc.gross_profit)"/>
+                                                <td><span t-att-class="'dmag-goal-status is-' + dst.tone"><i t-att-class="'fa ' + dst.icon" aria-hidden="true"/> <t t-esc="rv.status_label"/></span></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">
+                                <span>KPI theo vị trí (lương 3P – P3)</span>
+                                <button t-if="d.people.roles.action" class="dmag-link" t-on-click="() => this.open(d.people.roles.action)">Mở kết quả KPI</button>
+                            </div>
+                            <div t-if="!d.people.roles.installed" class="dmag-goal-empty">Chưa cài module lương 3P (<code>dmag_hr_3p</code>) – chưa có KPI theo vị trí.</div>
+                            <div t-elif="!d.people.roles.employees.length" class="dmag-goal-empty">Chưa có kết quả KPI cho kỳ này (tạo khi lập bảng lương 3P của tháng).</div>
+                            <t t-else="">
+                                <div class="dmag-role-summary">
+                                    <div t-foreach="d.people.roles.profiles" t-as="pf" t-key="pf.name" class="dmag-role-pill">
+                                        <span t-esc="pf.name"/>
+                                        <b t-esc="pct(pf.score)"/>
+                                        <small><t t-esc="pf.count"/> người</small>
+                                    </div>
+                                </div>
+                                <div class="dmag-table-wrap">
+                                    <table class="dmag-goal-table">
+                                        <thead><tr><th>Nhân viên</th><th>Vị trí</th><th class="dmag-col-bar">Điểm KPI (trọng số)</th><th>Chỉ tiêu</th></tr></thead>
+                                        <tbody>
+                                            <t t-foreach="d.people.roles.employees" t-as="emp" t-key="emp.id">
+                                                <t t-set="est" t-value="status(emp.status)"/>
+                                                <tr class="is-link" t-on-click="() => this.toggleEmp(emp.id)">
+                                                    <td class="fw-bold"><i t-att-class="'fa me-1 ' + (state.openEmp[emp.id] ? 'fa-caret-down' : 'fa-caret-right')" aria-hidden="true"/><t t-esc="emp.name"/></td>
+                                                    <td t-esc="emp.profile"/>
+                                                    <td class="dmag-col-bar">
+                                                        <div class="dmag-score">
+                                                            <div class="dmag-meter-lite"><div t-att-class="'is-' + est.tone" t-att-style="'width:' + Math.min(100, emp.score / 1.2) + '%'"/><i class="dmag-meter-mark" style="left: 83.33%" title="100%"/></div>
+                                                            <b t-esc="pct(emp.score)"/>
+                                                        </div>
+                                                    </td>
+                                                    <td class="dmag-ws-sub"><t t-esc="emp.lines.length"/> chỉ tiêu</td>
+                                                </tr>
+                                                <tr t-if="state.openEmp[emp.id]" class="dmag-sub-row">
+                                                    <td colspan="4">
+                                                        <div t-foreach="emp.lines" t-as="ln" t-key="ln_index" class="dmag-kpi-line">
+                                                            <span class="flex-grow-1"><t t-esc="ln.name"/><span t-if="ln.auto" class="dmag-chip is-info ms-1">tự đo</span></span>
+                                                            <span class="tabular"><t t-esc="dec(ln.actual)"/> / <t t-esc="dec(ln.target)"/> <t t-esc="ln.unit"/></span>
+                                                            <b class="tabular" t-esc="pct(ln.achievement)"/>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+                        </div>
+                    </section>
+
+                    <!-- 5. Sức khỏe tài chính & cảnh báo -->
+                    <section class="dmag-goal-section">
+                        <div class="dmag-goal-section-head">
+                            <h2>5. Sức khỏe tài chính &amp; cảnh báo</h2>
+                        </div>
+                        <t t-set="fi" t-value="d.finance"/>
+                        <div class="dmag-goal-two is-finance">
+                            <div class="dmag-panel">
+                                <div class="dmag-panel-title">
+                                    <span>Từ doanh thu đến lợi nhuận gộp</span>
+                                    <span class="dmag-ws-sub" t-if="fi.margin_pct !== null">Biên lãi gộp <b t-esc="pct(fi.margin_pct)"/></span>
+                                </div>
+                                <t t-set="wf" t-value="waterfall"/>
+                                <svg class="dmag-wf" t-att-viewBox="'0 0 ' + wf.W + ' ' + wf.H" role="img" aria-label="Doanh thu trừ vật tư, labo, hoa hồng ra lợi nhuận gộp">
+                                    <line t-att-x1="wf.pad.l" t-att-x2="wf.W - wf.pad.r" t-att-y1="wf.base" t-att-y2="wf.base" class="dmag-wf-base"/>
+                                    <t t-foreach="wf.bars" t-as="b" t-key="b.key">
+                                        <line t-if="!b_last" t-att-x1="b.x + b.w" t-att-x2="b.x + b.w + (wf.W - wf.pad.l - wf.pad.r) / wf.bars.length - b.w" t-att-y1="b.kind === 'minus' ? b.top + b.h : b.top" t-att-y2="b.kind === 'minus' ? b.top + b.h : b.top" class="dmag-wf-link"/>
+                                        <g class="dmag-wf-bar" t-on-mouseenter="() => this.state.hoverWf = b" t-on-mouseleave="() => this.state.hoverWf = null" t-on-click="() => this.open(b.action)">
+                                            <rect t-att-x="b.x - 6" t-att-y="wf.pad.t - 20" t-att-width="b.w + 12" t-att-height="wf.H - wf.pad.t" fill="transparent"/>
+                                            <rect t-if="!b.na" t-att-x="b.x" t-att-y="b.top" t-att-width="b.w" t-att-height="b.h" rx="4" t-att-class="'is-' + b.key + ' is-' + b.kind"/>
+                                            <text t-att-x="b.cx" t-att-y="b.top - 7" text-anchor="middle" class="dmag-wf-value" t-esc="b.text"/>
+                                        </g>
+                                        <t t-foreach="wfLabelLines(b.label)" t-as="ln" t-key="ln_index">
+                                            <text t-att-x="b.cx" t-att-y="wf.H - wf.pad.b + 18 + ln_index * 14" text-anchor="middle" class="dmag-wf-label" t-esc="ln"/>
+                                        </t>
+                                    </t>
+                                </svg>
+                                <div class="dmag-tooltip-row">
+                                    <t t-if="state.hoverWf and !state.hoverWf.na"><b t-esc="state.hoverWf.label"/>: <t t-esc="state.hoverWf.text"/><t t-if="state.hoverWf.pct !== null and state.hoverWf.key !== 'revenue'"> (<t t-esc="pct(Math.abs(state.hoverWf.pct))"/> doanh thu)</t></t>
+                                    <t t-else="">Rê chuột vào cột để xem tỷ lệ trên doanh thu · bấm để mở chứng từ</t>
+                                </div>
+                                <table class="dmag-goal-table is-compact">
+                                    <tbody>
+                                        <tr t-foreach="wf.bars" t-as="b" t-key="b.key">
+                                            <td t-esc="b.label"/>
+                                            <td class="text-end tabular" t-esc="b.text"/>
+                                            <td class="text-end tabular text-muted" t-esc="b.na or b.key === 'revenue' ? '' : pct(Math.abs(b.pct || 0)) + ' doanh thu'"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="dmag-fin-side">
+                                <div class="dmag-fin-tile">
+                                    <span class="dmag-fin-label">Thực thu / doanh thu</span>
+                                    <span class="dmag-fin-value" t-esc="fi.collection_pct !== null ? pct(fi.collection_pct) : '–'"/>
+                                    <span class="dmag-ws-sub">Thu <t t-esc="moneyShort(fi.collected)"/> / doanh thu <t t-esc="moneyShort(fi.revenue)"/></span>
+                                </div>
+                                <div class="dmag-fin-tile is-link" t-on-click="() => this.open(fi.receivable_action)">
+                                    <span class="dmag-fin-label">Công nợ phải thu</span>
+                                    <span class="dmag-fin-value" t-esc="moneyShort(fi.receivable)"/>
+                                    <span class="dmag-ws-sub"><t t-esc="fi.receivable_count"/> hóa đơn còn nợ</span>
+                                </div>
+                                <div t-att-class="'dmag-fin-tile is-link' + (fi.overdue ? ' is-bad' : '')" t-on-click="() => this.open(fi.overdue_action)">
+                                    <span class="dmag-fin-label">Trong đó quá hạn</span>
+                                    <span class="dmag-fin-value" t-esc="moneyShort(fi.overdue)"/>
+                                    <span class="dmag-ws-sub"><t t-esc="fi.overdue_count"/> hóa đơn quá hạn</span>
+                                </div>
+                                <t t-set="cg" t-value="fi.cogs"/>
+                                <t t-set="cst" t-value="status(cg.status)"/>
+                                <div class="dmag-fin-tile is-link" t-on-click="() => this.open(cg.action)" t-att-title="cg.formula">
+                                    <span class="dmag-fin-label">Giá vốn vật tư + labo</span>
+                                    <span class="dmag-fin-value"><t t-esc="fmt('pct', cg.actual)"/> <small class="text-muted">/ <t t-esc="targetText(cg)"/></small></span>
+                                    <span t-att-class="'dmag-goal-status is-' + cst.tone"><i t-att-class="'fa ' + cst.icon" aria-hidden="true"/> <t t-esc="cg.status_label"/></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dmag-panel" id="dmag-goal-alerts">
+                            <div class="dmag-panel-title">Cảnh báo &amp; việc cần làm</div>
+                            <div t-if="!d.alerts.length" class="dmag-goal-empty"><i class="fa fa-check-circle text-success me-1" aria-hidden="true"/>Không có cảnh báo – mọi chỉ số trong ngưỡng.</div>
+                            <div t-foreach="d.alerts" t-as="al" t-key="al_index" t-att-class="'dmag-alert is-' + al.level">
+                                <i t-att-class="'fa dmag-alert-icon ' + (al.level === 'danger' ? 'fa-exclamation-triangle' : al.level === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle')" aria-hidden="true"/>
+                                <div class="dmag-alert-body">
+                                    <div class="dmag-alert-title" t-esc="al.title"/>
+                                    <div class="dmag-alert-detail" t-esc="al.detail"/>
+                                    <div class="dmag-alert-todo"><b>Việc cần làm:</b> <t t-esc="al.todo"/></div>
+                                </div>
+                                <button t-if="al.action" class="dmag-btn dmag-btn-ghost dmag-btn-sm" t-on-click="() => this.open(al.action)" t-esc="al.action_label"/>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </t>
+            <div t-else="" class="dmag-goal-empty m-4">Đang tải số liệu…</div>
+        </div>
+    </t>
+</templates>

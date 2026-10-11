@@ -26,7 +26,7 @@ Module có mã Python nên **không** cài được bằng "Nhập mô-đun" (zi
 | `tuvan.demo` | Tư vấn | Chế độ tư vấn 2 phương án, chốt kế hoạch |
 | `bacsi.demo`, `bacsi2.demo` | Bác sĩ | Bàn làm việc bác sĩ → sơ đồ răng, **Bệnh án 16/BV1**, **Đơn thuốc** (phát hành, in), ký bệnh án |
 | `phuta.demo` | Phụ tá | Thủ thuật, vật tư |
-| `quanly.demo` | Quản lý | Buồng lái, labo, kho, hồ sơ pháp chế, lương 3P (soát) |
+| `quanly.demo` | Quản lý | Bảng điều hành mục tiêu, labo, kho, hồ sơ pháp chế, lương 3P (soát) |
 | `giamdoc.demo` | Giám đốc | Duyệt lương 3P, mở khóa / sửa chứng từ đã chốt, giảm giá vượt mức |
 | `benhnhan.demo` | Bệnh nhân | Cổng `/my/dental`: nội dung khám, đơn thuốc, kế hoạch, bảo hành, điểm |
 

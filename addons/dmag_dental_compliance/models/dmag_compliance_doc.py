@@ -206,7 +206,7 @@ class DmagComplianceDoc(models.Model):
     # ------------------------------------------------------------------ dashboard
     @api.model
     def get_compliance_status(self, company_id=False):
-        """Checklist "Sẵn sàng thanh tra" cho Buồng lái chủ phòng khám."""
+        """Checklist "Sẵn sàng thanh tra" cho Bảng điều hành mục tiêu."""
         company = self.env['res.company'].browse(company_id) if company_id else self.env.company
         Doc = self.sudo().with_context(active_test=True)
         docs = Doc.search([('company_id', '=', company.id)])

@@ -17,7 +17,7 @@ và bổ sung phần nghiệp vụ nha khoa theo hành trình khách hàng, đú
 |---|---|---|
 | Lõi | `dmag_dental_base` | Răng FDI, mặt răng, tình trạng, ICD-10; bệnh nhân; ghế; bác sĩ và phạm vi hành nghề; phân quyền 5 cấp |
 | | `dmag_dental_clinic` | Lượt khám theo hành trình, sơ đồ răng, kế hoạch điều trị nhiều phương án, thủ thuật, hóa đơn, thuế KCT |
-| | `dmag_clinic_workspace` | Giao diện OWL: Bảng điều phối, Bàn làm việc bác sĩ, Chế độ tư vấn, Đặt lịch / Bệnh nhân mới / Thu tiền, Buồng lái chủ phòng khám |
+| | `dmag_clinic_workspace` | Giao diện OWL: Bảng điều phối, Bàn làm việc bác sĩ, Chế độ tư vấn, Đặt lịch / Bệnh nhân mới / Thu tiền |
 | Y tế – pháp lý | `dmag_dental_emr` | Bệnh án ngoại trú RHM **16/BV1** (TT 32/2023, TT 13/2025), phiếu điều trị, cam kết, tóm tắt hồ sơ, nhật ký truy cập, lưu trữ |
 | | `dmag_dental_prescription` | Đơn thuốc điện tử **TT 26/2025**, mã đơn 14 ký tự, liên thông Đơn thuốc quốc gia |
 | | `dmag_esign_mysign` | Ký số Viettel MySign cho bệnh án / chứng từ |
@@ -33,6 +33,7 @@ và bổ sung phần nghiệp vụ nha khoa theo hành trình khách hàng, đú
 | Nhân sự | `dmag_hr_3p` | Ngạch bậc P/M (demo), lương 3P xuất cho Payroll Bizapps |
 | | `dmag_dental_commission` | Thủ thuật phí, hoa hồng theo thực thu, cầu chì y đức |
 | | `dmag_okr_dental` | Cầu nối OKR Scale: KR tự đo từ dữ liệu nha khoa |
+| Điều hành | `dmag_dental_goals` | Bảng điều hành mục tiêu: Giám đốc đặt mục tiêu kinh doanh tháng / quý / năm (toàn phòng khám, từng bác sĩ, nhóm theo Objective); thực tế – tiến độ – dự báo cuối kỳ, OKR, KPI hành trình khách hàng, KPI theo người, sức khỏe tài chính, cảnh báo có việc cần làm |
 | Demo | `dmag_dental_demo` | Kiểu `social_demo`: giả lập mọi tích hợp, sinh dữ liệu + chính sách mẫu, tài khoản thử theo vai trò; gỡ là sạch |
 
 ## Nguyên tắc phân quyền “tạo được – không sửa”
@@ -51,8 +52,8 @@ mức giảm giá vượt ngưỡng phải có Giám đốc duyệt. Lễ tân v
 | ![](docs/screenshots/10_benh_an_16BV1.png) | ![](docs/screenshots/11_don_thuoc_TT26.png) |
 | **Bản in bệnh án 16/BV1** | **Bản in đơn thuốc (mã đơn + QR)** |
 | ![](docs/screenshots/13_in_benh_an.png) | ![](docs/screenshots/14_in_don_thuoc.png) |
-| **Chế độ tư vấn 2 phương án** | **Buồng lái chủ phòng khám** |
-| ![](docs/screenshots/05_che_do_tu_van.png) | ![](docs/screenshots/12_buong_lai.png) |
+| **Chế độ tư vấn 2 phương án** | **Bảng điều hành mục tiêu** |
+| ![](docs/screenshots/05_che_do_tu_van.png) | ![](docs/screenshots/17_dieu_hanh_muc_tieu.png) |
 
 ## Cài đặt
 

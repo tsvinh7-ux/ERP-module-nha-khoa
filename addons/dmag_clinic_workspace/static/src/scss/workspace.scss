@@ -229,20 +229,7 @@ $dmag-radius: 14px;
 .dmag-summary-item { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; border: 0; background: none; padding: 5px 6px; border-radius: 8px; font-size: 13px;
     &:hover { background: $dmag-blue-soft; } }
 
-// odontogram svg
-.dmag-odontogram { width: 100%; height: auto; user-select: none; touch-action: manipulation; }
-.dmag-midline { stroke: $dmag-line; stroke-width: 2; stroke-dasharray: 4 6; }
-.dmag-tooth-label { font-size: 13px; font-weight: 700; fill: $dmag-muted; cursor: pointer; }
-.dmag-tooth-halo { fill: transparent; stroke: transparent; stroke-width: 3; }
-.dmag-surface { stroke: #9FB0C6; stroke-width: 1.2; cursor: pointer; transition: opacity .1s;
-    &:hover { opacity: .75; }
-    &.is-picked { stroke: $dmag-navy; stroke-width: 3; } }
-.dmag-tooth.is-selected {
-    .dmag-tooth-halo { stroke: $dmag-blue; fill: rgba($dmag-blue, .08); }
-    .dmag-tooth-label { fill: $dmag-blue; }
-}
-.dmag-tooth.has-finding .dmag-tooth-label { fill: $dmag-danger; }
-.dmag-symbol.is-planned { opacity: .45; }
+// sơ đồ răng: xem static/src/odontogram/odontogram.scss
 
 // record
 .dmag-record { max-width: 980px; }
@@ -383,38 +370,8 @@ $dmag-radius: 14px;
 .dmag-pay-done { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 30px 0; font-weight: 800; color: #0B7A6D; font-size: 18px;
     i { font-size: 54px; color: $dmag-ok; } }
 
-// ---------------------------------------------------------------- owner cockpit
-.dmag-cockpit { padding-bottom: 24px; }
-.dmag-hero-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 6px 22px; }
-.dmag-hero { background: #fff; border: 1px solid $dmag-line; border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;
-    &.is-primary { background: linear-gradient(135deg, $dmag-navy, darken($dmag-blue, 6%)); color: #fff; border: 0;
-        .dmag-hero-label, .dmag-hero-sub { color: rgba(255, 255, 255, .8); } .dmag-hero-value { color: #fff; } } }
-.dmag-hero-label { color: $dmag-muted; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.dmag-hero-value { font-size: 28px; font-weight: 800; color: $dmag-navy; line-height: 1.15; &.is-bad { color: $dmag-danger; } }
-.dmag-hero-sub { color: $dmag-muted; font-size: 13px; }
-.dmag-scorecards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 10px 22px; }
-.dmag-scorecard { background: #fff; border: 1px solid $dmag-line; border-radius: 16px; padding: 14px 16px; }
-.dmag-scorecard-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-.dmag-scorecard-label { font-weight: 700; color: $dmag-navy; font-size: 13px; }
-.dmag-scorecard-value { font-size: 26px; font-weight: 800; color: $dmag-text; margin: 6px 0; }
-.dmag-scorecard-target { color: $dmag-muted; font-size: 12px; margin-top: 6px; }
-.dmag-status { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap;
-    &.is-good { background: #E6F7F4; color: #0B7A6D; } &.is-warn { background: #FFF4E0; color: #9A5B00; } &.is-muted { background: #EEF1F5; color: #6B7785; } }
-.dmag-meter { height: 8px; background: #E9EEF5; border-radius: 99px; overflow: hidden; div { height: 100%; background: $dmag-blue; border-radius: 99px; } }
-.dmag-cockpit-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 10px 22px; align-items: start;
-    .dmag-chart-panel { grid-row: span 2; } }
-.dmag-bars { width: 100%; height: auto; }
-.dmag-grid { stroke: #E9EEF5; stroke-width: 1; }
-.dmag-baseline { stroke: #C4D0DF; stroke-width: 1; }
-.dmag-axis { font-size: 11px; fill: $dmag-muted; }
-.dmag-bar { fill: $dmag-blue; &:hover { fill: $dmag-navy; } }
-.dmag-tooltip-line { font-size: 13px; color: $dmag-muted; margin-top: 6px; min-height: 20px; b { color: $dmag-navy; } }
-.dmag-hbar { margin-bottom: 10px; }
-.dmag-hbar-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 4px; b { color: $dmag-navy; } }
-.dmag-hbar-track { height: 10px; background: #EEF2F7; border-radius: 99px; overflow: hidden; div { height: 100%; background: $dmag-blue; border-radius: 99px; } }
-
 @media (max-width: 900px) {
-    .dmag-booking, .dmag-pay, .dmag-cockpit-grid, .dmag-form-grid { grid-template-columns: 1fr; }
+    .dmag-booking, .dmag-pay, .dmag-form-grid { grid-template-columns: 1fr; }
     .dmag-span-2 { grid-column: auto; }
 }
 

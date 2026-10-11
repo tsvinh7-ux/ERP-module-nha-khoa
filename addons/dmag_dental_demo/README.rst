@@ -5,7 +5,7 @@ DMAG – Dữ liệu demo & giả lập tích hợp
 Module ``dmag_dental_demo`` biến **một cơ sở dữ liệu thật** (Odoo 17 Bizapps, thường cài **không có dữ liệu
 demo của Odoo**) thành môi trường demo / kiểm thử khép kín cho toàn bộ DMAG Dental ERP – giống cách
 ``social_demo`` của Odoo làm cho ứng dụng Mạng xã hội. Chủ phòng khám cài vào là bấm thử được mọi màn hình:
-Bảng điều phối, Bàn làm việc bác sĩ, Chế độ tư vấn, Buồng lái, thu tiền QR, đơn thuốc, ký số, labo, kho,
+Bảng điều phối, Bàn làm việc bác sĩ, Chế độ tư vấn, Bảng điều hành mục tiêu, thu tiền QR, đơn thuốc, ký số, labo, kho,
 hoa hồng, lương 3P…
 
 .. warning::

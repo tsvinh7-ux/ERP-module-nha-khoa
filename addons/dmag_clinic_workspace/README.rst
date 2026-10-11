@@ -13,3 +13,5 @@ Giao diện vận hành cho người không quen Odoo (tablet-first, nhận di�
 * **Lập kế hoạch từ sơ đồ**: tự gợi ý dịch vụ theo bệnh lý, 2 phương án song song, tổng tiền tức thời.
 * **Chế độ tư vấn**: màn hình quay về phía bệnh nhân, 2 phương án đặt cạnh nhau, trả góp/tháng,
   bệnh nhân tự chọn → lập hợp đồng; in bản tóm tắt.
+* **Bảng điều hành mục tiêu** (chủ phòng khám): màn hình và mục tiêu kinh doanh nằm ở module
+  ``dmag_dental_goals``; module này giữ hành động ``action_dmag_owner_cockpit`` (đường dẫn cũ vẫn mở được).

@@ -12,7 +12,7 @@ Phiếu gửi labo cho phục hình gia công ngoài (mão/cầu sứ, abutment,
 * Trễ hạn: cờ ``is_late`` (tìm kiếm được), cron hằng ngày tạo việc nhắc cho bác sĩ / người lập phiếu.
 * Phân quyền "tạo được – không sửa": phụ tá / bác sĩ tạo và gửi phiếu; sau khi gửi chỉ Giám đốc sửa chi phí,
   labo, hủy phiếu. Trạng thái chỉ đổi qua nút quy trình.
-* KPI cho Buồng lái: ``dmag.lab.order.get_lab_kpis(date_from, date_to, company_id=False)`` →
+* KPI cho Bảng điều hành mục tiêu: ``dmag.lab.order.get_lab_kpis(date_from, date_to, company_id=False)`` →
   ``{lab_cost, revenue, lab_cost_ratio (%), threshold, alert, order_count, open_count, late_count,
   remake_count, on_time_rate, currency, company_id, date_from, date_to}``.
 

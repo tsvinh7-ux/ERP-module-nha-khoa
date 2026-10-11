@@ -4,6 +4,7 @@ import { Component, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Odontogram } from "../odontogram/odontogram";
+import { ToothZoom } from "../odontogram/tooth_zoom";
 import { ConsultMode } from "../consult/consult_mode";
 import { EmrPanel } from "./emr_panel";
 import { RxPanel } from "./rx_panel";
@@ -19,7 +20,7 @@ const QUICK_PHRASES = {
 
 export class DoctorDesk extends Component {
     static template = "dmag_clinic_workspace.DoctorDesk";
-    static components = { Odontogram, ConsultMode, EmrPanel, RxPanel };
+    static components = { Odontogram, ToothZoom, ConsultMode, EmrPanel, RxPanel };
     static props = ["*"];
 
     setup() {
@@ -35,6 +36,7 @@ export class DoctorDesk extends Component {
             tab: "chart",
             dentition: "permanent",
             selection: { teeth: {} },
+            zoomTooth: false,
             showPlanned: true,
             builder: null,
             consultPlan: null,
@@ -127,8 +129,18 @@ export class DoctorDesk extends Component {
             delete teeth[code];
         } else {
             teeth[code] = [];
+            this.state.zoomTooth = code;
         }
         this.state.selection = { teeth };
+    }
+
+    /** Răng đang phóng to ở khung bên phải: răng vừa chạm, nếu đã bỏ chọn thì răng chọn sau cùng. */
+    get zoomCode() {
+        const teeth = this.selectedTeeth;
+        if (this.state.zoomTooth && teeth.includes(this.state.zoomTooth)) {
+            return this.state.zoomTooth;
+        }
+        return teeth.length ? teeth[teeth.length - 1] : false;
     }
 
     toggleSurface(code, surface) {
@@ -142,6 +154,7 @@ export class DoctorDesk extends Component {
         }
         teeth[code] = current;
         this.state.selection = { teeth };
+        this.state.zoomTooth = code;
     }
 
     clearSelection() {
@@ -201,6 +214,7 @@ export class DoctorDesk extends Component {
 
     selectEntryTooth(entry) {
         this.state.selection = { teeth: { [entry.tooth]: [...entry.surfaces] } };
+        this.state.zoomTooth = entry.tooth;
     }
 
     async resolveEntry(entry) {

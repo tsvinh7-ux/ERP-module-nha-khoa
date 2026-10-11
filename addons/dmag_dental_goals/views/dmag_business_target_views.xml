@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dmag_business_target_tree" model="ir.ui.view">
+        <field name="name">dmag.business.target.tree</field>
+        <field name="model">dmag.business.target</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="state == 'draft'" sample="1">
+                <field name="sequence" widget="handle"/>
+                <field name="period_label" string="Kỳ"/>
+                <field name="objective" optional="show"/>
+                <field name="metric"/>
+                <field name="practitioner_id" optional="show"/>
+                <field name="target_value"/>
+                <field name="metric_unit" string="Đơn vị"/>
+                <field name="user_id" optional="show" widget="many2one_avatar_user"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'confirmed'" decoration-info="state == 'draft'"/>
+                <field name="period_type" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dmag_business_target_form" model="ir.ui.view">
+        <field name="name">dmag.business.target.form</field>
+        <field name="model">dmag.business.target</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" type="object" string="Chốt mục tiêu" class="btn-primary"
+                            invisible="state != 'draft'" groups="dmag_dental_base.group_dmag_director"/>
+                    <button name="action_reset_draft" type="object" string="Mở lại để sửa"
+                            invisible="state != 'confirmed'" groups="dmag_dental_base.group_dmag_director"/>
+                    <button name="action_open_dashboard" type="object" string="Xem bảng điều hành"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="metric"/>
+                        <h1><field name="metric" readonly="state == 'confirmed'" placeholder="Chọn chỉ số…"/></h1>
+                    </div>
+                    <group>
+                        <group string="Kỳ &amp; phạm vi">
+                            <field name="period_type" readonly="state == 'confirmed'"/>
+                            <field name="date_from" readonly="state == 'confirmed'"/>
+                            <field name="date_to"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state == 'confirmed'"/>
+                            <field name="practitioner_id" readonly="state == 'confirmed'"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group string="Mục tiêu">
+                            <label for="target_value"/>
+                            <div class="o_row">
+                                <field name="target_value" readonly="state == 'confirmed'"/>
+                                <field name="metric_unit" nolabel="1"/>
+                            </div>
+                            <field name="direction"/>
+                            <field name="objective" readonly="state == 'confirmed'"
+                                   placeholder="Ví dụ: Tăng trưởng doanh thu bền vững"/>
+                            <field name="user_id" readonly="state == 'confirmed'" widget="many2one_avatar_user"/>
+                        </group>
+                    </group>
+                    <group string="Cách tính">
+                        <field name="formula" nolabel="1" colspan="2"/>
+                    </group>
+                    <group string="Ghi chú / sáng kiến">
+                        <field name="note" nolabel="1" colspan="2"
+                               placeholder="Sáng kiến để đạt mục tiêu, giả định, người hỗ trợ…"/>
+                    </group>
+                    <group invisible="state != 'confirmed'">
+                        <field name="confirmed_by_id"/>
+                        <field name="confirmed_date"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dmag_business_target_search" model="ir.ui.view">
+        <field name="name">dmag.business.target.search</field>
+        <field name="model">dmag.business.target</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="metric"/>
+                <field name="objective"/>
+                <field name="practitioner_id"/>
+                <field name="user_id"/>
+                <filter name="confirmed" string="Đã chốt" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="draft" string="Đề xuất" domain="[('state', '=', 'draft')]"/>
+                <separator/>
+                <filter name="clinic" string="Toàn phòng khám" domain="[('practitioner_id', '=', False)]"/>
+                <filter name="per_doctor" string="Theo bác sĩ" domain="[('practitioner_id', '!=', False)]"/>
+                <separator/>
+                <filter name="month" string="Tháng" domain="[('period_type', '=', 'month')]"/>
+                <filter name="quarter" string="Quý" domain="[('period_type', '=', 'quarter')]"/>
+                <filter name="year" string="Năm" domain="[('period_type', '=', 'year')]"/>
+                <separator/>
+                <filter name="archived" string="Đã lưu trữ" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_period" string="Kỳ" context="{'group_by': 'period_label'}"/>
+                    <filter name="group_objective" string="Objective" context="{'group_by': 'objective'}"/>
+                    <filter name="group_metric" string="Chỉ số" context="{'group_by': 'metric'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dmag_business_target" model="ir.actions.act_window">
+        <field name="name">Mục tiêu kinh doanh</field>
+        <field name="res_model">dmag.business.target</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_group_period': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Đặt mục tiêu kinh doanh cho tháng / quý / năm</p>
+            <p>Giám đốc đặt mục tiêu (doanh thu, thực thu, khách mới, ca implant, ca chỉnh nha, tỷ lệ chốt, lợi nhuận gộp…)
+               cho toàn phòng khám hoặc từng bác sĩ, nhóm theo Objective, rồi bấm <b>Chốt mục tiêu</b>.
+               Bảng điều hành mục tiêu so thực tế – tiến độ – dự báo cuối kỳ với các mục tiêu đã chốt.</p>
+        </field>
+    </record>
+</odoo>

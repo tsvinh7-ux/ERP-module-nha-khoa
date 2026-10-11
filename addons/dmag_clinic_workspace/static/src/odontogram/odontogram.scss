@@ -1,0 +1,182 @@
+// Sơ đồ răng FDI – hình răng giải phẫu, nhìn từ phía bác sĩ đối diện bệnh nhân
+$odo-navy: #11346A;
+$odo-blue: #178BEC;
+$odo-blue-soft: #E8F3FE;
+$odo-line: #DDE5EF;
+$odo-text: #1B2A3D;
+$odo-muted: #6B7A90;
+$odo-danger: #E5484D;
+$odo-tooth-line: #7486A0;
+$odo-region-line: #C3CEDC;
+$odo-root: #F3EBDC;
+$odo-root-line: #B9A88E;
+
+.o-odo {
+    position: relative;
+    color: $odo-text;
+
+    &.is-interactive .o-odo-region,
+    &.is-interactive .o-odo-root,
+    &.is-interactive .o-odo-num { cursor: pointer; }
+}
+
+.o-odo-orient {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 12px; font-weight: 700; color: $odo-navy; text-transform: uppercase; letter-spacing: .3px;
+    padding: 6px 10px; margin-bottom: 4px; border-radius: 10px; background: #F4F7FB;
+    .o-odo-orient-mid { color: $odo-muted; font-weight: 600; text-transform: none; letter-spacing: 0; text-align: center; }
+    .o-odo-orient-side { white-space: nowrap; }
+}
+
+.o-odo-svg { display: block; width: 100%; height: auto; margin: 0 auto; user-select: none; touch-action: manipulation; overflow: visible; }
+
+// hướng dẫn định hướng
+.o-odo-caption { font-size: 10.5px; font-weight: 700; fill: #8C9AAF; letter-spacing: .2px; }
+.o-odo-block-title { font-size: 11px; font-weight: 800; fill: $odo-navy; letter-spacing: .6px; }
+.o-odo-band { fill: #F4F7FB; }
+.o-odo-plane { stroke: #C9D4E2; stroke-width: 1; }
+.o-odo-arch { font-size: 10px; font-weight: 800; fill: $odo-navy; letter-spacing: .5px; }
+.o-odo-band-text { font-size: 10px; font-weight: 600; fill: #8C9AAF; }
+.o-odo-midline { stroke: #AFBDD0; stroke-width: 1.2; stroke-dasharray: 3 4; }
+
+// một răng
+.o-odo-col { fill: transparent; stroke: transparent; stroke-width: 1.5; }
+.o-odo-tooth {
+    &.is-highlight .o-odo-col { fill: #FFF6E5; stroke: #F5C46B; }
+    &.is-selected .o-odo-col { fill: rgba($odo-blue, .09); stroke: $odo-blue; }
+    &.is-ghost .o-odo-side, &.is-ghost .o-odo-map { opacity: .38; }
+    &:hover .o-odo-col { stroke: #B7CBE3; }
+    &.is-selected:hover .o-odo-col { stroke: $odo-blue; }
+}
+
+.o-odo-root-shape { fill: $odo-root; stroke: $odo-root-line; stroke-width: 1; }
+.o-odo-root-back { fill: #E9DFCB; stroke: $odo-root-line; stroke-width: .8; }
+.o-odo-root-ghost { fill: none; stroke: #CBBFA9; stroke-width: .9; stroke-dasharray: 2.5 2; }
+.o-odo-crown-line { fill: none; stroke: $odo-tooth-line; stroke-width: 1.2; pointer-events: none; }
+.o-odo-crown-lost { fill: none; stroke: #A9B4C4; stroke-width: 1; stroke-dasharray: 3 2.5; pointer-events: none; }
+.o-odo-outline { fill: none; stroke: $odo-tooth-line; stroke-width: 1.3; pointer-events: none; }
+.o-odo-groove { fill: none; stroke: #CBD5E2; stroke-width: .9; stroke-linecap: round; pointer-events: none; }
+
+.o-odo-region {
+    stroke: $odo-region-line; stroke-width: 1;
+    transition: filter .08s;
+    &.is-center { stroke: $odo-region-line; }
+    &.is-picked { stroke: $odo-navy; stroke-width: 3; filter: drop-shadow(0 0 0 $odo-navy); }
+}
+.o-odo.is-interactive .o-odo-region:hover { filter: brightness(.9) saturate(1.15); }
+.o-odo-region.is-picked { fill-opacity: 1; }
+// mặt đang chọn mà chưa có màu: tô xanh nhạt
+.o-odo-region.is-picked[fill="#FFFFFF"] { fill: #BFDDFB; }
+
+.o-odo-num-pill { fill: #FFFFFF; stroke: $odo-line; stroke-width: 1; }
+.o-odo-num-text { font-size: 12px; font-weight: 800; fill: $odo-muted; font-variant-numeric: tabular-nums; pointer-events: none; }
+.o-odo-plan-dot { fill: $odo-blue; stroke: #FFFFFF; stroke-width: 1.2; }
+.o-odo-tooth.has-finding {
+    .o-odo-num-pill { stroke: rgba($odo-danger, .55); }
+    .o-odo-num-text { fill: $odo-danger; }
+}
+.o-odo-tooth.is-selected {
+    .o-odo-num-pill { fill: $odo-blue; stroke: $odo-blue; }
+    .o-odo-num-text { fill: #FFFFFF; }
+}
+.o-odo-num:focus { outline: none; }
+.o-odo-num:focus-visible .o-odo-num-pill { stroke: $odo-navy; stroke-width: 2.5; }
+
+// tooltip
+.o-odo-tip {
+    position: absolute; z-index: 20; pointer-events: none; transform: translate(14px, 18px);
+    min-width: 200px; max-width: 300px; padding: 9px 11px; border-radius: 10px;
+    background: $odo-navy; color: #fff; font-size: 12.5px; line-height: 1.4;
+    box-shadow: 0 8px 24px rgba(17, 52, 106, .28);
+    &.is-flip { transform: translate(calc(-100% - 14px), 18px); }
+    .o-odo-tip-title { font-weight: 700; b { color: #9BD0FF; } }
+    .o-odo-tip-hint { color: #C9D8EE; font-size: 11.5px; margin-top: 1px; }
+    .o-odo-tip-line { display: flex; align-items: center; gap: 6px; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255, 255, 255, .14);
+        small { margin-left: auto; color: #C9D8EE; padding-left: 8px; white-space: nowrap; } }
+}
+
+// ô màu dùng chung (chú giải, tooltip, nút mặt răng)
+.o-odo-sw {
+    display: inline-block; width: 12px; height: 12px; border-radius: 3.5px; flex: none;
+    background: var(--c, #ccc); border: 1px solid rgba(0, 0, 0, .08);
+    &.is-planned { background: repeating-linear-gradient(45deg, #fff 0 2.5px, var(--c, #178BEC) 2.5px 4.5px); border-color: var(--c, #178BEC); }
+}
+
+// chú giải
+.o-odo-legend {
+    display: flex; gap: 14px; align-items: flex-start; margin-top: 10px; padding: 10px 12px;
+    border: 1px solid $odo-line; border-radius: 12px; background: #FBFCFE;
+}
+.o-odo-legend-key { flex: none; text-align: center; }
+.o-odo-key-svg { width: 92px; height: 80px; display: block; }
+.o-odo-key-region { fill: #FFFFFF; stroke: $odo-region-line; stroke-width: 1; &.is-center { fill: #F6F8FB; } }
+.o-odo-key-letter { font-size: 10px; font-weight: 800; fill: $odo-navy; text-anchor: middle; }
+.o-odo-key-dir { font-size: 7.5px; fill: $odo-muted; text-anchor: middle; }
+.o-odo-key-caption { font-size: 10.5px; color: $odo-muted; line-height: 1.25; }
+.o-odo-legend-main { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.o-odo-legend-row { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: $odo-text; }
+.o-odo-legend-surface {
+    white-space: nowrap;
+    b { display: inline-block; min-width: 30px; padding: 0 5px; border-radius: 6px; background: $odo-navy; color: #fff; font-size: 11px; text-align: center; margin-right: 2px; }
+    small { color: $odo-muted; }
+}
+.o-odo-legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: $odo-muted; }
+.o-odo-legend-icon { width: 15px; height: 15px; flex: none; }
+
+// ---------------------------------------------------------------- khung phóng to 1 răng
+.o-zoom { margin-top: 10px; padding-top: 10px; border-top: 1px solid #EEF2F7; }
+.o-zoom-head { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
+.o-zoom-num { flex: none; min-width: 42px; height: 34px; padding: 0 8px; border-radius: 10px; background: $odo-blue; color: #fff;
+    font-weight: 800; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; }
+.o-zoom-name { font-weight: 700; color: $odo-navy; line-height: 1.25; }
+.o-zoom-sub { font-size: 11.5px; color: $odo-muted; }
+.o-zoom-svg {
+    width: 100%; height: auto; display: block; user-select: none;
+    path, polygon, line, circle { vector-effect: non-scaling-stroke; }
+    .o-odo-region { cursor: pointer; stroke-width: 1.2; }
+    .o-odo-region:hover { filter: brightness(.9) saturate(1.15); }
+    .o-odo-region.is-picked { stroke-width: 3.5; }
+    .o-odo-outline { stroke-width: 2; }
+    .o-odo-crown-line { stroke-width: 1.6; }
+}
+.o-zoom-side-bg { fill: #F7F9FC; stroke: #E6ECF3; }
+.o-zoom-caption { font-size: 11px; font-weight: 800; fill: $odo-navy; }
+.o-zoom-caption-sub { font-size: 9.5px; fill: $odo-muted; }
+.o-zoom-side-letter { font-size: 10px; font-weight: 800; fill: $odo-navy; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.o-zoom-dir { font-size: 10px; font-weight: 600; fill: $odo-muted; }
+.o-zoom-axis { stroke: #E3E9F1; }
+.o-zoom-label {
+    .o-zoom-tag { font-size: 12.5px; font-weight: 800; fill: $odo-navy; }
+    .o-zoom-short { font-size: 9.5px; font-weight: 600; fill: $odo-muted; }
+    text { paint-order: stroke; stroke: rgba(255, 255, 255, .85); stroke-width: 3px; stroke-linejoin: round; }
+    &.has-color text { fill: #fff; stroke: rgba(0, 0, 0, .35); }
+    &.is-picked .o-zoom-tag { fill: $odo-navy; }
+}
+.o-zoom-surfaces { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.o-zoom-sbtn {
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    border: 1px solid $odo-line; background: #fff; border-radius: 10px; padding: 5px 8px; font-size: 12.5px; color: $odo-text;
+    &:hover:not([disabled]) { border-color: $odo-blue; background: $odo-blue-soft; }
+    &.is-on { border-color: $odo-navy; background: $odo-blue-soft; box-shadow: inset 3px 0 0 $odo-navy; }
+    &[disabled] { opacity: 1 !important; cursor: default !important; }
+    .o-zoom-stag { flex: none; min-width: 34px; text-align: center; font-weight: 800; font-size: 11.5px; color: #fff; background: $odo-navy; border-radius: 6px; padding: 2px 4px; }
+    .o-zoom-sname { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2;
+        small { color: $odo-muted; font-size: 11px; } }
+}
+
+@media (max-width: 1200px) {
+    .o-odo-orient { font-size: 11px; .o-odo-orient-mid { display: none; } }
+}
+@media (max-width: 760px) {
+    .o-odo-legend { flex-direction: column; }
+}
+
+// ---------------------------------------------------------------- chỗ dùng sơ đồ trong bàn làm việc / tư vấn
+.dmag-selected .dmag-tooth-pill { border: 0; cursor: pointer;
+    &.is-zoom { background: $odo-blue; box-shadow: 0 0 0 2px rgba($odo-blue, .25); } }
+.dmag-zoom-empty { margin-top: 10px; padding: 12px; border: 1px dashed $odo-line; border-radius: 12px; font-size: 12.5px; color: $odo-muted; text-align: center; }
+.dmag-consult-chart { background: #fff; border: 1px solid $odo-line; border-radius: 18px; padding: 14px 16px; margin-bottom: 18px;
+    .o-odo-legend { display: none; } }
+.dmag-consult-chart-head { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; margin-bottom: 8px;
+    b { color: $odo-navy; font-size: 15px; } span { color: $odo-muted; font-size: 13px; } }
+.dmag-consult-chart .o-odo-svg { max-width: 900px !important; }

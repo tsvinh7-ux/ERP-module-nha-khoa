@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.ToothZoom">
+        <t t-set="m" t-value="model"/>
+        <div class="o-zoom">
+            <div class="o-zoom-head">
+                <span class="o-zoom-num" t-esc="m.info.code"/>
+                <div>
+                    <div class="o-zoom-name" t-esc="m.info.name"/>
+                    <div class="o-zoom-sub">Chạm vào từng mặt để chọn · <t t-esc="m.info.upper ? 'hàm trên' : 'hàm dưới'"/>, bên <t t-esc="m.info.patientRight ? 'phải' : 'trái'"/> bệnh nhân</div>
+                </div>
+            </div>
+            <svg class="o-zoom-svg" viewBox="0 0 300 244" role="img"
+                 t-att-aria-label="'Răng ' + m.info.code + ' phóng to: mặt nhai và mặt bên'">
+                <defs>
+                    <pattern t-foreach="m.hatch" t-as="h" t-key="h.id" t-att-id="h.id" width="5" height="5"
+                             patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                        <rect width="2.2" height="5" t-att-fill="h.color"/>
+                    </pattern>
+                </defs>
+                <!-- mặt bên -->
+                <rect x="6" y="4" width="96" height="236" rx="12" class="o-zoom-side-bg"/>
+                <text x="54" t-att-y="m.sideCaptionTopY" text-anchor="middle" class="o-zoom-caption">Mặt bên</text>
+                <g t-att-transform="m.sideTransform">
+                    <t t-if="!m.visual.implant">
+                        <path t-if="m.side.root.back" t-att-d="m.side.root.back" class="o-odo-root-back"/>
+                        <path t-att-d="m.side.root.path" t-att-fill="m.visual.residual ? paint(m.visual.residual, ROOT_FILL) : ROOT_FILL"
+                              class="o-odo-root-shape"/>
+                    </t>
+                    <t t-else="">
+                        <path t-att-d="m.side.root.path" class="o-odo-root-ghost"/>
+                        <path t-att-d="m.side.implant.body" t-att-fill="paint(m.visual.implant, '#12A594')"/>
+                        <path t-foreach="m.side.implant.threads" t-as="th" t-key="th_index" t-att-d="th" t-att-stroke="m.visual.implant.color" stroke-width="1.6"/>
+                    </t>
+                    <t t-set="endo" t-value="m.visual.canal || m.visual.pulp || m.visual.apex"/>
+                    <t t-if="endo and !m.visual.implant">
+                        <path t-if="m.visual.pulp" t-att-d="m.side.root.pulp" t-att-fill="m.visual.pulp.color" opacity="0.85"/>
+                        <path t-foreach="m.side.root.canals" t-as="cn" t-key="cn_index" t-att-d="cn" fill="none" t-att-stroke="endo.color"
+                              t-att-stroke-width="m.visual.canal ? 3 : 1.6" stroke-linecap="round"/>
+                        <t t-if="m.visual.apex">
+                            <circle t-foreach="m.side.root.apexes" t-as="ap" t-key="ap_index" t-att-cx="ap[0]" t-att-cy="ap[1]" r="5"
+                                    t-att-fill="m.visual.apex.color" fill-opacity="0.25" t-att-stroke="m.visual.apex.color" stroke-width="1.4"/>
+                        </t>
+                    </t>
+                    <clipPath t-att-id="uid + '-s'"><path t-att-d="m.side.crown"/></clipPath>
+                    <g t-if="!m.visual.residual" t-att-clip-path="'url(#' + uid + '-s)'">
+                        <polygon t-foreach="m.side.regions" t-as="rg" t-key="rg.slot" t-att-points="rg.points"
+                                 t-att-fill="fill(m, rg.surface)"
+                                 t-att-class="'o-odo-region' + (isPicked(rg.surface) ? ' is-picked' : '')"
+                                 t-on-click="() => this.toggle(rg.surface)">
+                            <title t-esc="regionTitle(m, rg.surface)"/>
+                        </polygon>
+                        <t t-foreach="m.side.regions" t-as="rg" t-key="rg.slot + '-p'">
+                            <polygon t-if="m.visual.planSurfaces[rg.surface]" t-att-points="rg.points" class="o-odo-plan-overlay" t-att-fill="paint(m.visual.planSurfaces[rg.surface])"/>
+                        </t>
+                        <path t-if="m.visual.crown" t-att-d="m.side.crown" t-att-fill="paint(m.visual.crown, m.visual.crown.color)" fill-opacity="0.3" pointer-events="none"/>
+                    </g>
+                    <path t-att-d="m.side.crown" t-att-class="m.visual.residual ? 'o-odo-crown-lost' : 'o-odo-crown-line'" t-att-style="m.visual.crown ? 'stroke:' + m.visual.crown.color + ';stroke-width:3px' : null"/>
+                </g>
+                <text t-foreach="m.sideLabels" t-as="sl" t-key="sl.key" t-att-x="sl.x" t-att-y="sl.y" text-anchor="middle" class="o-zoom-side-letter" t-esc="sl.text"/>
+                <text x="54" t-att-y="m.sideCaptionTopY + 13" text-anchor="middle" class="o-zoom-caption-sub" t-esc="m.sideCaption"/>
+
+                <!-- mặt nhai cỡ lớn -->
+                <text x="204" t-att-y="m.topY" text-anchor="middle" class="o-zoom-dir" t-esc="m.topText"/>
+                <text x="204" t-att-y="m.bottomY" text-anchor="middle" class="o-zoom-dir" t-esc="m.bottomText"/>
+                <g t-att-transform="m.mapTransform">
+                    <clipPath t-att-id="uid + '-o'"><path t-att-d="m.occ.outline"/></clipPath>
+                    <g t-att-clip-path="'url(#' + uid + '-o)'">
+                        <polygon t-foreach="m.occ.regions" t-as="rg" t-key="rg.slot" t-att-points="rg.points"
+                                 t-att-fill="fill(m, rg.surface)"
+                                 t-att-class="'o-odo-region' + (isPicked(rg.surface) ? ' is-picked' : '')"
+                                 t-on-click="() => this.toggle(rg.surface)">
+                            <title t-esc="regionTitle(m, rg.surface)"/>
+                        </polygon>
+                        <t t-foreach="m.occ.regions" t-as="rg" t-key="rg.slot + '-p'">
+                            <polygon t-if="m.visual.planSurfaces[rg.surface]" t-att-points="rg.points" class="o-odo-plan-overlay" t-att-fill="paint(m.visual.planSurfaces[rg.surface])"/>
+                        </t>
+                    </g>
+                    <path t-att-d="m.occ.center" t-att-fill="fill(m, m.occ.centerSurface)"
+                          t-att-class="'o-odo-region is-center' + (isPicked(m.occ.centerSurface) ? ' is-picked' : '')"
+                          t-on-click="() => this.toggle(m.occ.centerSurface)">
+                        <title t-esc="regionTitle(m, m.occ.centerSurface)"/>
+                    </path>
+                    <path t-if="m.visual.planSurfaces[m.occ.centerSurface]" t-att-d="m.occ.center" class="o-odo-plan-overlay" t-att-fill="paint(m.visual.planSurfaces[m.occ.centerSurface])"/>
+                    <path t-att-d="m.occ.outline" class="o-odo-outline" t-att-style="m.visual.crown ? 'stroke:' + m.visual.crown.color + ';stroke-width:3.5px' : null"/>
+                </g>
+                <g t-foreach="m.regionLabels" t-as="rl" t-key="rl.surface" pointer-events="none"
+                   t-att-class="'o-zoom-label' + (isPicked(rl.surface) ? ' is-picked' : '') + (m.visual.surfaces[rl.surface] ? ' has-color' : '')">
+                    <text t-att-x="rl.x" t-att-y="rl.y - 1" text-anchor="middle" class="o-zoom-tag" t-esc="rl.tag"/>
+                    <text t-att-x="rl.x" t-att-y="rl.y + 10" text-anchor="middle" class="o-zoom-short" t-esc="rl.short"/>
+                </g>
+                <line x1="112" x2="296" y1="226" y2="226" class="o-zoom-axis"/>
+                <text x="114" y="239" class="o-zoom-dir" t-esc="m.leftText"/>
+                <text x="296" y="239" text-anchor="end" class="o-zoom-dir" t-esc="m.rightText"/>
+            </svg>
+            <div class="o-zoom-surfaces" role="group" t-att-aria-label="'Chọn mặt răng ' + m.info.code">
+                <button t-foreach="m.buttons" t-as="b" t-key="b.surface" type="button"
+                        t-att-class="'o-zoom-sbtn' + (b.picked ? ' is-on' : '')" t-att-aria-pressed="b.picked ? 'true' : 'false'"
+                        t-att-disabled="props.readonly or !props.onToggleSurface" t-on-click="() => this.toggle(b.surface)">
+                    <span class="o-zoom-stag" t-esc="b.tag"/>
+                    <span class="o-zoom-sname"><b t-esc="b.name"/><small t-esc="b.hint"/></span>
+                    <i t-if="b.finding" t-att-class="'o-odo-sw' + (b.finding.planned ? ' is-planned' : '')" t-att-style="'--c:' + b.finding.color" t-att-title="b.finding.name"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

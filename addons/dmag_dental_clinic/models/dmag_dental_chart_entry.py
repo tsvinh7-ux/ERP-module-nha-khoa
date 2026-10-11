@@ -62,6 +62,8 @@ class DmagDentalChartEntry(models.Model):
             'surfaces': e.surface_ids.mapped('code'),
             'condition_id': e.condition_id.id,
             'condition': e.condition_id.name,
+            'condition_code': e.condition_id.code,
+            'scope': e.condition_id.scope,
             'category': e.condition_id.category,
             'symbol': e.condition_id.symbol,
             'color': e.condition_id.color,
@@ -79,7 +81,8 @@ class DmagDentalChartEntry(models.Model):
         return {
             'teeth': [{'code': t.code, 'name': t.name, 'quadrant': t.quadrant, 'position': t.position,
                        'dentition': t.dentition, 'type': t.tooth_type} for t in teeth],
-            'surfaces': [{'code': s.code, 'name': s.name}
+            'surfaces': [{'code': s.code, 'name': s.name, 'alias': s.alias_code or '',
+                          'description': s.description or ''}
                          for s in self.env['dmag.dental.surface'].search([])],
             'conditions': [{
                 'id': c.id, 'name': c.name, 'code': c.code, 'category': c.category, 'scope': c.scope,

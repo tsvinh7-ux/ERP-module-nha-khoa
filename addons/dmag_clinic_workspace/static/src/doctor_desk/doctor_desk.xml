@@ -89,17 +89,11 @@
                                     <button t-att-class="state.dentition === 'primary' ? 'is-on' : ''" t-on-click="() => this.state.dentition = 'primary'">Răng sữa</button>
                                 </div>
                                 <label class="dmag-toggle"><input type="checkbox" t-model="state.showPlanned"/> Hiện lớp kế hoạch</label>
-                                <span class="dmag-hint">Chạm số răng để chọn cả răng · chạm từng mặt để chọn mặt răng</span>
+                                <span class="dmag-hint">Chạm số răng / chân răng để chọn cả răng · chạm từng mặt (trên hình mặt nhai hoặc thân răng) để chọn mặt răng · rê chuột để xem tên</span>
                             </div>
                             <Odontogram entries="state.ws.chart" dentition="state.dentition" selection="state.selection"
                                         showPlanned="state.showPlanned"
                                         onToggleTooth.bind="toggleTooth" onToggleSurface.bind="toggleSurface"/>
-                            <div class="dmag-legend">
-                                <span><i class="dmag-swatch" style="background:#E5484D"/>Bệnh lý</span>
-                                <span><i class="dmag-swatch" style="background:#178BEC"/>Đã điều trị</span>
-                                <span><i class="dmag-swatch dmag-swatch-hatch"/>Kế hoạch</span>
-                                <span><i class="dmag-swatch" style="background:#8B8D98"/>Mất răng</span>
-                            </div>
                             <div class="dmag-chart-summary">
                                 <div t-if="!chartSummary.length" class="text-muted small">Chưa có ghi nhận nào trên sơ đồ răng.</div>
                                 <div t-foreach="chartSummary" t-as="group" t-key="group.key" class="dmag-summary-group">
@@ -120,10 +114,16 @@
                                 </div>
                                 <div t-if="!selectedTeeth.length" class="text-muted small">Chưa chọn răng nào</div>
                                 <div t-else="" class="dmag-selected">
-                                    <span t-foreach="selectedTeeth" t-as="code" t-key="code" class="dmag-tooth-pill">
+                                    <button t-foreach="selectedTeeth" t-as="code" t-key="code" type="button"
+                                            t-att-class="'dmag-tooth-pill' + (code === zoomCode ? ' is-zoom' : '')"
+                                            t-att-title="'Phóng to răng ' + code" t-on-click="() => this.state.zoomTooth = code">
                                         R<t t-esc="code"/><t t-if="state.selection.teeth[code].length"> · <t t-esc="state.selection.teeth[code].join('')"/></t>
-                                    </span>
+                                    </button>
                                 </div>
+                                <ToothZoom t-if="zoomCode" code="zoomCode" entries="state.ws.chart"
+                                           surfaces="state.selection.teeth[zoomCode] || []" showPlanned="state.showPlanned"
+                                           readonly="locked" onToggleSurface.bind="toggleSurface"/>
+                                <div t-else="" class="dmag-zoom-empty">Chạm vào một răng trên sơ đồ để phóng to và chọn chính xác từng mặt răng.</div>
                             </div>
                             <div class="dmag-panel" t-foreach="conditionGroups" t-as="group" t-key="group.key">
                                 <div class="dmag-panel-title" t-esc="group.title"/>
@@ -332,7 +332,7 @@
                     </section>
                 </t>
             </main>
-            <ConsultMode t-if="state.consultPlan" plan="state.consultPlan" patient="patient" onClose.bind="onConsultClosed"/>
+            <ConsultMode t-if="state.consultPlan" plan="state.consultPlan" patient="patient" chart="state.ws.chart" onClose.bind="onConsultClosed"/>
         </div>
     </t>
 </templates>

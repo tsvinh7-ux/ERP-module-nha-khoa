@@ -176,7 +176,7 @@ class DmagMaterialUsage(models.Model):
 
     @api.model
     def get_material_kpis(self, date_from, date_to, company_id=False):
-        """KPI giá vốn vật tư cho Buồng lái chủ phòng khám (≤ ngưỡng ``company.dmag_cogs_threshold``)."""
+        """KPI giá vốn vật tư cho Bảng điều hành mục tiêu (≤ ngưỡng ``company.dmag_cogs_threshold``)."""
         company = self.env['res.company'].browse(company_id) if company_id else self.env.company
         d_from, d_to, dt_from, dt_to = to_date_range(date_from, date_to)
         usages = self.sudo().search([('company_id', '=', company.id),

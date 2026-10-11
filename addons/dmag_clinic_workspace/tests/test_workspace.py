@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from odoo import fields
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -45,14 +45,14 @@ class TestWorkspace(TransactionCase):
         same = [s for s in after if s['time'] == first['time']]
         self.assertTrue(not same or self.chair.id not in same[0]['chairs'])
 
-    def test_cockpit_requires_manager(self):
-        data = self.ws.get_owner_cockpit()
-        self.assertIn('kpis', data)
-        recep = self.env['res.users'].create({
-            'name': 'LT', 'login': 'lt_ws',
-            'groups_id': [(6, 0, [self.env.ref('dmag_dental_base.group_dmag_receptionist').id])]})
-        with self.assertRaises(AccessError):
-            self.ws.with_user(recep).get_owner_cockpit()
+    def test_goal_dashboard_action_kept(self):
+        """Hành động cũ (xml id ``action_dmag_owner_cockpit``) mở Bảng điều hành mục tiêu; không còn "Buồng lái"."""
+        action = self.env.ref('dmag_clinic_workspace.action_dmag_owner_cockpit')
+        self.assertEqual(action.tag, 'dmag_goal_dashboard')
+        self.assertEqual(action.name, 'Bảng điều hành mục tiêu')
+        self.assertFalse(hasattr(self.ws, 'get_owner_cockpit'))
+        menus = self.env['ir.ui.menu'].sudo().search([('name', 'ilike', 'Buồng lái')])
+        self.assertFalse(menus, 'Không còn dùng tên "Buồng lái" trên menu')
 
     def test_payment_panel(self):
         patient = self.env['res.partner'].create({'name': 'BN pay', 'is_patient': True})

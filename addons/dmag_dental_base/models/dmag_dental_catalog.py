@@ -48,6 +48,10 @@ class DmagDentalSurface(models.Model):
 
     code = fields.Char('Ký hiệu', required=True, size=2)
     name = fields.Char('Tên mặt răng', required=True, translate=True)
+    alias_code = fields.Char('Ký hiệu khác', help='Tên gọi khác của cùng mặt răng, ví dụ F (Facial) cho B, '
+                             'P (Palatal) cho L ở hàm trên. Mã lưu trữ vẫn là "Ký hiệu".')
+    description = fields.Char('Giải thích', translate=True,
+                              help='Mô tả dễ hiểu, dùng cho chú giải sơ đồ răng và bản in bệnh án.')
     sequence = fields.Integer(default=10)
 
     _sql_constraints = [

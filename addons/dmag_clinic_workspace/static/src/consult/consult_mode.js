@@ -3,6 +3,7 @@
 import { Component, useState } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 import { formatMoney } from "../js/utils";
+import { Odontogram } from "../odontogram/odontogram";
 
 /**
  * Chế độ tư vấn – màn hình quay về phía bệnh nhân.
@@ -10,7 +11,8 @@ import { formatMoney } from "../js/utils";
  */
 export class ConsultMode extends Component {
     static template = "dmag_clinic_workspace.ConsultMode";
-    static props = { plan: Object, patient: Object, onClose: Function };
+    static components = { Odontogram };
+    static props = { plan: Object, patient: Object, onClose: Function, chart: { type: Array, optional: true } };
 
     setup() {
         this.orm = useService("orm");
@@ -18,6 +20,22 @@ export class ConsultMode extends Component {
         this.notification = useService("notification");
         this.state = useState({ confirming: null, changed: false });
         this.formatMoney = formatMoney;
+    }
+
+    /** Các răng có trong kế hoạch (mọi phương án) – làm nổi bật trên sơ đồ cho bệnh nhân xem. */
+    get planTeeth() {
+        const teeth = new Set();
+        for (const opt of this.props.plan.options || []) {
+            for (const line of opt.lines || []) {
+                (line.teeth || []).forEach((t) => teeth.add(String(t)));
+            }
+        }
+        return [...teeth];
+    }
+
+    get dentition() {
+        const codes = [...this.planTeeth, ...(this.props.chart || []).map((e) => e.tooth)];
+        return codes.some((c) => Number(c) >= 50) ? "mixed" : "permanent";
     }
 
     get blocked() {

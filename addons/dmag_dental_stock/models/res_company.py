@@ -7,7 +7,7 @@ class ResCompany(models.Model):
 
     dmag_cogs_threshold = fields.Float(
         'Ngưỡng giá vốn vật tư & labo (% doanh thu)', default=22.0,
-        help='KPI Q-Summit: giá vốn vật tư + labo ≤ 22% doanh thu. Vượt ngưỡng → cảnh báo đỏ trên Buồng lái.')
+        help='KPI Q-Summit: giá vốn vật tư + labo ≤ 22% doanh thu. Vượt ngưỡng → cảnh báo đỏ trên Bảng điều hành mục tiêu.')
     dmag_consumption_location_id = fields.Many2one(
         'stock.location', string='Địa điểm "Tiêu hao lâm sàng"',
         help='Vật tư dùng cho thủ thuật được chuyển từ kho phòng khám tới địa điểm này. Để trống: tự tạo.')

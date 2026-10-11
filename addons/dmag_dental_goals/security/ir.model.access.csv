@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dmag_business_target_manager,dmag_business_target manager,model_dmag_business_target,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_business_target_director,dmag_business_target director,model_dmag_business_target,dmag_dental_base.group_dmag_director,1,1,1,1

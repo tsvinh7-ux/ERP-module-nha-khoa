@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Giữ xml id cũ của dmag_clinic_workspace để đường dẫn / dấu trang cũ vẫn mở được màn hình mới -->
+    <menuitem id="menu_dmag_goal_dashboard" name="Điều hành mục tiêu" parent="dmag_dental_base.menu_dmag_dental_root"
+              action="dmag_clinic_workspace.action_dmag_owner_cockpit" sequence="3"
+              groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_business_target" name="Mục tiêu kinh doanh" parent="dmag_dental_base.menu_dmag_config"
+              action="action_dmag_business_target" sequence="5" groups="dmag_dental_base.group_dmag_manager"/>
+</odoo>

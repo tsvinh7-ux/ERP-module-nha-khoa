@@ -43,7 +43,7 @@
 | D7 🟡 | Lương 3P: cách quy đổi điểm năng lực ra hệ số P2, trần KPI (đang 120%), ngưỡng thưởng OKR (đang 70%); mã nhân viên và mã “Loại đầu vào” trên Payroll Bizapps (file xuất dùng cột `DMAG_P1`, `DMAG_P2`, `DMAG_P3`…) | Xem `addons/dmag_hr_3p/README.rst` |
 | D8 ⚪ | Nhóm Quản lý phòng khám đang được quyền đọc hồ sơ nhân viên. Giữ vậy hay tách nhóm Nhân sự riêng? | |
 | D9 ⚪ | Định nghĩa cho OKR tự đo: “ca niềng mới”, “bác sĩ phụ”, khung giờ buổi chiều. **Ẩn app `biz_okr`** để không bị 2 app OKR | |
-| D5 ⚪ | Mục tiêu KPI trên Buồng lái (công suất ghế, đồng thuận kế hoạch…) | Chuẩn DMAG trong `get_owner_cockpit` |
+| D5 ⚪ | Mục tiêu KPI trên Bảng điều hành mục tiêu (công suất ghế, đồng thuận kế hoạch…) | Giám đốc đặt trong *Cấu hình → Mục tiêu kinh doanh* (`dmag_dental_goals`); chưa đặt thì dùng chuẩn DMAG (ghi rõ "chuẩn DMAG") |
 
 ## E. Hạ tầng
 

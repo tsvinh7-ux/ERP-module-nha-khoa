@@ -361,7 +361,7 @@ class DmagLabOrder(models.Model):
     # ------------------------------------------------------------------ KPI
     @api.model
     def get_lab_kpis(self, date_from, date_to, company_id=False):
-        """Chỉ số labo cho Buồng lái chủ phòng khám.
+        """Chỉ số labo cho Bảng điều hành mục tiêu.
 
         Chi phí labo ghi nhận theo ngày gửi; doanh thu = thủ thuật hoàn tất theo ngày lượt khám.
         """

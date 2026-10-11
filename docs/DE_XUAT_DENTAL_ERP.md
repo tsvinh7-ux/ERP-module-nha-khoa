@@ -18,7 +18,7 @@ Dental ERP không phải "phần mềm quản lý phòng khám" thông thường
 | Năng suất vận hành | Công suất ghế buổi chiều ≥ 65%; giá vốn vật tư & labo ≤ 22% doanh thu; bác sĩ phụ đảm nhận ≥ 50% số ca | Q-Summit, KR 90 ngày |
 | Trải nghiệm & tăng trưởng | NPS sau điều trị; điểm đau sau thủ thuật; thời gian chờ; tỷ lệ đồng thuận kế hoạch điều trị; doanh thu từ khách giới thiệu | OKRs Nha khoa – bản mẫu |
 
-Các chỉ số trên hiển thị tại Buồng lái Chủ phòng khám và là nguồn tự đo cho OKR. Quy mô phòng khám (số ghế, doanh thu, số cơ sở) là cơ sở **đóng gói ERP** (mục 10).
+Các chỉ số trên hiển thị tại Bảng điều hành mục tiêu và là nguồn tự đo cho OKR. Quy mô phòng khám (số ghế, doanh thu, số cơ sở) là cơ sở **đóng gói ERP** (mục 10).
 
 ---
 
@@ -52,7 +52,7 @@ Các chỉ số trên hiển thị tại Buồng lái Chủ phòng khám và là
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │  LỚP 3 · TRẢI NGHIỆM (DMAG Clinic Workspace – OWL, tablet-first)         │
-│  Bàn làm việc Bác sĩ · Bảng điều phối Lễ tân · Chế độ Tư vấn · Buồng lái │
+│  Bàn làm việc Bác sĩ · Bảng điều phối Lễ tân · Chế độ Tư vấn · Bảng điều hành mục tiêu │
 │  Chủ PK · Cổng/App Bệnh nhân (qua API)                                   │
 ├──────────────────────────────────────────────────────────────────────────┤
 │  LỚP 2 · NGHIỆP VỤ NHA KHOA (addons dmag_*)                              │
@@ -114,7 +114,7 @@ Bác sĩ và lễ tân **làm việc 100% ở Lớp 3**. Lớp 1–2 là giao di
 ### E. Lớp trải nghiệm (chi tiết mục 4)
 | # | Module | Chức năng chính |
 |---|---|---|
-| E1 | `dmag_clinic_workspace` | Ứng dụng OWL toàn màn hình, tối ưu tablet và màn hình cảm ứng: Bàn làm việc Bác sĩ, Bảng điều phối Lễ tân, Chế độ Tư vấn, Buồng lái Chủ phòng khám; dùng màu nhận diện DMAG (`#11346A` navy, `#178BEC` xanh) từ `dmag_brand_theme` |
+| E1 | `dmag_clinic_workspace` | Ứng dụng OWL toàn màn hình, tối ưu tablet và màn hình cảm ứng: Bàn làm việc Bác sĩ, Bảng điều phối Lễ tân, Chế độ Tư vấn, Bảng điều hành mục tiêu; dùng màu nhận diện DMAG (`#11346A` navy, `#178BEC` xanh) từ `dmag_brand_theme` |
 
 Tổng cộng **23 module mới** (số này sẽ giảm nếu chọn dựng trên ACS HMS) cùng 7 module OKR Scale/brand theme đã có.
 
@@ -131,7 +131,7 @@ Nguyên tắc UX: bác sĩ **không bao giờ thấy menu Odoo**. Mỗi thao tá
 | **Ghi bệnh án nhanh** | Bác sĩ, phụ tá | Mẫu SOAP theo thủ thuật (nhổ, nội nha, implant…) tự điền sẵn; **nhập giọng nói** tiếng Việt (tùy chọn); phụ tá ghi vật tư; bác sĩ ký số 1 chạm |
 | **Chế độ Tư vấn** (Tư vấn đồng thuận 2 bước) | Bác sĩ, tư vấn viên | Màn hình hướng về bệnh nhân: **ảnh camera trong miệng/phim** → **2 phương án** đặt cạnh nhau (ưu nhược, thời gian, chi phí, trả góp) → bệnh nhân chọn → **ký Sign trên tablet** → tạo lịch và đơn |
 | **Bảng điều phối Lễ tân** | Lễ tân | Sơ đồ ghế theo trạng thái (trống / đang làm / sắp xong / vệ sinh); hàng chờ có **đồng hồ đếm phút** (đỏ khi > 15 phút); check-in bằng SĐT/QR; thu tiền, QR động, chốt két ngay trên màn hình |
-| **Buồng lái Chủ phòng khám** | Chủ, quản lý | Doanh thu/thực thu, két ngày, công suất ghế theo khung giờ, COGS, % ca bác sĩ phụ, NPS, OKR xanh/vàng/đỏ, cảnh báo pháp chế |
+| **Bảng điều hành mục tiêu** | Chủ, quản lý | Doanh thu/thực thu, két ngày, công suất ghế theo khung giờ, COGS, % ca bác sĩ phụ, NPS, OKR xanh/vàng/đỏ, cảnh báo pháp chế |
 
 Kỹ thuật: OWL 2 client actions, cập nhật thời gian thực qua bus (`bus.bus`), dùng được như PWA (cài lên tablet như app), API dùng chung với app bệnh nhân sau này.
 
@@ -218,7 +218,7 @@ Nguyên tắc (theo OKR mẫu DMAG):
 2. Khách thanh toán bằng **QR động VietQR do SePay sinh** (có sẵn số tiền và **mã thanh toán** trong nội dung chuyển khoản), quẹt thẻ POS hoặc tiền mặt.
 3. SePay theo dõi tài khoản ngân hàng của phòng khám và gọi **webhook** khi có tiền vào. ERP khớp giao dịch theo mã thanh toán + số tiền (chống ghi trùng, ghi thiếu/thừa thì đưa vào hàng chờ xử lý), rồi **tự ghi nhận thanh toán và tự phát hành HĐĐT** qua HĐĐT Bizapps, rồi gửi hóa đơn qua Zalo/email.
    - Kết nối thanh toán viết theo dạng **adapter**: SePay là mặc định, đổi sang nhà cung cấp khác không phải sửa nghiệp vụ.
-4. Cuối ca: **Chốt két 4 bước**: tiền mặt + POS + chuyển khoản khớp 100% phần mềm, lễ tân và thu ngân ký biên bản bàn giao (Sign), chênh lệch được cảnh báo về Buồng lái chủ phòng khám.
+4. Cuối ca: **Chốt két 4 bước**: tiền mặt + POS + chuyển khoản khớp 100% phần mềm, lễ tân và thu ngân ký biên bản bàn giao (Sign), chênh lệch được cảnh báo về Bảng điều hành mục tiêu.
 
 ---
 
@@ -249,7 +249,7 @@ Làm chuẩn, không chạy theo hạn; mỗi phần đều kiểm thử tại p
 |---|---|---|---|
 | **DMAG Nền tảng** | PK1 · Xây nền · 1–2 ghế · < 200 tr/tháng (~4.200 PK) | Thiếu khách, tiền két lẫn ví cá nhân | A1–A4, A6–A8, B5, C3 (nhắc lịch cơ bản), E1 (Lễ tân + Bác sĩ) |
 | **DMAG Khởi sắc** | PK2 · 2–4 ghế · 250–550 tr/tháng (~1.300 PK) | Rò rỉ két, lo rủi ro thuế | + A5, B2, B3, B4, C1, C2 cơ bản, D2 |
-| **DMAG Tăng trưởng ★** | PK3 · Chạm trần · 4–7 ghế · 0,6–1,3 tỷ (~650 PK) | Chủ ngồi ghế 50–60 giờ/tuần, COGS > 25% | + B1, C1–C4 đầy đủ, D1 (3P), D3 (OKR), Chế độ Tư vấn, Buồng lái |
+| **DMAG Tăng trưởng ★** | PK3 · Chạm trần · 4–7 ghế · 0,6–1,3 tỷ (~650 PK) | Chủ ngồi ghế 50–60 giờ/tuần, COGS > 25% | + B1, C1–C4 đầy đủ, D1 (3P), D3 (OKR), Chế độ Tư vấn, Bảng điều hành mục tiêu |
 | **DMAG Doanh nghiệp** | PK4 · 6–10+ ghế · 1,4–2,5 tỷ (~220 PK) | Bị chuỗi ép giá vốn | + P&L theo ghế/bác sĩ, mua hàng tập trung qua liên minh DMAG, Studio, API mở |
 | **DMAG Chuỗi** | PK5 · 2–10+ cơ sở · > 2,5 tỷ (~100 cơ sở) | Quản trị đa điểm, bài toán định giá | + D4, tổng đài CSKH tập trung, báo cáo hợp nhất, định giá doanh nghiệp |
 
@@ -265,7 +265,7 @@ Không ấn định ngày. Mỗi giai đoạn chỉ đóng khi **chạy thật t
 |---|---|---|
 | **GĐ 1 – Vận hành lõi** | A1–A4, A6, A7 (SePay + HĐĐT), A8, B5, E1 (Bàn làm việc Bác sĩ + Bảng điều phối Lễ tân), C3 (nhắc lịch ZNS) | Một ngày phòng khám chạy trọn trên ERP: hẹn → check-in → khám → thu tiền → HĐĐT → chốt két khớp 100% |
 | **GĐ 2 – Trải nghiệm & tăng trưởng** | A5, B1–B4, C1, C2, C4, Chế độ Tư vấn | Hành trình Trước–Trong–Sau chạy tự động; NPS, tái khám đo được |
-| **GĐ 3 – Con người & quản trị** | D1 (demo P/M + 3P → nạp khung chuẩn), D2, D3, Buồng lái | Bảng lương 3P chạy song song 1 kỳ, khớp với cách tính hiện tại |
+| **GĐ 3 – Con người & quản trị** | D1 (demo P/M + 3P → nạp khung chuẩn), D2, D3, Bảng điều hành mục tiêu | Bảng lương 3P chạy song song 1 kỳ, khớp với cách tính hiện tại |
 | **GĐ 4 – Quy mô** | D4, gói Doanh nghiệp/Chuỗi, API cho app bệnh nhân | Thí điểm thêm 1 phòng khám ở phân khúc khác |
 ---
 

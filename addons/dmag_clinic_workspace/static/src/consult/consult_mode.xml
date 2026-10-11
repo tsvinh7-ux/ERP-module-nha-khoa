@@ -17,6 +17,13 @@
                 <div t-if="blocked" class="dmag-banner is-warn">
                     <i class="fa fa-shield me-1" title="Cầu chì y đức"/>Kế hoạch có dịch vụ cần bác sĩ thứ hai duyệt chỉ định trước khi bệnh nhân chọn.
                 </div>
+                <section t-if="props.chart" class="dmag-consult-chart">
+                    <div class="dmag-consult-chart-head">
+                        <b>Bước 1 · Tình trạng răng hiện tại</b>
+                        <span>Răng được tô nền vàng là răng có trong kế hoạch · phần gạch chéo là việc dự kiến làm</span>
+                    </div>
+                    <Odontogram entries="props.chart" dentition="dentition" readonly="true" highlight="planTeeth" showPlanned="true"/>
+                </section>
                 <div class="dmag-consult-options">
                     <div t-foreach="props.plan.options" t-as="opt" t-key="opt.id"
                          t-att-class="'dmag-consult-option' + (opt.is_recommended ? ' is-recommended' : '')">

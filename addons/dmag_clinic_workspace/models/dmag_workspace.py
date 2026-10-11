@@ -3,9 +3,8 @@ from datetime import datetime, time, timedelta
 import pytz
 
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import UserError
 
-from odoo.addons.dmag_dental_base.models.dmag_access import is_manager
 
 OPEN_HOUR = 8
 CLOSE_HOUR = 20
@@ -13,7 +12,10 @@ SLOT_STEP = 15
 
 
 class DmagWorkspace(models.AbstractModel):
-    """Dịch vụ dữ liệu cho giao diện vận hành (lễ tân, bác sĩ, chủ phòng khám)."""
+    """Dịch vụ dữ liệu cho giao diện vận hành (lễ tân, bác sĩ).
+
+    Bảng điều hành mục tiêu cho chủ phòng khám nằm ở module ``dmag_dental_goals``.
+    """
     _name = 'dmag.workspace'
     _description = 'DMAG Workspace services'
 
@@ -181,128 +183,3 @@ class DmagWorkspace(models.AbstractModel):
             'lines': lines,
             'sepay': 'dmag.payment.request' in self.env and hasattr(visit, 'get_payment_qr'),
         }
-
-    # ------------------------------------------------------------------ owner cockpit
-    @api.model
-    def get_owner_cockpit(self, date_from=False, date_to=False):
-        """Buồng lái chủ phòng khám: số liệu điều hành trong kỳ (mặc định tháng hiện tại)."""
-        if not is_manager(self.env):
-            raise AccessError(_('Buồng lái chỉ dành cho Quản lý phòng khám / Giám đốc.'))
-        today = fields.Date.context_today(self)
-        d_from = fields.Date.from_string(date_from) if date_from else today.replace(day=1)
-        d_to = fields.Date.from_string(date_to) if date_to else today
-        start = self._local_to_utc(d_from, 0)
-        end = self._local_to_utc(d_to + timedelta(days=1), 0)
-        Visit = self.env['dmag.dental.visit'].sudo()
-        company_ids = self.env.companies.ids
-        visits = Visit.search([('company_id', 'in', company_ids),
-                               ('scheduled_start', '>=', start), ('scheduled_end', '<', end)])
-        done = visits.filtered(lambda v: v.state == 'done')
-        booked = visits.filtered(lambda v: v.state != 'cancel')
-        no_show = visits.filtered(lambda v: v.state == 'no_show')
-        waits = [v.wait_minutes for v in done if v.checkin_time and v.chair_time]
-        procedures = self.env['dmag.dental.procedure'].sudo().search([
-            ('visit_id', 'in', done.ids), ('state', '=', 'done')])
-        revenue = sum(procedures.mapped('amount'))
-        moves = self.env['account.move'].sudo().search([
-            ('company_id', 'in', company_ids), ('move_type', '=', 'out_invoice'), ('state', '=', 'posted'),
-            ('invoice_date', '>=', d_from), ('invoice_date', '<=', d_to)])
-        collected = sum(m.amount_total - m.amount_residual for m in moves)
-        receivable = sum(moves.mapped('amount_residual'))
-        plans = self.env['dmag.treatment.plan'].sudo().search([
-            ('company_id', 'in', company_ids), ('date', '>=', d_from), ('date', '<=', d_to)])
-        presented = plans.filtered(lambda p: p.state != 'draft')
-        accepted = plans.filtered(lambda p: p.state in ('accepted', 'in_progress', 'done'))
-
-        # Công suất ghế buổi chiều (13:30–16:30)
-        chairs = self.env['dmag.dental.chair'].sudo().search([('company_id', 'in', company_ids)])
-        days = (d_to - d_from).days + 1
-        capacity = len(chairs) * days * 180
-        afternoon_minutes = 0
-        tz = self._tz()
-        for v in booked:
-            local_start = pytz.utc.localize(v.scheduled_start).astimezone(tz)
-            local_end = pytz.utc.localize(v.scheduled_end).astimezone(tz)
-            win_start = local_start.replace(hour=13, minute=30, second=0)
-            win_end = local_start.replace(hour=16, minute=30, second=0)
-            overlap = (min(local_end, win_end) - max(local_start, win_start)).total_seconds() / 60
-            afternoon_minutes += max(overlap, 0)
-
-        # Bác sĩ phụ đảm nhận (bậc < 3)
-        by_doctor = {}
-        for p in procedures:
-            key = p.doctor_id.name or _('Chưa rõ')
-            by_doctor.setdefault(key, {'name': key, 'revenue': 0.0, 'count': 0,
-                                       'level': p.doctor_id.clinical_level_id.level or 0})
-            by_doctor[key]['revenue'] += p.amount
-            by_doctor[key]['count'] += 1
-        associate = sum(d['count'] for d in by_doctor.values() if d['level'] and d['level'] < 3)
-
-        # Doanh thu theo nhóm dịch vụ
-        categories = dict(self.env['product.template']._fields['dental_category'].selection)
-        by_category = {}
-        for p in procedures:
-            cat = categories.get(p.product_id.dental_category, _('Khác'))
-            by_category[cat] = by_category.get(cat, 0.0) + p.amount
-
-        # Doanh thu theo ngày (giờ địa phương)
-        by_day = {}
-        for p in procedures:
-            d = pytz.utc.localize(p.visit_id.scheduled_start).astimezone(tz).date().isoformat()
-            by_day[d] = by_day.get(d, 0.0) + p.amount
-        series = []
-        cursor = d_from
-        while cursor <= d_to:
-            series.append({'date': cursor.isoformat(), 'revenue': by_day.get(cursor.isoformat(), 0.0)})
-            cursor += timedelta(days=1)
-
-        sources = {}
-        for v in done.filtered('is_new_patient'):
-            key = v.patient_id.customer_source_id.name or _('Không rõ')
-            sources[key] = sources.get(key, 0) + 1
-
-        result = {
-            'period': {'from': d_from.isoformat(), 'to': d_to.isoformat()},
-            'kpis': {
-                'revenue': revenue,
-                'collected': collected,
-                'receivable': receivable,
-                'visits_done': len(done),
-                'new_patients': len(done.filtered('is_new_patient')),
-                'no_show_rate': (100.0 * len(no_show) / len(booked)) if booked else 0.0,
-                'avg_wait': (sum(waits) / len(waits)) if waits else 0.0,
-                'plan_acceptance': (100.0 * len(accepted) / len(presented)) if presented else 0.0,
-                'afternoon_utilization': (100.0 * afternoon_minutes / capacity) if capacity else 0.0,
-                'associate_share': (100.0 * associate / len(procedures)) if procedures else 0.0,
-                'avg_ticket': (revenue / len(done)) if done else 0.0,
-            },
-            'targets': {'afternoon_utilization': 65, 'associate_share': 50, 'avg_wait': 15,
-                        'plan_acceptance': 60, 'material_ratio': 22},
-            'series': series,
-            'by_doctor': sorted(by_doctor.values(), key=lambda d: -d['revenue']),
-            'by_category': sorted([{'name': k, 'revenue': v} for k, v in by_category.items()],
-                                  key=lambda d: -d['revenue']),
-            'sources': sorted([{'name': k, 'count': v} for k, v in sources.items()], key=lambda d: -d['count']),
-            'extras': {},
-        }
-        result['extras'] = self._cockpit_extras(d_from, d_to)
-        return result
-
-    @api.model
-    def _cockpit_extras(self, d_from, d_to):
-        """Số liệu từ các module tùy chọn (pháp chế, vật tư, labo, CSKH) nếu đã cài."""
-        extras = {}
-        providers = [
-            ('compliance', 'dmag.compliance.doc', 'get_compliance_status', ()),
-            ('material', 'dmag.material.usage', 'get_material_kpis', (d_from, d_to)),
-            ('lab', 'dmag.lab.order', 'get_lab_kpis', (d_from, d_to)),
-            ('journey', 'dmag.dental.visit', 'get_journey_dashboard',
-             (fields.Date.to_string(d_from), fields.Date.to_string(d_to))),
-        ]
-        for key, model, method, args in providers:
-            if model in self.env and hasattr(self.env[model], method):
-                try:
-                    extras[key] = getattr(self.env[model].sudo(), method)(*args)
-                except Exception as exc:  # noqa: BLE001 – không để một module tùy chọn làm hỏng buồng lái
-                    extras[key] = {'error': str(exc)}
-        return extras
