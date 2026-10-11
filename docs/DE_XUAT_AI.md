@@ -72,10 +72,10 @@ Odoo 17 Community **không có sẵn AI** (ứng dụng AI của Odoo chỉ có 
 
 ## 3. Pháp lý & an toàn (bắt buộc đọc trước khi duyệt)
 
-1. **Dữ liệu sức khỏe là dữ liệu cá nhân nhạy cảm** (NĐ 13/2023; Luật Bảo vệ dữ liệu cá nhân 2025 **[CẦN XÁC MINH số hiệu, hiệu lực]**):
+1. **Dữ liệu sức khỏe là dữ liệu cá nhân nhạy cảm** (Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15, hiệu lực 01/01/2026; NĐ 356/2025/NĐ-CP thay NĐ 13/2023 – **[CẦN XÁC MINH]**, xem `NGHIEN_CUU_AI.md`):
    - phải có **đồng ý riêng** của bệnh nhân cho việc xử lý bằng AI (đã có cơ chế ghi nhận đồng ý, sẽ thêm mục "AI");
    - gửi dữ liệu **ra nước ngoài** cần hồ sơ đánh giá tác động chuyển dữ liệu xuyên biên giới → vì vậy thiết kế **ẩn danh trước khi gửi**, giữ dữ liệu định danh ở trong nước.
-2. **AI đọc phim / chẩn đoán có thể là trang thiết bị y tế** (NĐ 98/2021 và văn bản sửa đổi) **[CẦN XÁC MINH]** → chỉ dùng sản phẩm đã có số lưu hành tại Việt Nam, hoặc chỉ ở mức "khoanh vùng gợi ý, bác sĩ quyết định".
+2. **AI đọc phim / chẩn đoán có thể là trang thiết bị y tế** (NĐ 98/2021, sửa đổi bởi NĐ 07/2023) **[CẦN XÁC MINH]**; Luật Trí tuệ nhân tạo 134/2025/QH15 (hiệu lực 01/3/2026) yêu cầu quản lý theo mức rủi ro và gắn nhãn nội dung do AI tạo **[CẦN XÁC MINH]** → chỉ dùng sản phẩm đã có số lưu hành tại Việt Nam, hoặc chỉ ở mức "khoanh vùng gợi ý, bác sĩ quyết định".
 3. **Trách nhiệm chuyên môn thuộc bác sĩ** (Luật KCB 2023):
    - mọi nội dung AI soạn đều ở trạng thái **nháp**, phải có người duyệt mới vào hồ sơ;
    - bệnh án ghi rõ "có hỗ trợ AI" và ai đã duyệt;
@@ -119,5 +119,5 @@ Có thêm: **bộ nhớ đệm** (phần lặp lại tính 0,20 USD / 1 triệu 
    - (c) **Toàn bộ API**: nhanh triển khai nhất, nhưng thủ tục chuyển dữ liệu ra nước ngoài nặng hơn.
 3. Có đồng ý ký thỏa thuận xử lý dữ liệu / không lưu dữ liệu (ZDR) với nhà cung cấp API-LLM không?
 4. Trần chi phí AI mỗi tháng cho 1 phòng khám, ví dụ 5 triệu đồng.
-5. Nhận dạng giọng nói: tự chạy (PhoWhisper, cần GPU) hay thuê FPT.AI / Viettel AI?
+5. Nhận dạng giọng nói: **đã chốt thuê** (Odoo sẽ chạy online) – demo/thí điểm dùng nhận dạng có sẵn của Chrome/Edge (0 đ); vận hành thật: FPT.AI chính, Google Chirp 3 dự phòng, sau 1 tuần so sánh (xem `NGHIEN_CUU_AI.md`).
 6. Một hoặc hai bác sĩ thí điểm AI-01 (ghi bệnh án bằng giọng nói).
