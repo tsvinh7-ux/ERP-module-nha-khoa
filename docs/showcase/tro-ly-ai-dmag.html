@@ -142,7 +142,7 @@ section { display: grid; gap: 18px; margin-top: 56px }
         <div class="fact"><b>5</b>chạy tại chỗ, không gửi dữ liệu</div>
         <div class="fact"><b>15</b>dùng Claude (dữ liệu đã ẩn danh)</div>
         <div class="fact"><b>≈ 4–5 tr đ</b>/ tháng / phòng khám nếu chạy thật</div>
-        <div class="fact"><b>254/254</b>bài kiểm thử đạt</div>
+        <div class="fact"><b>274/274</b>bài kiểm thử đạt</div>
       </div>
     </div>
     <div>
@@ -201,7 +201,7 @@ section { display: grid; gap: 18px; margin-top: 56px }
       <div class="slot"><time>10:05</time><div class="what"><b>AI kiểm tra trước khi ký (AI-02) và gợi ý kế hoạch 2 phương án (AI-05)</b><span>Báo thiếu sinh hiệu, chẩn đoán chưa khớp sơ đồ răng; mã ICD-10 chỉ lấy trong danh mục. Kế hoạch Tối ưu / Cơ bản điền sẵn vào khung lập kế hoạch, kèm lời giải thích cho khách.</span><span class="who">Bác sĩ · Claude</span></div></div>
       <div class="slot"><time>14:00</time><div class="what"><b>Giám đốc hỏi: "Vì sao khách mới tháng này thấp?" (AI-13)</b><span>AI tra bộ chỉ số: 2 khách mới, kỳ trước 5 (−60%), kênh giới thiệu chưa đóng góp; kèm nút mở danh sách.</span><span class="who">Giám đốc · Claude, chỉ đọc số liệu</span></div></div>
       <div class="slot"><time>17:30</time><div class="what"><b>CSKH gọi hỏi thăm sau nhổ răng (AI-12, AI-18)</b><span>Kịch bản gọi soạn sẵn theo thủ thuật đã làm. Khách báo đau 8/10 ở mốc 24 giờ, hệ thống giao việc ngay cho bác sĩ phụ trách.</span><span class="who">CSKH · Claude + ngưỡng tại chỗ</span></div></div>
-      <div class="slot"><time>22:15</time><div class="what"><b>Khách nhắn Zalo hỏi giá cạo vôi, đặt lịch chiều mai (AI-07)</b><span>Trợ lý trả lời theo kịch bản đã duyệt, tra giá thật, giữ chỗ lịch nháp; sáng hôm sau lễ tân gọi xác nhận. Khiếu nại hoặc ca khẩn thì chuyển người.</span><span class="who">Khách hàng · Claude theo kịch bản</span></div></div>
+      <div class="slot"><time>22:15</time><div class="what"><b>Khách nhắn Zalo hỏi giá cạo vôi, đặt lịch chiều mai (AI-07)</b><span>Trợ lý chỉ trả lời từ dữ liệu đã nạp (bảng giá, lịch làm việc, kịch bản đã duyệt), giữ chỗ lịch nháp; câu ngoài dữ liệu báo lễ tân đang trực. Khiếu nại hoặc ca khẩn thì chuyển người.</span><span class="who">Khách hàng · Claude theo kịch bản</span></div></div>
       <div class="slot"><time>Đêm</time><div class="what"><b>Quét bất thường (AI-15) và dự báo (AI-16)</b><span>Phát hiện "công nợ tăng 74% trong 4 tuần", "2 hóa đơn hoàn tiền cùng một người lập". Dự báo tháng 158 tr / mục tiêu 220 tr, xác suất đạt 13%; găng tay sắp hết, gợi ý đặt.</span><span class="who">Hệ thống · tại chỗ</span></div></div>
     </div>
   </section>
@@ -258,7 +258,7 @@ section { display: grid; gap: 18px; margin-top: 56px }
       <div class="body">
         <div class="head"><span class="code">QĐ 3</span><span class="badge b-local"><span class="dot"></span>Cấu hình</span></div>
         <h3>Lịch làm việc thực tế của phòng khám</h3>
-        <div class="case">Mặc định Thứ 2–7: 08:00–12:00 và 13:30–20:00, Chủ nhật nghỉ, cùng danh sách ngày lễ. Khách đặt Chủ nhật: <b>"Phòng khám nghỉ"</b>.</div>
+        <div class="case">Mở cửa <b>cả 7 ngày</b> 08:00–12:00 và 13:30–20:00 (Chủ nhật đông khách nhất), cùng danh sách ngày lễ. Ngày phòng khám nghỉ thì hộp đặt lịch báo <b>"Phòng khám nghỉ"</b>.</div>
         <div class="rows">
           <div><span class="k">Áp dụng</span><span>Giờ trống, hộp thoại đặt lịch, trợ lý Zalo, gợi ý xếp lịch, số ngày làm việc và nhịp mục tiêu, công suất ghế sáng / chiều, dự báo doanh thu, dữ liệu demo.</span></div>
           <div><span class="k">Ngoài giờ</span><span>Chặn (chỉ Quản lý trở lên đặt được) hoặc chỉ cảnh báo – chọn trong cấu hình. Có ngày làm việc riêng cho từng bác sĩ.</span></div>
@@ -267,6 +267,38 @@ section { display: grid; gap: 18px; margin-top: 56px }
       <div class="gallery two">
         <div><button class="shot" type="button" data-cap="Cấu hình lịch làm việc: ca theo từng thứ, bước khung giờ, cách xử lý đặt ngoài giờ."><img src="img/dec_05_lich_lam_viec.jpg" alt="Lịch làm việc" loading="lazy"></button><p class="cap">Ca làm việc theo từng thứ.</p></div>
         <div><button class="shot" type="button" data-cap="Hộp thoại đặt lịch báo phòng khám nghỉ Chủ nhật."><img src="img/dec_05c_dat_lich_theo_lich_lam_viec.jpg" alt="Đặt lịch theo lịch làm việc" loading="lazy"></button><p class="cap">Đặt lịch theo lịch làm việc.</p></div>
+      </div>
+    </article>
+    <article class="feat">
+      <div class="body">
+        <div class="head"><span class="code">QĐ 5</span><span class="badge b-local"><span class="dot"></span>Cấu hình</span></div>
+        <h3>Mở cửa 7 ngày, nhân sự nghỉ luân phiên ngày thường</h3>
+        <div class="case">Chủ nhật khách đông nên cả đội trực; mỗi người nghỉ 1 ngày từ Thứ 2 đến Thứ 6. Ngày 21/10 bác sĩ Hoàng Yến nghỉ phép → <b>ô đỏ "Thiếu người"</b> (còn 1/2 bác sĩ).</div>
+        <div class="rows">
+          <div><span class="k">Xếp lịch</span><span>Nút "Xếp lịch tự động" chia ngày nghỉ giữ mức tối thiểu (≥ 2 bác sĩ, ≥ 1 phụ tá, ≥ 1 lễ tân). Nghỉ phép / đổi ca: Quản lý duyệt, được báo trước nếu duyệt sẽ thiếu người.</span></div>
+          <div><span class="k">Áp dụng</span><span>Giờ trống chỉ tính bác sĩ đang trực; đặt lịch vào ngày nghỉ của bác sĩ có cảnh báo; Bảng điều phối có dải "Trực hôm nay"; Zalo, mục tiêu, dự báo (Chủ nhật đỉnh) theo lịch trực.</span></div>
+        </div>
+      </div>
+      <div class="gallery two">
+        <div><button class="shot" type="button" data-cap="Lịch nghỉ luân phiên tháng: số người trực theo vai trò mỗi ngày, ai nghỉ, ngày thiếu người tô đỏ, yêu cầu nghỉ chờ duyệt."><img src="img/rot_01_lich_nghi_luan_phien.jpg" alt="Lịch nghỉ luân phiên" loading="lazy"></button><p class="cap">Lịch tháng: ai trực, ai nghỉ, ngày thiếu người.</p></div>
+        <div><button class="shot" type="button" data-cap="Bảng điều phối có dải Trực hôm nay."><img src="img/rot_02_bang_dieu_phoi_truc_hom_nay.jpg" alt="Trực hôm nay" loading="lazy"></button><p class="cap">Bảng điều phối: trực hôm nay.</p></div>
+      </div>
+    </article>
+    <article class="feat">
+      <div class="body">
+        <div class="head"><span class="code">QĐ 6</span><span class="badge b-llm"><span class="dot"></span>Claude, chỉ từ dữ liệu đã nạp</span></div>
+        <h3>Trợ lý Zalo thay hoàn toàn – chỉ trả lời từ kho tri thức</h3>
+        <div class="case">"Chủ nhật phòng khám có làm việc không?" → <b>trả lời ngay</b>, dẫn nguồn "Giờ làm việc · Lịch làm việc". "Có nhận bảo hiểm Bảo Việt không?" → <b>ngoài dữ liệu</b>: khách nhận tin giữ chỗ, hệ thống báo lễ tân đang trực hôm nay (Võ Thanh Trúc, vì chị Ánh nghỉ luân phiên); 15 phút chưa trả lời thì báo Quản lý.</div>
+        <div class="rows">
+          <div><span class="k">Kho tri thức</span><span>Nạp từ kịch bản đã duyệt, bảng giá + bảo hành, lịch làm việc và lịch trực bác sĩ, địa chỉ, gửi xe, thanh toán, gói chăm sóc, tài liệu chính sách (TXT / PDF). Quản lý soạn, Giám đốc duyệt.</span></div>
+          <div><span class="k">Kiểm soát</span><span>Mỗi câu trả lời phải có nguồn; máy chủ chặn nếu có con số không nằm trong nguồn. Lễ tân trả lời câu ngoài dữ liệu rồi bấm "Nạp vào kho tri thức" → Giám đốc duyệt → lần sau trợ lý tự trả lời.</span></div>
+        </div>
+      </div>
+      <div class="gallery two">
+        <div><button class="shot" type="button" data-cap="Câu ngoài dữ liệu: khách nhận tin giữ chỗ, hệ thống báo lễ tân đang trực."><img src="img/kb_02_zalo_ngoai_du_lieu_bao_le_tan.jpg" alt="Ngoài dữ liệu báo lễ tân" loading="lazy"></button><p class="cap">Ngoài dữ liệu → báo lễ tân đang trực.</p></div>
+        <div><button class="shot" type="button" data-cap="Câu trả lời có dẫn nguồn từ kho tri thức đã duyệt."><img src="img/kb_01_zalo_tra_loi_co_nguon.jpg" alt="Trả lời có nguồn" loading="lazy"></button><p class="cap">Trả lời kèm nguồn dữ liệu.</p></div>
+        <div><button class="shot" type="button" data-cap="Dữ liệu đã nạp: số mục theo nguồn, lần nạp cuối, ô thử hỏi trợ lý."><img src="img/kb_03_du_lieu_da_nap.jpg" alt="Dữ liệu đã nạp" loading="lazy"></button><p class="cap">Kho tri thức đã nạp.</p></div>
+        <div><button class="shot" type="button" data-cap="Hộp thư: tab Ngoài dữ liệu, nút Nạp vào kho tri thức."><img src="img/kb_04_hop_thu_ngoai_du_lieu.jpg" alt="Hộp thư ngoài dữ liệu" loading="lazy"></button><p class="cap">Lễ tân trả lời → nạp vào kho.</p></div>
       </div>
     </article>
     <div class="decide">
