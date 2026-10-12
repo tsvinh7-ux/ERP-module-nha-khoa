@@ -14,20 +14,21 @@
                 </div>
                 <div class="dmag-ws-actions">
                     <AiBadge mode="state.inbox.mode"/>
-                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openScripts"><i class="fa fa-book me-1" title="Kịch bản"/>Kịch bản đã duyệt</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openKb"><i class="fa fa-database me-1" title="Dữ liệu đã nạp"/>Dữ liệu đã nạp</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openScripts"><i class="fa fa-book me-1" title="Kịch bản"/>Kịch bản</button>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="refresh"><i class="fa fa-refresh me-1" title="Làm mới"/>Làm mới</button>
                     <button class="dmag-btn dmag-btn-primary" t-on-click="openSimulator"><i class="fa fa-mobile me-1" title="Mô phỏng"/>Mô phỏng Zalo</button>
                 </div>
             </header>
             <div class="dmag-ai-stats" t-if="state.stats">
                 <div class="dmag-ai-stat is-ok"><div class="dmag-ai-stat-v"><t t-esc="state.stats.auto_pct"/>%</div>
-                    <div class="dmag-ai-stat-l">tự trả lời theo kịch bản (<t t-esc="state.stats.auto"/>/<t t-esc="state.stats.total"/> lượt · 30 ngày)</div></div>
+                    <div class="dmag-ai-stat-l">tự trả lời có nguồn (<t t-esc="state.stats.auto"/>/<t t-esc="state.stats.total"/> lượt · 30 ngày)</div></div>
                 <div class="dmag-ai-stat is-warning"><div class="dmag-ai-stat-v"><t t-esc="state.stats.escalated_pct"/>%</div>
-                    <div class="dmag-ai-stat-l">chuyển nhân viên duyệt / xử lý (<t t-esc="state.stats.escalated"/> lượt)</div></div>
-                <div class="dmag-ai-stat"><div class="dmag-ai-stat-v"><t t-esc="state.stats.scripts_approved"/></div>
-                    <div class="dmag-ai-stat-l">kịch bản đã duyệt · ngưỡng <t t-esc="state.stats.threshold"/>%</div></div>
-                <div class="dmag-ai-stat"><div class="dmag-ai-stat-v"><t t-esc="state.stats.scripts_draft + state.stats.examples_draft"/></div>
-                    <div class="dmag-ai-stat-l">đề xuất chờ Giám đốc duyệt (<t t-esc="state.stats.scripts_draft"/> kịch bản, <t t-esc="state.stats.examples_draft"/> ví dụ)</div></div>
+                    <div class="dmag-ai-stat-l">chuyển nhân viên (<t t-esc="state.stats.out_of_data"/> câu ngoài dữ liệu)</div></div>
+                <div class="dmag-ai-stat"><div class="dmag-ai-stat-v"><t t-esc="state.stats.kb_approved"/></div>
+                    <div class="dmag-ai-stat-l">mục tri thức đã duyệt · <t t-esc="state.stats.scripts_approved"/> kịch bản</div></div>
+                <div class="dmag-ai-stat"><div class="dmag-ai-stat-v"><t t-esc="state.stats.scripts_draft + state.stats.examples_draft + state.stats.kb_draft"/></div>
+                    <div class="dmag-ai-stat-l">chờ Giám đốc duyệt (<t t-esc="state.stats.scripts_draft"/> kịch bản – <t t-esc="state.stats.scripts_proposed"/> do lễ tân đề xuất, <t t-esc="state.stats.kb_draft"/> tri thức)</div></div>
                 <div class="dmag-ai-unmatched">
                     <div class="fw-bold mb-1"><i class="fa fa-question-circle me-1" title="Chưa khớp"/>Câu hỏi chưa có kịch bản nhiều nhất</div>
                     <div t-if="!state.stats.top_unmatched.length" class="dmag-hint">Chưa có – mọi câu hỏi gần đây đều khớp kịch bản.</div>
@@ -44,7 +45,9 @@
                     <div class="dmag-seg w-100">
                         <button t-att-class="state.filter === 'attention' ? 'is-on' : ''" t-on-click="() => this.setFilter('attention')">
                             Cần xử lý <span class="dmag-badge" t-if="state.inbox.counts.attention" t-esc="state.inbox.counts.attention"/></button>
-                        <button t-att-class="state.filter === 'bot' ? 'is-on' : ''" t-on-click="() => this.setFilter('bot')">Trợ lý đang trả lời</button>
+                        <button t-att-class="state.filter === 'gaps' ? 'is-on' : ''" t-on-click="() => this.setFilter('gaps')">
+                            Ngoài dữ liệu <span class="dmag-badge is-danger" t-if="state.inbox.counts.gaps" t-esc="state.inbox.counts.gaps"/></button>
+                        <button t-att-class="state.filter === 'bot' ? 'is-on' : ''" t-on-click="() => this.setFilter('bot')">Trợ lý trả lời</button>
                         <button t-att-class="state.filter === 'all' ? 'is-on' : ''" t-on-click="() => this.setFilter('all')">Tất cả</button>
                     </div>
                     <div t-if="!state.inbox.conversations.length" class="dmag-empty-sm mt-3">Không có hội thoại.</div>
@@ -62,6 +65,7 @@
                                 <span t-if="c.state === 'handoff'" class="dmag-chip is-danger"><t t-esc="c.handoff_reason or 'Cần nhân viên'"/></span>
                                 <span t-if="c.state === 'human'" class="dmag-chip is-warning">Nhân viên đang xử lý</span>
                                 <span t-if="c.pending" class="dmag-chip is-warning"><t t-esc="c.pending"/> chờ duyệt</span>
+                                <span t-if="c.gaps" class="dmag-chip is-danger"><i class="fa fa-question-circle me-1" title="Ngoài dữ liệu"/><t t-esc="c.gaps"/> ngoài dữ liệu</span>
                                 <span t-if="c.visits" class="dmag-chip is-ok"><t t-esc="c.visits"/> lịch giữ chỗ</span>
                             </div>
                         </div>
@@ -90,6 +94,35 @@
                             <t t-call="dmag_ai_customer.ChatBubbles">
                                 <t t-set="chatLines" t-value="state.thread.messages"/>
                                 <t t-set="chatPerspective" t-value="'staff'"/>
+                            </t>
+                        </div>
+                        <div t-foreach="threadGaps" t-as="g" t-key="g.id" t-att-class="'dmag-ai-gap is-' + g.state + (g.overdue ? ' is-overdue' : '')">
+                            <div class="dmag-ai-gap-head">
+                                <span class="dmag-ai-gap-title"><i class="fa fa-question-circle me-1" title="Ngoài dữ liệu"/>Câu hỏi ngoài dữ liệu đã nạp</span>
+                                <span t-att-class="'dmag-chip is-' + (g.state === 'open' ? (g.overdue ? 'danger' : 'warning') : 'ok')" t-esc="g.overdue ? 'Quá hạn ' + g.escalation_minutes + ' phút' : g.state_label"/>
+                            </div>
+                            <div class="dmag-ai-gap-q">“<t t-esc="g.question"/>”</div>
+                            <div class="dmag-hint">
+                                <t t-esc="g.reason"/> · đã báo lễ tân <b t-esc="g.assigned or '-'"/> <t t-esc="gapTime(g)"/> trước (<t t-esc="g.assign_note"/>)
+                                <t t-if="g.escalated"> · <b class="text-danger">đã báo Quản lý <t t-esc="g.escalated_to"/></b></t>
+                            </div>
+                            <t t-if="g.state === 'open'">
+                                <div class="d-flex gap-2 mt-2">
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.answerGap(g)"><i class="fa fa-reply me-1" title="Trả lời"/>Trả lời khách bên dưới</button>
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.dismissGap(g)">Bỏ qua</button>
+                                </div>
+                            </t>
+                            <t t-elif="g.state === 'answered'">
+                                <div class="dmag-ai-gap-a"><b t-esc="g.answered_by"/>: <t t-esc="g.answer"/></div>
+                                <div class="d-flex gap-2 mt-2 align-items-center">
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.learnGap(g)"><i class="fa fa-database me-1" title="Nạp"/>Nạp vào kho tri thức</button>
+                                    <span class="dmag-hint">Bản nháp → Giám đốc duyệt → lần sau trợ lý tự trả lời câu này</span>
+                                </div>
+                            </t>
+                            <t t-elif="g.knowledge">
+                                <div class="dmag-ai-gap-a"><b t-esc="g.answered_by"/>: <t t-esc="g.answer"/></div>
+                                <button class="dmag-chip is-ok mt-2" t-on-click="() => this.openKnowledge(g.knowledge.id)">
+                                    <i class="fa fa-check me-1" title="Đã nạp"/>Đã nạp vào kho · <t t-esc="g.knowledge.state === 'approved' ? 'Giám đốc đã duyệt' : 'chờ Giám đốc duyệt'"/></button>
                             </t>
                         </div>
                         <div t-foreach="pendingMessages" t-as="m" t-key="m.id" class="dmag-ai-pending">

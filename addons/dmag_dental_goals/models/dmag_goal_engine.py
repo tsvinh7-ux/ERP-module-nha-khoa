@@ -279,6 +279,8 @@ class DmagGoalEngine(models.AbstractModel):
         if not chairs or last_day < s.date_from:
             return None
         days = s.open_days(s.date_from, last_day)
+        if s.doctor:  # bác sĩ: chỉ ngày trực của bác sĩ (nghỉ luân phiên / nghỉ phép không tính)
+            days = [d for d in days if not s.doctor.off_reason(d, s.schedule)]
         if not days:
             return None
         intervals = [(s.local(v.scheduled_start), s.local(v.scheduled_end or v.scheduled_start))

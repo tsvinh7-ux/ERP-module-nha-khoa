@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_clinic_workspace.RotationCalendar">
+        <div class="dmag-ws dmag-rot">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <h1>Lịch nghỉ luân phiên</h1>
+                        <span class="dmag-ws-sub">Phòng khám mở cửa cả tuần · Chủ nhật đông khách – không ai nghỉ · nhân sự nghỉ luân phiên ngày thường, luôn đủ người trực</span>
+                    </div>
+                </div>
+                <div class="dmag-ws-actions" t-if="state.data">
+                    <div class="dmag-rot-nav">
+                        <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" title="Tháng trước" t-on-click="() => this.load(state.data.prev)"><i class="fa fa-chevron-left" title="Tháng trước"/></button>
+                        <b t-esc="state.data.label"/>
+                        <button class="dmag-btn dmag-btn-ghost dmag-btn-sm" title="Tháng sau" t-on-click="() => this.load(state.data.next)"><i class="fa fa-chevron-right" title="Tháng sau"/></button>
+                    </div>
+                    <button t-if="state.data.can_manage" class="dmag-btn dmag-btn-ghost" t-on-click="openMembers"><i class="fa fa-users me-1" title="Nhân sự"/>Nhân sự</button>
+                    <button t-if="state.data.can_manage" class="dmag-btn dmag-btn-ghost" t-on-click="openSchedule"><i class="fa fa-sliders me-1" title="Cấu hình"/>Mức tối thiểu</button>
+                    <button t-if="state.data.can_manage" class="dmag-btn dmag-btn-ghost" t-on-click="generate"><i class="fa fa-random me-1" title="Xếp tự động"/>Xếp lịch tự động</button>
+                    <button class="dmag-btn dmag-btn-primary" t-on-click="() => this.newLeave()"><i class="fa fa-plus me-1" title="Thêm"/>Nghỉ phép / đổi ca</button>
+                </div>
+            </header>
+            <div t-if="state.loading and !state.data" class="dmag-empty">Đang tải…</div>
+            <t t-elif="state.data">
+                <section class="dmag-rot-kpis">
+                    <div t-att-class="'dmag-kpi' + (state.data.shortage_days ? ' is-alert' : '')">
+                        <span class="dmag-kpi-value" t-esc="state.data.shortage_days"/>
+                        <span class="dmag-kpi-label">ngày thiếu người trực trong tháng</span>
+                    </div>
+                    <div t-att-class="'dmag-kpi' + (state.data.pending.length ? ' is-warn' : '')">
+                        <span class="dmag-kpi-value" t-esc="state.data.pending.length"/>
+                        <span class="dmag-kpi-label">yêu cầu nghỉ / đổi ca chờ duyệt</span>
+                    </div>
+                    <div class="dmag-kpi dmag-rot-min">
+                        <span class="dmag-kpi-label">Tối thiểu mỗi ngày</span>
+                        <div class="dmag-chips">
+                            <span t-foreach="state.data.roles" t-as="r" t-key="r.code" class="dmag-chip is-info"><t t-esc="r.label"/> ≥ <b t-esc="r.min"/></span>
+                        </div>
+                    </div>
+                    <div class="dmag-kpi dmag-rot-legend">
+                        <span class="dmag-kpi-label">Chú thích</span>
+                        <div class="dmag-chips">
+                            <span class="dmag-rot-tag is-weekly_off">Nghỉ luân phiên</span>
+                            <span class="dmag-rot-tag is-leave">Nghỉ phép</span>
+                            <span class="dmag-rot-tag is-swap_off">Đổi ca</span>
+                            <span class="dmag-rot-cov is-bad">Thiếu người</span>
+                        </div>
+                    </div>
+                </section>
+                <div t-if="state.data.empty" class="dmag-empty">Chưa có nhân sự trong lịch luân phiên. Quản lý thêm ở <b>Cấu hình › Phòng khám › Nhân sự luân phiên</b> rồi bấm "Xếp lịch tự động".</div>
+                <div t-else="" class="dmag-rot-grid">
+                    <section class="dmag-rot-cal">
+                        <div class="dmag-rot-head">
+                            <div t-foreach="WEEKDAYS" t-as="wd" t-key="wd" t-att-class="'dmag-rot-wd' + (wd_index === 6 ? ' is-sunday' : '')">
+                                <t t-esc="wd"/><small t-if="wd_index === 6"> · đông khách</small>
+                            </div>
+                        </div>
+                        <div t-foreach="state.data.weeks" t-as="week" t-key="week_index" class="dmag-rot-week">
+                            <div t-foreach="week" t-as="day" t-key="day.date" t-att-class="cellClass(day)" t-on-click="() => day.open and this.newLeave(day.date)"
+                                 t-att-title="day.open ? 'Bấm để thêm nghỉ phép / đổi ca ngày ' + day.date : ''">
+                                <div class="dmag-rot-daytop">
+                                    <span class="dmag-rot-num" t-esc="day.day"/>
+                                    <span t-if="day.open and !day.ok" class="dmag-rot-alert"><i class="fa fa-exclamation-triangle me-1" title="Thiếu người"/>Thiếu người</span>
+                                    <span t-elif="day.is_today" class="dmag-rot-todaytag">Hôm nay</span>
+                                </div>
+                                <t t-if="day.open">
+                                    <div class="dmag-rot-covs">
+                                        <span t-foreach="covList(day)" t-as="c" t-key="c.code" t-att-class="'dmag-rot-cov' + (c.ok ? '' : ' is-bad')"
+                                              t-att-title="c.label + ': ' + c.n + ' người trực / tối thiểu ' + c.min">
+                                            <t t-esc="c.short"/> <b t-esc="c.n"/>/<t t-esc="c.min"/>
+                                        </span>
+                                    </div>
+                                    <div class="dmag-rot-offs">
+                                        <span t-foreach="day.off" t-as="o" t-key="o.id" t-att-class="'dmag-rot-tag is-' + o.kind" t-att-title="o.name + ' – ' + o.label">
+                                            <b t-esc="o.short"/> <t t-esc="o.name.split(' ').slice(-2).join(' ')"/>
+                                        </span>
+                                        <span t-if="!day.off.length and day.in_month" class="dmag-rot-full">Đủ cả đội</span>
+                                    </div>
+                                </t>
+                                <div t-else="" class="dmag-rot-closed"><t t-esc="day.closure or 'Phòng khám nghỉ'"/></div>
+                            </div>
+                        </div>
+                    </section>
+                    <aside class="dmag-rot-side">
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Ngày nghỉ hằng tuần<span t-if="state.data.rotate_weekly" class="dmag-hint ms-auto">xoay vòng mỗi tuần</span></div>
+                            <div t-foreach="state.data.weekly" t-as="w" t-key="w.weekday" t-att-class="'dmag-rot-weekly' + (w.is_sunday ? ' is-sunday' : '')">
+                                <span class="dmag-rot-weekly-day" t-esc="w.weekday"/>
+                                <span t-if="!w.open" class="text-muted">Phòng khám nghỉ</span>
+                                <span t-elif="!w.off.length" class="dmag-rot-full">Cả đội trực</span>
+                                <span t-else="" class="dmag-rot-weekly-names" t-esc="w.off.join(', ')"/>
+                            </div>
+                        </div>
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Chờ Quản lý duyệt <span class="dmag-badge" t-if="state.data.pending.length" t-esc="state.data.pending.length"/></div>
+                            <div t-if="!state.data.pending.length" class="dmag-hint">Không có yêu cầu nào.</div>
+                            <div t-foreach="state.data.pending" t-as="l" t-key="l.id" class="dmag-rot-leave">
+                                <div><b t-esc="l.name"/> <span class="dmag-hint" t-esc="'· ' + l.role"/></div>
+                                <div class="small"><t t-esc="l.label"/><t t-if="l.reason"> – <t t-esc="l.reason"/></t></div>
+                                <div t-if="l.warning" class="dmag-rot-warn"><i class="fa fa-exclamation-triangle me-1" title="Thiếu người"/>Nếu duyệt: <t t-esc="l.warning"/></div>
+                                <div t-if="state.data.can_manage" class="d-flex gap-2 mt-2">
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.approve(l)">Duyệt</button>
+                                    <button class="dmag-btn dmag-btn-sm dmag-btn-ghost" t-on-click="() => this.refuse(l)">Từ chối</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dmag-panel">
+                            <div class="dmag-panel-title">Đã duyệt trong tháng</div>
+                            <div t-if="!state.data.approved.length" class="dmag-hint">Chưa có.</div>
+                            <div t-foreach="state.data.approved" t-as="l" t-key="l.id" class="dmag-rot-leave is-done">
+                                <div><b t-esc="l.name"/> <span class="dmag-hint" t-esc="'· ' + l.label"/></div>
+                                <div t-if="l.reason" class="small text-muted" t-esc="l.reason"/>
+                            </div>
+                        </div>
+                        <div class="dmag-hint px-1">Giờ làm việc: <t t-esc="state.data.hours"/></div>
+                    </aside>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="dmag_clinic_workspace.LeaveDialog">
+        <Dialog title="'Nghỉ phép / đổi ca'" size="'md'" contentClass="'dmag-dialog'">
+            <div class="dmag-rot-form">
+                <label>Nhân sự</label>
+                <select class="dmag-select w-100" t-on-change="(ev) => this.state.memberId = Number(ev.target.value)">
+                    <option t-foreach="members" t-as="m" t-key="m.id" t-att-value="m.id" t-att-selected="m.id === state.memberId" t-esc="m.name + ' – ' + m.role_label + ' (nghỉ ' + m.off_text + ')'"/>
+                </select>
+                <div class="dmag-seg w-100 mt-3">
+                    <button t-att-class="state.kind === 'leave' ? 'is-on' : ''" t-on-click="() => this.state.kind = 'leave'">Nghỉ phép</button>
+                    <button t-att-class="state.kind === 'swap' ? 'is-on' : ''" t-on-click="() => this.state.kind = 'swap'">Đổi ngày nghỉ</button>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                    <div class="flex-grow-1"><label t-esc="state.kind === 'swap' ? 'Nghỉ ngày' : 'Từ ngày'"/><input type="date" class="dmag-input" t-model="state.dateFrom"/></div>
+                    <div t-if="state.kind === 'leave'" class="flex-grow-1"><label>Đến ngày</label><input type="date" class="dmag-input" t-model="state.dateTo"/></div>
+                    <div t-else="" class="flex-grow-1"><label>Đi làm bù ngày (ngày nghỉ cố định)</label><input type="date" class="dmag-input" t-model="state.swapDate"/></div>
+                </div>
+                <label>Lý do</label>
+                <input class="dmag-input" placeholder="Ví dụ: việc gia đình, hội thảo chuyên môn…" t-model="state.reason"/>
+                <label t-if="props.canManage" class="dmag-toggle"><input type="checkbox" t-model="state.approve"/> Quản lý duyệt luôn</label>
+                <div t-else="" class="dmag-hint">Yêu cầu được gửi cho Quản lý duyệt; lịch trực chỉ đổi sau khi duyệt.</div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="dmag-btn dmag-btn-ghost" t-on-click="props.close">Đóng</button>
+                <button class="dmag-btn dmag-btn-primary" t-att-disabled="state.saving or !state.memberId or !state.dateFrom or (state.kind === 'swap' and !state.swapDate)" t-on-click="save">
+                    <t t-esc="state.approve and props.canManage ? 'Lưu &amp; duyệt' : 'Gửi yêu cầu'"/>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

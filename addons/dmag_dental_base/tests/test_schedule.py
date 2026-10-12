@@ -15,15 +15,14 @@ class TestClinicSchedule(TransactionCase):
         self.Schedule = self.env['dmag.clinic.schedule']
         self.schedule = self.Schedule._get_for_company(self.env.company)
 
-    def test_default_schedule_matches_previous_behaviour(self):
+    def test_default_schedule_open_seven_days(self):
+        """Quyết định 11/10/2026: Chủ nhật vẫn làm (đông khách nhất) → mặc định mở cửa cả tuần."""
         info = ScheduleInfo.default()
         monday, sunday = date(2026, 10, 12), date(2026, 10, 18)
         self.assertEqual(info.shifts(monday), [(480, 720), (810, 1200)])
-        self.assertFalse(info.is_open_day(sunday))
-        # cùng số ngày làm việc Thứ 2 – Thứ 7 như trước đây
-        self.assertEqual(info.count_open_days(date(2025, 3, 1), date(2025, 3, 31)), 26)
-        self.assertIn('Thứ 2 – Thứ 7: 08:00–12:00, 13:30–20:00', info.weekly_text())
-        self.assertIn('Chủ nhật: nghỉ', info.weekly_text())
+        self.assertEqual(info.shifts(sunday), [(480, 720), (810, 1200)], 'Chủ nhật làm như ngày thường')
+        self.assertEqual(info.count_open_days(date(2025, 3, 1), date(2025, 3, 31)), 31, '7 ngày / tuần')
+        self.assertEqual(info.weekly_text(), 'Thứ 2 – Chủ nhật: 08:00–12:00, 13:30–20:00')
         # lịch tự tạo của công ty có cùng ca + ngày lễ mẫu 2026 đánh dấu cần xác minh
         company_info = self.schedule._info()
         self.assertEqual(company_info.weekly, info.weekly)
@@ -37,7 +36,10 @@ class TestClinicSchedule(TransactionCase):
         self.assertIsNone(info.check_interval(datetime(2026, 10, 13, 9, 0), datetime(2026, 10, 13, 9, 30)))
         self.assertIn('ngoài giờ', info.check_interval(datetime(2026, 10, 13, 11, 45), datetime(2026, 10, 13, 12, 15)))
         self.assertIn('ngoài giờ', info.check_interval(datetime(2026, 10, 13, 20, 0), datetime(2026, 10, 13, 20, 30)))
-        self.assertIn('không làm việc', info.check_interval(datetime(2026, 10, 18, 9, 0), datetime(2026, 10, 18, 9, 30)))
+        closed_sunday = ScheduleInfo({wd: info.weekly[wd] for wd in range(6)})
+        self.assertIn('không làm việc', closed_sunday.check_interval(datetime(2026, 10, 18, 9, 0),
+                                                                    datetime(2026, 10, 18, 9, 30)))
+        self.assertIn('Chủ nhật: nghỉ', closed_sunday.weekly_text())
         # công suất: 1 lịch 60 phút / (240 phút sáng × 1 ghế)
         util = info.chair_utilization([day], 1, [(datetime(2026, 10, 13, 9, 0), datetime(2026, 10, 13, 10, 0))],
                                       (0, 720))
@@ -70,4 +72,6 @@ class TestClinicSchedule(TransactionCase):
         self.assertFalse(doctor.works_on(date(2026, 10, 13)), 'Thứ 3 bác sĩ nghỉ')
         free = self.env['dmag.dental.practitioner'].create({'name': 'BS cả tuần', 'role': 'doctor'})
         self.assertTrue(free.works_on(date(2026, 10, 13)))
-        self.assertFalse(free.works_on(date(2026, 10, 18)), 'Phòng khám nghỉ Chủ nhật')
+        self.assertTrue(free.works_on(date(2026, 10, 18)), 'Phòng khám làm Chủ nhật')
+        self.schedule.line_ids.filtered(lambda l: l.weekday == '6').unlink()
+        self.assertFalse(free.works_on(date(2026, 10, 18)), 'Phòng khám nghỉ Chủ nhật → bác sĩ không làm')

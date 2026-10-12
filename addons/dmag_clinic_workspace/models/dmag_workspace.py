@@ -117,15 +117,34 @@ class DmagWorkspace(models.AbstractModel):
 
     @api.model
     def get_day_info(self, date):
-        """Ngày mở cửa / nghỉ và các ca (Lịch làm việc phòng khám) cho hộp thoại đặt lịch."""
-        return self.env['dmag.clinic.schedule'].get_day_info(date)
+        """Ngày mở cửa / nghỉ và các ca (Lịch làm việc phòng khám) + bác sĩ trực / nghỉ (Lịch nghỉ luân phiên) cho
+        hộp thoại đặt lịch."""
+        res = self.env['dmag.clinic.schedule'].get_day_info(date)
+        day = fields.Date.to_date(date)
+        info = self._schedule_info()
+        doctors = []
+        if info.is_open_day(day):
+            for doc in self.env['dmag.dental.practitioner'].search([('role', '=', 'doctor')]):
+                off = doc.off_reason(day, info)
+                doctors.append({'id': doc.id, 'name': doc.name, 'title': doc.title or '', 'on_duty': not off,
+                                'off_reason': off or ''})
+        res['doctors'] = doctors
+        res['on_duty_count'] = len([d for d in doctors if d['on_duty']])
+        return res
+
+    @api.model
+    def _doctors_on_duty(self, day, info=None):
+        info = info or self._schedule_info()
+        doctors = self.env['dmag.dental.practitioner'].search([('role', '=', 'doctor')])
+        return doctors, doctors.filtered(lambda d: d.works_on(day, info))
 
     @api.model
     def get_free_slots(self, date, doctor_id=False, duration=30):
         """Khung giờ trống trong ngày (giờ địa phương) theo Lịch làm việc phòng khám, bác sĩ và ghế.
 
         Chỉ trả các giờ nằm TRỌN trong một ca làm việc (không vắt qua giờ nghỉ trưa / giờ đóng cửa); ngày nghỉ lễ,
-        thứ nghỉ → rỗng. Bác sĩ có ngày làm việc riêng mà không làm ngày này → ``doctor_free`` = False.
+        thứ nghỉ → rỗng; ngày không bác sĩ nào trực (Lịch nghỉ luân phiên) → rỗng. Bác sĩ không trực ngày này (ngày làm
+        việc riêng, nghỉ luân phiên, nghỉ phép) → ``doctor_free`` = False.
         Trả về [{'time': 'HH:MM', 'chairs': [chair_id…], 'doctor_free': bool, 'afternoon': bool}]
         – ``afternoon`` đánh dấu khung chiều (13:30–16:30) cần lấp ghế.
         """
@@ -135,6 +154,9 @@ class DmagWorkspace(models.AbstractModel):
         shifts = info.shifts(day)
         if not shifts:
             return []
+        all_doctors, on_duty = self._doctors_on_duty(day, info)
+        if all_doctors and not on_duty:
+            return []  # không bác sĩ nào trực ngày này
         step = info.slot_step or SLOT_STEP
         start = self._local_to_utc(day, shifts[0][0] // 60, shifts[0][0] % 60)
         end = self._local_to_utc(day, min(shifts[-1][1], 23 * 60 + 59) // 60, min(shifts[-1][1], 23 * 60 + 59) % 60)

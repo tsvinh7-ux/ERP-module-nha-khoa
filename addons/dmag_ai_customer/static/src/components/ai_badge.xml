@@ -10,7 +10,10 @@
     <t t-name="dmag_ai_customer.ChatBubbles">
         <t t-foreach="chatLines" t-as="m" t-key="m.id">
             <t t-set="mine" t-value="chatPerspective === 'customer' ? m.role === 'customer' : ['bot', 'staff'].includes(m.role)"/>
-            <div t-if="m.role === 'system'" class="dmag-ai-sysmsg" t-esc="m.body"/>
+            <div t-if="m.role === 'system' and chatPerspective === 'staff' and m.decision === 'out_of_data'" class="dmag-ai-sysmsg is-gap">
+                <i class="fa fa-bell me-1" title="Ngoài dữ liệu"/><t t-esc="m.decision_note"/><div class="small text-muted" t-if="m.state !== 'received'">Khách nhận: “<t t-esc="m.body"/>”</div>
+            </div>
+            <div t-elif="m.role === 'system'" class="dmag-ai-sysmsg" t-esc="m.body"/>
             <div t-else="" t-att-class="'dmag-ai-bubble-row' + (mine ? ' is-mine' : '')">
                 <div t-att-class="'dmag-ai-bubble is-' + m.role + (m.state === 'pending' ? ' is-pending' : '') + (m.state === 'discarded' ? ' is-discarded' : '')">
                     <div t-if="m.role !== 'customer'" class="dmag-ai-bubble-who">
@@ -28,7 +31,8 @@
                     </div>
                     <div t-if="chatPerspective === 'staff' and m.decision and m.role === 'bot'"
                          t-att-class="'dmag-ai-bubble-tag ' + (m.auto ? 'is-ok' : 'is-warning')">
-                        <t t-if="m.script and m.auto">Kịch bản: <t t-esc="m.script.name"/><t t-if="m.confidence"> · <t t-esc="m.confidence"/>%</t></t>
+                        <t t-if="m.sources and m.sources.length">Trả lời từ: <t t-esc="m.sources.map((s) => s.label).join(' · ')"/></t>
+                        <t t-elif="m.script and m.auto">Kịch bản: <t t-esc="m.script.name"/><t t-if="m.confidence"> · <t t-esc="m.confidence"/>%</t></t>
                         <t t-else="" t-esc="m.decision_label"/>
                         <t t-if="m.edited"> · nhân viên đã sửa</t>
                     </div>

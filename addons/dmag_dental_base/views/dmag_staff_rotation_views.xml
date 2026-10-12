@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Nhân sự trong lịch nghỉ luân phiên -->
+    <record id="view_dmag_staff_rotation_tree" model="ir.ui.view">
+        <field name="name">dmag.staff.rotation.tree</field>
+        <field name="model">dmag.staff.rotation</field>
+        <field name="arch" type="xml">
+            <tree string="Nhân sự luân phiên" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="role"/>
+                <field name="practitioner_id" options="{'no_create': True}"/>
+                <field name="user_id" options="{'no_create': True}"/>
+                <field name="off_weekday_ids" widget="many2many_tags"/>
+                <field name="note" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_staff_rotation_form" model="ir.ui.view">
+        <field name="name">dmag.staff.rotation.form</field>
+        <field name="model">dmag.staff.rotation</field>
+        <field name="arch" type="xml">
+            <form string="Nhân sự luân phiên">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="Họ tên"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="role"/>
+                            <field name="practitioner_id" options="{'no_create': True}"/>
+                            <field name="user_id" options="{'no_create': True}"/>
+                            <field name="employee_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="off_weekday_ids" widget="many2many_checkboxes"/>
+                            <field name="note"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="leave_ids" readonly="1">
+                        <tree decoration-muted="state in ('refused', 'cancel')" decoration-success="state == 'approved'">
+                            <field name="kind"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="swap_date"/>
+                            <field name="reason"/>
+                            <field name="state" widget="badge"/>
+                        </tree>
+                    </field>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_staff_rotation" model="ir.actions.act_window">
+        <field name="name">Nhân sự luân phiên</field>
+        <field name="res_model">dmag.staff.rotation</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Thêm bác sĩ, phụ tá, lễ tân vào lịch nghỉ luân phiên</p>
+            <p>Mỗi người một ngày nghỉ hằng tuần vào ngày thường (Chủ nhật đông khách – không nghỉ). Bấm "Xếp lịch nghỉ
+                luân phiên tự động" trong Lịch làm việc để hệ thống chia ngày nghỉ, giữ đủ số người trực tối thiểu.</p>
+        </field>
+    </record>
+
+    <!-- Nghỉ phép / đổi ca -->
+    <record id="view_dmag_staff_leave_tree" model="ir.ui.view">
+        <field name="name">dmag.staff.leave.tree</field>
+        <field name="model">dmag.staff.leave</field>
+        <field name="arch" type="xml">
+            <tree string="Nghỉ phép / đổi ca" decoration-muted="state in ('refused', 'cancel')"
+                  decoration-info="state == 'draft'" decoration-success="state == 'approved'">
+                <field name="member_id"/>
+                <field name="role"/>
+                <field name="kind"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="swap_date"/>
+                <field name="reason"/>
+                <field name="coverage_warning" class="text-danger"/>
+                <field name="requested_by_id" optional="hide"/>
+                <field name="approved_by_id" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'approved'"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_dmag_staff_leave_form" model="ir.ui.view">
+        <field name="name">dmag.staff.leave.form</field>
+        <field name="model">dmag.staff.leave</field>
+        <field name="arch" type="xml">
+            <form string="Nghỉ phép / đổi ca">
+                <header>
+                    <button name="action_approve" type="object" string="Duyệt" class="btn-primary" invisible="state != 'draft'"
+                            groups="dmag_dental_base.group_dmag_manager"/>
+                    <button name="action_refuse" type="object" string="Từ chối" invisible="state != 'draft'"
+                            groups="dmag_dental_base.group_dmag_manager"/>
+                    <button name="action_cancel" type="object" string="Hủy" invisible="state not in ('draft', 'approved')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger mb-2" role="alert" invisible="not coverage_warning">
+                        <i class="fa fa-exclamation-triangle me-1" title="Thiếu người"/>Thiếu người trực: <field name="coverage_warning" readonly="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="member_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="kind" widget="radio" readonly="state != 'draft'"/>
+                            <field name="reason" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="date_from" readonly="state != 'draft'"/>
+                            <field name="date_to" invisible="kind != 'leave'" readonly="state != 'draft'"/>
+                            <field name="swap_date" invisible="kind != 'swap'" required="kind == 'swap'" readonly="state != 'draft'"/>
+                            <field name="requested_by_id"/>
+                            <field name="approved_by_id" invisible="not approved_by_id"/>
+                            <field name="approved_at" invisible="not approved_at"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="action_dmag_staff_leave" model="ir.actions.act_window">
+        <field name="name">Nghỉ phép / đổi ca</field>
+        <field name="res_model">dmag.staff.leave</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+    <record id="view_dmag_staff_leave_search" model="ir.ui.view">
+        <field name="name">dmag.staff.leave.search</field>
+        <field name="model">dmag.staff.leave</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="member_id"/>
+                <filter name="pending" string="Chờ duyệt" domain="[('state', '=', 'draft')]"/>
+                <filter name="approved" string="Đã duyệt" domain="[('state', '=', 'approved')]"/>
+            </search>
+        </field>
+    </record>
+
+    <menuitem id="menu_dmag_staff_rotation" name="Nhân sự luân phiên" parent="menu_dmag_config_clinic"
+              action="action_dmag_staff_rotation" sequence="6"/>
+    <menuitem id="menu_dmag_staff_leave" name="Nghỉ phép / đổi ca" parent="menu_dmag_config_clinic"
+              action="action_dmag_staff_leave" sequence="7"/>
+</odoo>

@@ -190,3 +190,67 @@ $ai-violet: #6E56CF;
     button.dmag-chip { border: 1px solid transparent; cursor: pointer; }
 }
 @media (max-width: 1200px) { .dmag-ai-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+// ---------------------------------------------------------------- Chế độ "chỉ trả lời từ dữ liệu đã nạp"
+.dmag-ai-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; }
+.dmag-ai-sources-l { color: $ai-muted; font-weight: 600; margin-right: 2px; }
+.dmag-ai-src { background: #E6F7F4; color: #0B7A6D; border-radius: 999px; padding: 1px 9px; font-weight: 700; }
+.dmag-ai-src.is-kb { background: #E8F3FE; color: #11346A; }
+.dmag-ai-src-sep { color: $ai-muted; }
+.dmag-ai-decision.is-gap, .dmag-ai-turn.is-gap .dmag-ai-decision { background: #FFF4E0; border-color: #F5C26B; color: #7A4A00; }
+.dmag-ai-turn.is-gap { border-left: 3px solid #F5A524; }
+.dmag-ai-sysmsg.is-gap { background: #FFF4E0; color: #7A4A00; text-align: left; font-size: 12px; }
+.dmag-ai-gapcard {
+    border: 1px solid #F5C26B; background: #FFFBF2; border-radius: 10px; padding: 8px 10px; margin-top: 8px; font-size: 13px;
+    &.is-answered, &.is-learned { border-color: #9BD8CD; background: #F2FBF9; }
+    &.is-escalated { border-color: #E5484D; }
+}
+.dmag-ai-gapcard-q { font-weight: 600; margin-bottom: 4px; }
+.dmag-ai-gap {
+    margin: 10px 16px 0; border: 1px solid #F5C26B; background: #FFFBF2; border-radius: 12px; padding: 10px 12px;
+    &.is-overdue { border-color: #E5484D; background: #FFF6F6; }
+    &.is-answered, &.is-learned { border-color: #9BD8CD; background: #F2FBF9; }
+}
+.dmag-ai-gap-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.dmag-ai-gap-title { font-weight: 700; color: #7A4A00; }
+.dmag-ai-gap.is-answered .dmag-ai-gap-title, .dmag-ai-gap.is-learned .dmag-ai-gap-title { color: #0B7A6D; }
+.dmag-ai-gap-q { font-size: 14px; font-weight: 600; margin: 4px 0; }
+.dmag-ai-gap-a { font-size: 13px; background: #fff; border-radius: 8px; padding: 6px 8px; margin-top: 6px; border: 1px dashed #9BD8CD; }
+.dmag-badge.is-danger { background: #E5484D; }
+.dmag-ai-gapbadge { background: #FFF4E0; color: #7A4A00; border: 1px solid #F5C26B; &:hover { background: #FFE9C2; } }
+
+// ---------------------------------------------------------------- Dữ liệu đã nạp
+.dmag-ai-kb {
+    .dmag-ws-header h1 { font-size: 20px; margin: 0; color: $ai-navy; font-weight: 800; }
+    .dmag-ai-kb-rule {
+        display: flex; align-items: center; gap: 12px; margin: 0 24px 12px; padding: 12px 16px; border-radius: 14px;
+        background: linear-gradient(90deg, #E8F3FE, #F2FBF9); border: 1px solid #CFE3F7; font-size: 13px; color: $ai-navy;
+        > .fa { font-size: 22px; color: #178BEC; }
+        > div { flex: 1; }
+    }
+    .dmag-ai-kb-gapbtn { border: 1px solid #F5C26B; background: #FFF4E0; color: #7A4A00; border-radius: 10px; padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+    .dmag-ai-kb-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 0 24px 12px; }
+    .dmag-ai-kb-kpi {
+        background: #fff; border: 1px solid #DDE5EF; border-radius: 14px; padding: 12px 16px; display: flex; flex-direction: column;
+        .v { font-size: 26px; font-weight: 800; color: $ai-navy; line-height: 1.1; }
+        .l { font-size: 12px; color: $ai-muted; }
+        &.is-ok .v { color: #0B7A6D; }
+        &.is-warn .v { color: #9A5B00; }
+    }
+    .dmag-ai-kb-sources { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 24px 14px; }
+    .dmag-ai-kb-src {
+        display: flex; gap: 12px; align-items: center; text-align: left; background: #fff; border: 1px solid #DDE5EF; border-radius: 12px; padding: 10px 12px;
+        &:hover { border-color: #178BEC; box-shadow: 0 3px 10px rgba(23, 139, 236, .12); }
+        &.is-empty { opacity: .6; }
+    }
+    .dmag-ai-kb-src-icon { width: 38px; height: 38px; border-radius: 10px; background: #E8F3FE; color: #178BEC; display: flex; align-items: center; justify-content: center; font-size: 17px; flex: none; }
+    .dmag-ai-kb-src-label { font-weight: 700; color: $ai-navy; }
+    .dmag-ai-kb-src-count { font-size: 13px; }
+    .dmag-ai-kb-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; margin: 0 24px 24px; align-items: start; .dmag-panel { margin: 0; } }
+    .dmag-ai-kb-verdict { margin-top: 10px; border-radius: 10px; padding: 8px 10px; font-weight: 700; font-size: 13px;
+        &.is-ok { background: #E6F7F4; color: #0B7A6D; } &.is-gap { background: #FFF4E0; color: #7A4A00; } }
+    .dmag-ai-kb-hit { border: 1px solid #E6ECF3; border-radius: 10px; padding: 8px 10px; margin-top: 8px; cursor: pointer; &.is-ok { border-color: #9BD8CD; } }
+    .dmag-ai-kb-draft { border: 1px solid #F5C26B; background: #FFFBF2; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; font-size: 13px; }
+    .dmag-ai-kb-gaprow { border-bottom: 1px dashed #E6ECF3; padding: 6px 0; }
+    .dmag-ai-kb-toprow { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 3px 0; }
+}

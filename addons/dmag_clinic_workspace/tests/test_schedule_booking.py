@@ -18,6 +18,8 @@ class TestScheduleBooking(TransactionCase):
         cls.schedule.closure_ids.unlink()
         cls.chair = env['dmag.dental.chair'].create({'name': 'Ghế lịch làm việc'})
         cls.doctor = env['dmag.dental.practitioner'].create({'name': 'BS Lịch', 'role': 'doctor'})
+        cls.doctor_all = env['dmag.dental.practitioner'].create({'name': 'BS Cả tuần', 'role': 'doctor'})
+        env['dmag.staff.rotation'].search([('company_id', '=', env.company.id)]).unlink()
         cls.receptionist = env['res.users'].create({
             'name': 'Lễ tân lịch', 'login': 'lt_schedule', 'email': 'lt_schedule@dmag.test', 'tz': 'Asia/Ho_Chi_Minh',
             'groups_id': [(6, 0, [env.ref('dmag_dental_base.group_dmag_receptionist').id])]})
@@ -42,7 +44,10 @@ class TestScheduleBooking(TransactionCase):
         self.assertFalse([t for t in times if '12:00' <= t < '13:30'], 'Giờ nghỉ trưa không có khung trống')
         self.assertIn('13:30', times)
         self.assertEqual(times[-1], '19:30')
-        self.assertFalse(self.ws.get_free_slots(self.sunday.isoformat(), False, 30), 'Chủ nhật nghỉ')
+        sunday = [s['time'] for s in self.ws.get_free_slots(self.sunday.isoformat(), False, 30)]
+        self.assertEqual(sunday, times, 'Chủ nhật làm như ngày thường (mặc định mở cửa cả tuần)')
+        self.schedule.line_ids.filtered(lambda l: l.weekday == '6').unlink()
+        self.assertFalse(self.ws.get_free_slots(self.sunday.isoformat(), False, 30), 'Chủ nhật nghỉ khi bỏ ca')
         # Ngày nghỉ đột xuất
         self.schedule.write({'closure_ids': [(0, 0, {'name': 'Đào tạo nội bộ', 'kind': 'closure',
                                                      'date_from': self.monday, 'date_to': self.monday})]})
@@ -63,6 +68,7 @@ class TestScheduleBooking(TransactionCase):
         self.assertFalse(any(s['doctor_free'] for s in slots), 'Bác sĩ không làm Thứ 2')
 
     def test_booking_outside_hours_blocked_unless_manager(self):
+        self.schedule.line_ids.filtered(lambda l: l.weekday == '6').unlink()  # thử với Chủ nhật nghỉ
         with self.assertRaisesRegex(UserError, 'ngoài giờ'):
             self._book(self.receptionist, self.monday, '12:30')
         with self.assertRaisesRegex(UserError, 'không làm việc'):
@@ -83,3 +89,32 @@ class TestScheduleBooking(TransactionCase):
         self.schedule.enforce = 'warn'
         res = self._book(self.receptionist, self.monday, '12:30')
         self.assertTrue(res['id'])
+
+    def test_rotation_day_off_slots_and_booking_warning(self):
+        """Bác sĩ nghỉ luân phiên: không có giờ trống cho bác sĩ đó; đặt lịch vẫn được nhưng CẢNH BÁO; ngày không bác
+        sĩ nào trực → không có giờ trống."""
+        Rot = self.env['dmag.staff.rotation']
+        tuesday = self.env.ref('dmag_dental_base.weekday_1')
+        Rot.create([{'name': 'BS Lịch', 'role': 'doctor', 'practitioner_id': self.doctor.id,
+                     'off_weekday_ids': [(6, 0, tuesday.ids)]},
+                    {'name': 'BS Cả tuần', 'role': 'doctor', 'practitioner_id': self.doctor_all.id}])
+        tue = self.monday + timedelta(days=1)
+        slots = self.ws.get_free_slots(tue.isoformat(), self.doctor.id, 30)
+        self.assertTrue(slots)
+        self.assertFalse(any(s['doctor_free'] for s in slots), 'Bác sĩ nghỉ luân phiên Thứ 3')
+        self.assertTrue(all(s['doctor_free'] for s in self.ws.get_free_slots(tue.isoformat(), self.doctor_all.id, 30)))
+        info = self.ws.get_day_info(tue.isoformat())
+        off = [d for d in info['doctors'] if not d['on_duty']]
+        self.assertEqual([d['id'] for d in off], [self.doctor.id])
+        self.assertIn('nghỉ luân phiên', off[0]['off_reason'])
+        # đặt lịch bác sĩ ngày nghỉ: không chặn, cảnh báo + chatter
+        res = self.ws.with_user(self.receptionist).quick_book({
+            'patient_id': self.patient.id, 'chair_id': self.chair.id, 'doctor_id': self.doctor.id,
+            'date': tue.isoformat(), 'time': '09:00'})
+        visit = self.env['dmag.dental.visit'].browse(res['id'])
+        self.assertIn('nghỉ luân phiên', visit.schedule_warning or '')
+        self.assertIn('Bác sĩ không trực', visit.schedule_warning)
+        self.assertIn('cần xác nhận lại với bác sĩ', ' '.join(visit.message_ids.mapped('body')))
+        # cả hai bác sĩ nghỉ Thứ 3 → không có giờ trống
+        Rot.search([('practitioner_id', '=', self.doctor_all.id)]).off_weekday_ids = tuesday
+        self.assertFalse(self.ws.get_free_slots(tue.isoformat(), False, 30))

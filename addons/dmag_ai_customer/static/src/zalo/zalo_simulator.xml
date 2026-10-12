@@ -7,7 +7,9 @@
                     <div class="dmag-brand-mark">D</div>
                     <div>
                         <h1>Mô phỏng Zalo OA <span class="dmag-ai-code">AI-07</span></h1>
-                        <span class="dmag-ws-sub">Đóng vai khách nhắn OA · chế độ <b t-esc="MODE_LABELS[replyMode]"/> · trợ lý chỉ tự gửi khi khớp kịch bản Giám đốc đã duyệt</span>
+                        <span class="dmag-ws-sub">Đóng vai khách nhắn OA · chế độ <b t-esc="MODE_LABELS[replyMode]"/>
+                            <t t-if="replyMode === 'grounded'"> · mỗi câu trả lời phải có nguồn trong dữ liệu đã nạp, ngoài dữ liệu → báo lễ tân đang trực</t>
+                            <t t-elif="replyMode === 'script'"> · trợ lý chỉ tự gửi khi khớp kịch bản Giám đốc đã duyệt</t></span>
                     </div>
                 </div>
                 <div class="dmag-ws-actions">
@@ -24,6 +26,7 @@
                         </div>
                     </div>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="() => this.start()"><i class="fa fa-refresh me-1" title="Mới"/>Khách mới</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openKb"><i class="fa fa-database me-1" title="Dữ liệu đã nạp"/>Dữ liệu đã nạp</button>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="openScripts"><i class="fa fa-book me-1" title="Kịch bản"/>Kịch bản</button>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="openInbox"><i class="fa fa-inbox me-1" title="Hộp thư"/>Hộp thư lễ tân</button>
                     <button class="dmag-btn dmag-btn-primary" t-on-click="openFrontDesk"><i class="fa fa-columns me-1" title="Bảng điều phối"/>Bảng điều phối</button>
@@ -65,7 +68,9 @@
                 <section class="dmag-ai-trace">
                     <div class="dmag-panel-title">
                         <span><i class="fa fa-cogs me-1" title="Công cụ"/>Bên trong Odoo – trợ lý đã gọi công cụ gì</span>
-                        <span class="dmag-hint" t-if="liveMode">Claude phân loại ý định CHỈ trong các kịch bản đã duyệt</span>
+                        <span class="dmag-hint" t-if="replyMode === 'grounded' and liveMode">Claude + công cụ chỉ đọc · máy chủ kiểm tra nguồn &amp; con số</span>
+                        <span class="dmag-hint" t-elif="replyMode === 'grounded'">Giả lập: tra kho tri thức đã duyệt + dữ liệu thật · kiểm tra nguồn &amp; con số</span>
+                        <span class="dmag-hint" t-elif="liveMode">Claude phân loại ý định CHỈ trong các kịch bản đã duyệt</span>
                         <span class="dmag-hint" t-else="">Giả lập: so khớp từ khóa / câu mẫu với kịch bản đã duyệt</span>
                     </div>
                     <div t-if="!botTurns.length" class="dmag-empty-sm">
@@ -79,13 +84,37 @@
                         <div t-if="turn.decision" t-att-class="'dmag-ai-decision ' + decisionClass(turn)">
                             <t t-if="turn.auto">
                                 <i class="fa fa-check-circle" title="Tự gửi"/>
-                                <div>
+                                <div class="flex-grow-1">
                                     <div class="dmag-ai-decision-title">
-                                        <t t-if="turn.script">Khớp kịch bản “<t t-esc="turn.script.name"/>”</t>
+                                        <t t-if="turn.decision === 'grounded'">Trả lời từ dữ liệu đã nạp</t>
+                                        <t t-elif="turn.script">Khớp kịch bản “<t t-esc="turn.script.name"/>”</t>
                                         <t t-else="" t-esc="turn.decision_label"/>
                                         <span t-if="turn.confidence" class="dmag-ai-confpct"><t t-esc="turn.confidence"/>%</span>
                                     </div>
-                                    <div class="dmag-ai-decision-sub"><t t-esc="turn.decision_label"/><t t-if="turn.decision_note"> · <t t-esc="turn.decision_note"/></t></div>
+                                    <div t-if="turn.sources and turn.sources.length" class="dmag-ai-sources">
+                                        <span class="dmag-ai-sources-l">Trả lời từ:</span>
+                                        <t t-foreach="turn.sources" t-as="src" t-key="src_index">
+                                            <span t-if="src_index" class="dmag-ai-src-sep">·</span>
+                                            <span t-att-class="'dmag-ai-src is-' + src.kind" t-esc="src.label"/>
+                                        </t>
+                                    </div>
+                                    <div t-else="" class="dmag-ai-decision-sub"><t t-esc="turn.decision_label"/><t t-if="turn.decision_note"> · <t t-esc="turn.decision_note"/></t></div>
+                                </div>
+                            </t>
+                            <t t-elif="turn.decision === 'out_of_data'">
+                                <i class="fa fa-bell" title="Ngoài dữ liệu"/>
+                                <div class="flex-grow-1">
+                                    <div class="dmag-ai-decision-title">Ngoài dữ liệu đã nạp → đã báo lễ tân <b t-esc="(turn.gap and turn.gap.assigned) or 'phụ trách'"/></div>
+                                    <div class="dmag-ai-decision-sub">
+                                        <t t-if="turn.gap">
+                                            <t t-esc="turn.gap.reason"/> · <t t-esc="turn.gap.assign_note"/>
+                                            <t t-if="turn.gap.state === 'open' and !turn.gap.escalated"> · quá <t t-esc="turn.gap.escalation_minutes"/> phút chưa trả lời → báo Quản lý</t>
+                                            <t t-if="turn.gap.escalated"> · <b>đã báo Quản lý <t t-esc="turn.gap.escalated_to"/></b></t>
+                                            <t t-if="turn.gap.state !== 'open'"> · <b t-esc="turn.gap.state_label"/></t>
+                                        </t>
+                                        <t t-else="" t-esc="turn.decision_note"/>
+                                    </div>
+                                    <div class="dmag-ai-decision-sub mt-1">Khách nhận tin giữ chỗ cố định – trợ lý không tự trả lời ngoài dữ liệu.</div>
                                 </div>
                             </t>
                             <t t-else="">
@@ -133,6 +162,17 @@
 
                 <!-- Kết quả trên Odoo -->
                 <section class="dmag-ai-result">
+                    <t t-if="gaps.length">
+                        <div class="dmag-panel-title"><span><i class="fa fa-question-circle me-1" title="Ngoài dữ liệu"/>Câu hỏi ngoài dữ liệu</span>
+                            <button class="dmag-link" t-on-click="openInbox">Hộp thư</button></div>
+                        <div t-foreach="gaps" t-as="g" t-key="g.id" t-att-class="'dmag-ai-gapcard is-' + g.state + (g.escalated ? ' is-escalated' : '')">
+                            <div class="dmag-ai-gapcard-q">“<t t-esc="g.question"/>”</div>
+                            <div class="small"><i class="fa fa-user me-1" title="Phụ trách"/>Lễ tân <b t-esc="g.assigned or '-'"/> <span class="text-muted">· <t t-esc="g.assign_note"/></span></div>
+                            <div class="small"><span t-att-class="'dmag-chip is-' + (g.state === 'open' ? 'warning' : 'ok')" t-esc="g.state_label"/>
+                                <span t-if="g.escalated" class="dmag-chip is-danger ms-1">Đã báo QL <t t-esc="g.escalated_to"/></span></div>
+                        </div>
+                        <div class="mb-3"/>
+                    </t>
                     <div class="dmag-panel-title"><span><i class="fa fa-calendar me-1" title="Lịch"/>Lịch giữ chỗ từ hội thoại</span></div>
                     <div t-if="state.thread and state.thread.state !== 'bot'" class="dmag-ai-handoff">
                         <i class="fa fa-bell me-1" title="Chuyển"/><b>Đã chuyển nhân viên</b> – <t t-esc="state.thread.handoff_reason"/>

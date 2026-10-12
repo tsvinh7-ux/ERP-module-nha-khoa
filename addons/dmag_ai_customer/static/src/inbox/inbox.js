@@ -20,8 +20,10 @@ export class AiInbox extends Component {
         this.logRef = useRef("log");
         this.formatVnd = formatVnd;
         this.SEVERITY = SEVERITY;
+        const ctx = (this.props.action && this.props.action.context) || {};
         this.state = useState({
-            filter: "attention",
+            filter: ctx.dmag_inbox_filter || "attention",
+            learnText: {},
             inbox: { conversations: [], counts: {}, mode: "simulate", reply_mode: "approve" },
             thread: null,
             reply: "",
@@ -52,9 +54,47 @@ export class AiInbox extends Component {
     }
 
     get modeLabel() {
-        return { approve: "nhân viên duyệt mọi câu", script: "tự động theo kịch bản đã duyệt", auto: "tự động hoàn toàn" }[
-            this.state.inbox.reply_mode
-        ] || "";
+        return {
+            grounded: "tự động – chỉ trả lời từ dữ liệu đã nạp",
+            approve: "nhân viên duyệt mọi câu",
+            script: "tự động theo kịch bản đã duyệt",
+            auto: "tự động hoàn toàn",
+        }[this.state.inbox.reply_mode] || "";
+    }
+
+    get threadGaps() {
+        return this.state.thread ? this.state.thread.gaps || [] : [];
+    }
+
+    answerGap(gap) {
+        this.state.reply = this.state.reply || "";
+        const el = document.querySelector(".dmag-ai-reply textarea");
+        if (el) {
+            el.focus();
+        }
+    }
+
+    async learnGap(gap) {
+        const res = await this.orm.call("dmag.ai.kb.gap", "action_learn", [[gap.id]], { answer: gap.answer });
+        this.notification.add(`Đã nạp vào kho tri thức (bản nháp “${res.name}”) – chờ Giám đốc duyệt.`, { type: "success" });
+        await this.refresh();
+    }
+
+    async dismissGap(gap) {
+        await this.orm.call("dmag.ai.kb.gap", "action_dismiss", [[gap.id]]);
+        await this.refresh();
+    }
+
+    openKb() {
+        return this.action.doAction("dmag_ai_customer.action_dmag_ai_kb_overview");
+    }
+
+    openKnowledge(id) {
+        return this.action.doAction({ type: "ir.actions.act_window", res_model: "dmag.ai.knowledge", res_id: id, views: [[false, "form"]], target: "current" });
+    }
+
+    gapTime(gap) {
+        return gap.notified_at ? this.timeAgo(gap.notified_at) : "";
     }
 
     get trainable() {

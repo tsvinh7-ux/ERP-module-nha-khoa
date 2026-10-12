@@ -51,6 +51,7 @@ export const TOOL_LABELS = {
     find_patient_by_phone: { icon: "fa-id-card-o", label: "Tìm hồ sơ theo SĐT" },
     book_appointment: { icon: "fa-calendar-plus-o", label: "Giữ chỗ lịch hẹn (nháp)" },
     get_clinic_info: { icon: "fa-info-circle", label: "Thông tin phòng khám" },
+    search_knowledge: { icon: "fa-book", label: "Tra kho tri thức đã duyệt" },
     handoff_to_staff: { icon: "fa-user-circle", label: "Chuyển nhân viên" },
 };
 
@@ -75,6 +76,10 @@ export function summarizeTool(step) {
             return out.booked
                 ? { kind: "booking", text: `${out.visit} · ${out.time} ${out.date} · ${out.patient}${out.doctor ? " · BS " + out.doctor : ""}`, visitId: out.visit_id }
                 : { kind: "error", text: out.message || "Không đặt được" };
+        case "search_knowledge":
+            return (out.results || []).length
+                ? { kind: "list", items: out.results.map((r) => `${r.source || r.title}${r.score ? " · " + Math.round(r.score * 100) + "%" : ""}${r.title && r.source !== r.title ? " – " + r.title : ""}`) }
+                : { kind: "error", text: "Không có mục nào đủ khớp trong dữ liệu đã nạp" };
         case "get_clinic_info":
             return { kind: "list", items: Object.entries(out).filter(([k]) => k !== "clinic").map(([k, v]) => v) };
         case "handoff_to_staff":

@@ -25,6 +25,9 @@ HUMAN_ACK = 'Dạ em đã chuyển cho nhân viên tư vấn, anh/chị vui lòn
 # Soạn nháp chờ duyệt: chỉ công cụ ĐỌC (không giữ chỗ, không chuyển người)
 READ_ONLY_TOOLS = {'search_services', 'get_free_slots', 'find_patient_by_phone', 'get_clinic_info'}
 DECISIONS = [
+    ('grounded', 'Tự gửi – trả lời từ dữ liệu đã nạp'),
+    ('out_of_data', 'Ngoài dữ liệu đã nạp – đã báo lễ tân'),
+    ('blocked_unverified', 'Chặn – số liệu không có trong nguồn (nháp cho nhân viên)'),
     ('script_auto', 'Tự gửi – khớp kịch bản đã duyệt'),
     ('script_flow', 'Tự gửi – luồng đặt lịch của kịch bản'),
     ('handoff_script', 'Tự gửi mẫu an toàn – chuyển nhân viên'),
@@ -39,9 +42,11 @@ DECISIONS = [
     ('ack', 'Tin báo đã nhận (mẫu cố định)'),
     ('error', 'Trợ lý lỗi – chuyển nhân viên'),
 ]
-AUTO_DECISIONS = ('script_auto', 'script_flow', 'handoff_script', 'full_auto')
-ESCALATED_DECISIONS = ('staff_review', 'no_match', 'low_confidence', 'medical', 'complaint', 'human_request',
-                       'emergency', 'error')
+AUTO_DECISIONS = ('grounded', 'script_auto', 'script_flow', 'handoff_script', 'full_auto')
+ESCALATED_DECISIONS = ('out_of_data', 'blocked_unverified', 'staff_review', 'no_match', 'low_confidence', 'medical',
+                       'complaint', 'human_request', 'emergency', 'error')
+REPLY_MODES = [('grounded', 'Tự động – chỉ trả lời từ dữ liệu đã nạp'), ('approve', 'Nhân viên duyệt mọi câu'),
+               ('script', 'Theo kịch bản đã duyệt'), ('auto', 'Tự động hoàn toàn')]
 HANDOFF_REASONS = [
     ('complaint', 'Khiếu nại / bực bội'),
     ('emergency', 'Dấu hiệu khẩn'),
@@ -174,11 +179,11 @@ class DmagAiConversation(models.Model):
         return {'customer_message_id': customer.id, 'reply': reply.read_for_ui()[0] if reply else False}
 
     def _reply_mode(self):
-        """Chế độ gửi áp cho kênh Zalo OA và Mô phỏng Zalo: approve | script | auto."""
+        """Chế độ gửi áp cho kênh Zalo OA và Mô phỏng Zalo: grounded (mặc định) | approve | script | auto."""
         self.ensure_one()
         if self.channel not in ('zalo', 'simulator'):
             return 'auto'
-        return self.company_id.dmag_ai_zalo_reply_mode or 'script'
+        return self.company_id.dmag_ai_zalo_reply_mode or 'grounded'
 
     def _run_responder(self, text, allowed_tools=None):
         """Bộ trả lời AI-07 (giả lập hoặc Claude + công cụ). ``allowed_tools`` giới hạn công cụ (None = tất cả)."""
@@ -237,6 +242,8 @@ class DmagAiConversation(models.Model):
         conv = self.sudo()
         mode = conv._reply_mode()
         try:
+            if mode == 'grounded':
+                return conv._grounded_reply(text, question)
             if mode == 'script':
                 return conv._script_reply(text, question)
             res = conv._run_responder(text)
@@ -279,16 +286,9 @@ class DmagAiConversation(models.Model):
         Script = self.env['dmag.ai.reply.script'].sudo()
         company = self.company_id
         live = company.dmag_ai_mode == 'live'
-        safety = Reception.safety_precheck(text)
-        if safety == 'emergency':
-            self._handoff('emergency', text[:200])
-            return self._send_emergency_template(question, _('Từ khóa khẩn cấp – chuyển nhân viên trực ngay'))
-        if safety in ('complaint', 'human_request'):
-            self._handoff(safety, text[:200])
-            label = _('Khiếu nại / bực bội') if safety == 'complaint' else _('Khách muốn gặp nhân viên')
-            return self._create_reply({'text': COMPLAINT_ACK if safety == 'complaint' else HUMAN_ACK}, 'ready',
-                                      safety, question, note=_('%s – chuyển nhân viên, không tự trả lời', label),
-                                      role='system')
+        safe = self._safety_first(text, question)
+        if safe:
+            return safe
         scripts = Script._approved(company)
         threshold = company.dmag_ai_script_threshold or 0.6
         best, confidence, note, classify = Script, 0.0, '', None
@@ -457,6 +457,10 @@ class DmagAiConversation(models.Model):
             self.write({'state': 'human', 'assigned_user_id': self.env.uid})
         self.write({'last_message_at': fields.Datetime.now(), 'last_message_preview': text[:120]})
         msg._deliver()
+        open_gaps = self.sudo().gap_ids.filtered(lambda g: g.state == 'open')
+        if open_gaps:
+            open_gaps.with_user(self.env.user)._mark_answered(text, msg)
+            msg.sudo().gap_id = open_gaps.sorted('id')[-1]
         return msg.read_for_ui()[0]
 
     # ------------------------------------------------------------------ data for OWL
@@ -473,6 +477,8 @@ class DmagAiConversation(models.Model):
             'visits': [self._visit_card(v) for v in self.visit_ids.sorted('id')],
             'cost_vnd': self.cost_vnd, 'estimated_cost_vnd': self.estimated_cost_vnd,
             'reply_mode': self._reply_mode(),
+            'reply_mode_label': dict(REPLY_MODES).get(self._reply_mode(), ''),
+            'gaps': [g._card() for g in self.sudo().gap_ids.sorted('id')],
             'flow_script': self.script_id.name or '',
             'feedback': [{'id': f.id, 'topic': f.topic_label, 'severity': f.severity, 'sentiment': f.sentiment,
                           'churn_risk': f.churn_risk, 'suggested_action': f.suggested_action or ''}
@@ -497,16 +503,24 @@ class DmagAiConversation(models.Model):
     def get_inbox(self, filter_key='attention'):
         domain = [('company_id', 'in', self.env.companies.ids)]
         if filter_key == 'attention':
-            domain += ['|', ('state', 'in', ('handoff', 'human')), ('pending_count', '>', 0)]
+            domain += ['|', '|', ('state', 'in', ('handoff', 'human')), ('pending_count', '>', 0),
+                       ('open_gap_count', '>', 0)]
+        elif filter_key == 'gaps':
+            domain += [('gap_ids', '!=', False)]
         elif filter_key == 'bot':
             domain += [('state', '=', 'bot')]
         elif filter_key == 'closed':
             domain += [('state', '=', 'closed')]
         convs = self.search(domain, limit=80)
         counts = {
-            'attention': self.search_count([('company_id', 'in', self.env.companies.ids), '|',
-                                            ('state', 'in', ('handoff', 'human')), ('pending_count', '>', 0)]),
+            'attention': self.search_count([('company_id', 'in', self.env.companies.ids), '|', '|',
+                                            ('state', 'in', ('handoff', 'human')), ('pending_count', '>', 0),
+                                            ('open_gap_count', '>', 0)]),
             'bot': self.search_count([('company_id', 'in', self.env.companies.ids), ('state', '=', 'bot')]),
+            'gaps': self.env['dmag.ai.kb.gap'].search_count([('company_id', 'in', self.env.companies.ids),
+                                                             ('state', '=', 'open')]),
+            'gaps_answered': self.env['dmag.ai.kb.gap'].search_count([('company_id', 'in', self.env.companies.ids),
+                                                                      ('state', '=', 'answered')]),
         }
         return {
             'counts': counts,
@@ -517,6 +531,7 @@ class DmagAiConversation(models.Model):
                 'state_label': dict(c._fields['state'].selection)[c.state],
                 'handoff_reason': dict(HANDOFF_REASONS).get(c.handoff_reason, ''),
                 'preview': c.last_message_preview or '', 'pending': c.pending_count, 'visits': c.visit_count,
+                'gaps': c.open_gap_count,
                 'last': fields.Datetime.to_string(c.last_message_at) if c.last_message_at else '',
             } for c in convs],
         }
@@ -535,7 +550,8 @@ class DmagAiConversation(models.Model):
         auto = len(msgs.filtered(lambda m: m.decision in AUTO_DECISIONS))
         escalated = len(msgs.filtered(lambda m: m.decision in ESCALATED_DECISIONS))
         by_script = Counter(m.script_id.name for m in msgs if m.script_id and m.decision in AUTO_DECISIONS)
-        unmatched = msgs.filtered(lambda m: m.decision in ('no_match', 'low_confidence', 'medical', 'staff_review'))
+        unmatched = msgs.filtered(lambda m: m.decision in ('no_match', 'low_confidence', 'medical', 'staff_review',
+                                                           'out_of_data'))
         groups = {}
         for m in unmatched:
             q = m.question_id.body if m.question_id else ''
@@ -564,6 +580,14 @@ class DmagAiConversation(models.Model):
                 ('state', '=', 'draft'), ('company_id', 'in', self.env.companies.ids)]),
             'reply_mode': self.env.company.dmag_ai_zalo_reply_mode,
             'threshold': round((self.env.company.dmag_ai_script_threshold or 0.6) * 100),
+            'grounded': len(msgs.filtered(lambda m: m.decision == 'grounded')),
+            'out_of_data': len(msgs.filtered(lambda m: m.decision == 'out_of_data')),
+            'kb_approved': self.env['dmag.ai.knowledge'].search_count([('state', '=', 'approved'),
+                                                                     ('company_id', 'in', self.env.companies.ids)]),
+            'kb_draft': self.env['dmag.ai.knowledge'].search_count([('state', '=', 'draft'),
+                                                                  ('company_id', 'in', self.env.companies.ids)]),
+            'scripts_proposed': Script.search_count([('state', '=', 'draft'), ('origin', '=', 'proposal'),
+                                                     ('company_id', 'in', self.env.companies.ids)]),
         }
 
     # ------------------------------------------------------------------ simulator
@@ -611,8 +635,10 @@ class DmagAiConversationMessage(models.Model):
     visit_id = fields.Many2one('dmag.dental.visit', string='Lịch tạo ra')
     send_error = fields.Char('Lỗi gửi')
     # Quyết định của trợ lý (chế độ theo kịch bản đã duyệt)
-    reply_mode = fields.Selection([('approve', 'Nhân viên duyệt mọi câu'), ('script', 'Theo kịch bản đã duyệt'),
-                                   ('auto', 'Tự động hoàn toàn')], string='Chế độ lúc trả lời', readonly=True)
+    reply_mode = fields.Selection(REPLY_MODES, string='Chế độ lúc trả lời', readonly=True)
+    sources = fields.Text('Nguồn dữ liệu (JSON)', readonly=True,
+                          help='Chế độ "chỉ trả lời từ dữ liệu đã nạp": các mục tri thức / công cụ đã dùng.')
+    gap_id = fields.Many2one('dmag.ai.kb.gap', string='Câu hỏi ngoài dữ liệu', readonly=True, index=True)
     decision = fields.Selection(DECISIONS, string='Quyết định của trợ lý', readonly=True, index=True)
     script_id = fields.Many2one('dmag.ai.reply.script', string='Kịch bản', readonly=True, index=True)
     match_confidence = fields.Float('Độ tin cậy khớp kịch bản', readonly=True, digits=(3, 2))
@@ -652,8 +678,17 @@ class DmagAiConversationMessage(models.Model):
                 'promoted_script': {'id': m.promoted_script_id.id, 'name': m.promoted_script_id.name,
                                     'state': m.promoted_script_id.state} if m.promoted_script_id else False,
                 'promoted_example': bool(m.promoted_example_id),
+                'sources': m._sources_list(),
+                'gap': m.gap_id._card() if m.gap_id else False,
             })
         return res
+
+    def _sources_list(self):
+        self.ensure_one()
+        try:
+            return json.loads(self.sources or '[]')
+        except ValueError:
+            return []
 
     # ------------------------------------------------------------------ huấn luyện từ hộp thư
     def _is_promotable(self):
@@ -693,6 +728,7 @@ class DmagAiConversationMessage(models.Model):
             'answer_template': self.body,
             'proposed_by_id': self.env.uid,
             'source_message_id': self.id,
+            'origin': 'proposal',
             'tool_ids': [(6, 0, self.env['dmag.ai.reply.tool'].sudo().search([('side_effect', '=', False)]).ids)],
         })
         script.message_post(body=_('%(user)s đề xuất từ hộp thư (hội thoại %(conv)s). Giám đốc đọc lại, thay số liệu cố định '

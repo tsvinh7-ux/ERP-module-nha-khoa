@@ -18,3 +18,11 @@ access_dmag_ai_reply_script_user,dmag.ai.reply.script receptionist,model_dmag_ai
 access_dmag_ai_reply_script_manager,dmag.ai.reply.script manager,model_dmag_ai_reply_script,dmag_dental_base.group_dmag_manager,1,1,1,1
 access_dmag_ai_reply_example_user,dmag.ai.reply.example receptionist,model_dmag_ai_reply_example,dmag_dental_base.group_dmag_receptionist,1,0,0,0
 access_dmag_ai_reply_example_manager,dmag.ai.reply.example manager,model_dmag_ai_reply_example,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_knowledge_user,dmag.ai.knowledge receptionist,model_dmag_ai_knowledge,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_knowledge_manager,dmag.ai.knowledge manager,model_dmag_ai_knowledge,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_knowledge_document_user,dmag.ai.knowledge.document receptionist,model_dmag_ai_knowledge_document,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_knowledge_document_manager,dmag.ai.knowledge.document manager,model_dmag_ai_knowledge_document,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_kb_gap_user,dmag.ai.kb.gap receptionist,model_dmag_ai_kb_gap,dmag_dental_base.group_dmag_receptionist,1,1,0,0
+access_dmag_ai_kb_gap_manager,dmag.ai.kb.gap manager,model_dmag_ai_kb_gap,dmag_dental_base.group_dmag_manager,1,1,1,1
+access_dmag_ai_duty_line_user,dmag.ai.duty.line receptionist,model_dmag_ai_duty_line,dmag_dental_base.group_dmag_receptionist,1,0,0,0
+access_dmag_ai_duty_line_manager,dmag.ai.duty.line manager,model_dmag_ai_duty_line,dmag_dental_base.group_dmag_manager,1,1,1,1

@@ -29,6 +29,10 @@ USERS = [
      'dmag_hr_3p.job_doctor', 'P5'),
     ('doctor2', 'bacsi2.demo', 'Nguyễn Hoàng Yến', 'dmag_dental_base.group_dmag_doctor',
      'dmag_hr_3p.job_doctor', 'P3'),
+    ('doctor3', 'bacsi3.demo', 'Lê Hoàng Nam', 'dmag_dental_base.group_dmag_doctor',
+     'dmag_hr_3p.job_doctor', 'P3'),
+    ('assistant2', 'phuta2.demo', 'Ngô Thị Hồng Nhung', 'dmag_dental_base.group_dmag_assistant',
+     'dmag_hr_3p.job_nurse', 'P2'),
     ('manager', 'quanly.demo', 'Đỗ Quang Huy', 'dmag_dental_base.group_dmag_manager',
      'dmag_hr_3p.job_manager', 'M2'),
     ('director', 'giamdoc.demo', 'Nguyễn Văn Phúc', 'dmag_dental_base.group_dmag_director',
@@ -45,8 +49,20 @@ PRACTITIONERS = {
     'doctor2': ('BSCKI', 'doctor', '004567/HCM-CCHN', 'dmag_dental_base.level_2',
                 ['scope_general', 'scope_endo', 'scope_ortho', 'scope_pedo', 'scope_prostho', 'scope_perio'],
                 10, 'BS-DEMO-0002'),
+    'doctor3': ('BSCKI', 'doctor', '007890/HCM-CCHN', 'dmag_dental_base.level_2',
+                ['scope_general', 'scope_endo', 'scope_prostho', 'scope_perio'], 7, 'BS-DEMO-0003'),
     'assistant': ('ĐD', 'assistant', '010203/HCM-CCHN', False, [], 2, False),
+    'assistant2': ('ĐD', 'assistant', '010204/HCM-CCHN', False, [], 3, False),
 }
+
+# Lịch nghỉ luân phiên (quyết định 11/10/2026: mở cửa cả tuần, Chủ nhật đông khách, nhân sự nghỉ luân phiên ngày thường)
+# key người dùng: vai trò trong lịch luân phiên – bộ xếp lịch tự động chia ngày nghỉ (Quản lý bấm nút thật)
+ROTATION = [
+    ('doctor', 'doctor'), ('doctor2', 'doctor'), ('doctor3', 'doctor'),
+    ('assistant', 'assistant'), ('assistant2', 'assistant'),
+    ('receptionist', 'receptionist'), ('consultant', 'receptionist'),
+]
+SUNDAY_EXTRA = (3, 5)  # Chủ nhật thêm 3–5 lượt so với ngày thường (~1,5–2×)
 
 CHAIRS = [
     ('Ghế 1 (demo)', 'G1', 'Phòng điều trị A'),
@@ -520,6 +536,45 @@ AI_PATIENT_EXTRA = {
     'quynh': {'is_pregnant': True, 'current_medication': 'Viên sắt + acid folic (thai 20 tuần).'},
 }
 # Tin nhắn Zalo OA mẫu (đường webhook): hỏi giá (chờ duyệt), ca khẩn, khiếu nại
+# Câu hỏi NGOÀI dữ liệu đã nạp → trợ lý gửi tin giữ chỗ, báo lễ tân đang trực; nhân viên trả lời rồi đề xuất kịch bản /
+# nạp vào kho tri thức. (uid, tên, SĐT, câu hỏi, người trả lời, câu trả lời, xử lý)
+#   xử lý: 'script_approved' – đề xuất thành kịch bản, Giám đốc duyệt (ví dụ khép vòng huấn luyện)
+#          'script_draft'    – đề xuất thành kịch bản, chờ Giám đốc duyệt
+#          'kb_approved' / 'kb_draft' – "Nạp vào kho tri thức", Giám đốc đã duyệt / chờ duyệt
+#          'open' / 'overdue' – chưa trả lời (quá hạn → đã báo Quản lý)
+AI_GAP_CHATS = [
+    ('zalo-demo-004', 'Chị Vân (Zalo)', '0912777888',
+     'Bên mình có xuất hóa đơn VAT cho công ty không ạ? Công ty em muốn khám định kỳ cho nhân viên.', 'receptionist',
+     'Dạ có ạ. Phòng khám xuất hóa đơn điện tử (VAT) cho công ty – anh/chị gửi tên công ty, mã số thuế, địa chỉ và email '
+     'nhận hóa đơn khi thanh toán. Với gói khám định kỳ cho nhân viên, quản lý sẽ gọi lại báo giá theo số lượng trong '
+     'hôm nay ạ.', ('script_approved', 'kb_approved')),
+    ('zalo-demo-005', 'Bác Tư (Zalo)', '0903456789',
+     'Phòng khám có xe đưa đón người cao tuổi không cháu? Bác ở Thủ Đức.', 'consultant',
+     'Dạ phòng khám chưa có xe đưa đón ạ. Bác đặt lịch trước, khi đến lễ tân sẽ hỗ trợ bác từ cửa xe vào ghế khám; tầng '
+     'trệt có lối đi cho xe lăn ạ.', ('script_draft', 'kb_draft')),
+    ('zalo-demo-006', 'Anh Tuấn (Zalo)', '0987654321',
+     'Phòng khám có chỗ cho bé chơi trong lúc bố mẹ khám không?', 'receptionist',
+     'Dạ có góc chơi cho bé ở khu chờ tầng trệt, lễ tân trông giúp trong lúc anh/chị khám ạ.', ('script_draft',)),
+    ('zalo-demo-007', 'Chị Mai Anh (Zalo)', '0934222111',
+     'Phòng khám có nhận bảo hiểm sức khỏe Bảo Việt không ạ?', None, None, ('overdue',)),
+    ('zalo-demo-008', 'Anh Phát (Zalo)', '0966888999',
+     'Em muốn hỏi có làm răng sứ cho người đang chạy thận được không?', None, None, ('open',)),
+]
+# Tài liệu mẫu nạp vào kho tri thức (Quản lý tải lên, Giám đốc duyệt)
+KB_DOCUMENT = ('Cẩm nang khách hàng ' + SAMPLE, 'cam-nang-khach-hang.md', """# Chính sách hủy và đổi lịch
+Khách đổi hoặc hủy lịch trước 24 giờ không mất phí giữ chỗ. Lịch niềng răng, implant đã đặt cọc: hoàn cọc nếu hủy trước
+khi bắt đầu điều trị.
+
+# Khám cho người cao tuổi và người khuyết tật
+Tầng trệt có lối đi cho xe lăn, ghế nha nâng hạ; lễ tân hỗ trợ từ cửa vào ghế khám.
+
+# Đi khám cùng trẻ nhỏ
+Khu chờ có góc chơi cho bé; trẻ dưới 16 tuổi cần bố mẹ hoặc người giám hộ đi cùng khi khám, làm thủ thuật.
+
+# Hóa đơn và chứng từ
+Phòng khám xuất hóa đơn điện tử cho cá nhân và công ty; bản sao bệnh án, đơn thuốc cung cấp khi khách yêu cầu.
+""")
+
 AI_ZALO_CHATS = [
     ('zalo-demo-001', 'Minh Thư (Zalo)', '0938111222', ['Chào phòng khám, niềng răng trong suốt giá khoảng bao nhiêu ạ?',
                                                          'Có trả góp không ạ?']),

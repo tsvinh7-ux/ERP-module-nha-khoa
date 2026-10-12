@@ -3,6 +3,8 @@
 * ``holt_winters``: san bằng hàm mũ ba tham số (mức · xu hướng · mùa vụ cộng tính), chọn tham số bằng lưới
   tối thiểu tổng bình phương sai số dự báo một bước; mùa vụ = chu kỳ tuần làm việc (6 ngày, thứ Hai – thứ Bảy).
   Thiếu dữ liệu (< 2 chu kỳ) → Holt (mức + xu hướng); quá ngắn → trung bình.
+* ``weekday_profile``: mùa vụ theo THỨ trong tuần (phòng khám mở 7 ngày, Chủ nhật đông nhất) – chênh lệch cộng tính
+  của từng thứ so với trung bình, co về 0 khi ít mẫu; gắn theo thứ thật nên ngày nghỉ lễ không làm lệch pha.
 * ``norm_cdf`` / ``Z80``: khoảng tin cậy 80 % theo phân phối chuẩn.
 Các hàm đều tất định (cùng đầu vào → cùng kết quả) để kiểm thử được.
 """
@@ -147,3 +149,24 @@ def split_spikes(series, k=3.0):
     rate = sum(excess) / n
     var = sum(e * e for e in excess) / n - rate * rate
     return capped, rate, max(0.0, var), cap
+
+
+def weekday_profile(days, values, shrink=2.0):
+    """Mùa vụ theo thứ: {thứ (0 = Thứ Hai): (chênh lệch cộng tính, chỉ số nhân, số mẫu)}.
+
+    Chênh lệch = (TB của thứ − TB chung) × n / (n + ``shrink``) – thứ ít mẫu bị co về 0 để không khuếch đại nhiễu.
+    """
+    values = [float(v) for v in values]
+    if not values:
+        return {}
+    # trung vị (bền với ca lớn đột biến như implant / chỉnh nha trọn gói)
+    overall = quantile(values, 0.5) or mean(values)
+    by_wd = {}
+    for day, value in zip(days, values):
+        by_wd.setdefault(day.weekday(), []).append(value)
+    out = {}
+    for wd, vals in by_wd.items():
+        n = len(vals)
+        diff = (quantile(vals, 0.5) - overall) * n / (n + shrink)
+        out[wd] = (diff, ((overall + diff) / overall) if overall else 1.0, n)
+    return out

@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from odoo import fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
 
@@ -294,6 +295,31 @@ class TestAiInsights(TransactionCase):
         self.assertAlmostEqual(sum(capped) / 10 + rate, sum([1, 2, 1, 2, 1, 2, 1, 2, 1, 50]) / 10)
         self.assertGreater(fm.robust_z(50, [1, 2, 1, 2, 1, 2]), 10)
         self.assertEqual(fm.holt_winters([], 3)['forecast'], [0.0, 0.0, 0.0])
+
+    def test_forecast_sunday_seasonality(self):
+        """Phòng khám mở 7 ngày, Chủ nhật đông nhất → dự báo bắt được mùa vụ theo thứ (Chủ nhật cao nhất)."""
+        F = self.env['dmag.ai.forecast']
+        today = date(2025, 3, 10)
+        hist = [today - timedelta(days=i) for i in range(56, 0, -1)]
+        series = [(18000000.0 if d.weekday() == 6 else 10000000.0) + (i % 3) * 200000 for i, d in enumerate(hist)]
+        profile = fm.weekday_profile(hist, series)
+        self.assertGreater(profile[6][1], 1.4)
+        scope = self.env['dmag.goal.engine']._scope(hist[0], hist[-1], self.env.companies, today=today)
+
+        def fake_history(_self, d_from, d_to):
+            return hist, list(series), scope
+        with patch.object(type(F), '_daily_history', fake_history):
+            res = F._revenue_forecast(month_from=date(2025, 3, 1), today=today)
+        model = res['model']
+        self.assertEqual(model['peak_weekday'], 'Chủ nhật')
+        sunday = next(w for w in model['weekday_profile'] if w['weekday'] == 6)
+        self.assertGreater(sunday['index'], 1.4)
+        self.assertEqual(len(model['weekday_profile']), 7)
+        rows = res['days']
+        sun = [r['value'] for r in rows if fields.Date.to_date(r['date']).weekday() == 6]
+        other = [r['value'] for r in rows if fields.Date.to_date(r['date']).weekday() != 6]
+        self.assertEqual(len(rows), 22, 'Mọi ngày còn lại của tháng (kể cả Chủ nhật) đều là ngày làm việc')
+        self.assertGreater(sum(sun) / len(sun), 1.3 * sum(other) / len(other))
 
     def test_forecast_rpc(self):
         F = self.env['dmag.ai.forecast']

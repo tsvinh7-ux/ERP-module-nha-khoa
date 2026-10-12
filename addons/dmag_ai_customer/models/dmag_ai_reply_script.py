@@ -45,11 +45,22 @@ PLACEHOLDERS = {
     'chuan_bi': ('Chuẩn bị trước khi khám', 'get_clinic_info'),
     'gia_dich_vu': ('Giá niêm yết (dịch vụ khách hỏi, hoặc dịch vụ gắn với kịch bản)', 'search_services'),
     'gio_trong': ('Giờ còn trống gần nhất (2 ngày làm việc tới)', 'get_free_slots'),
+    'bao_hanh': ('Thời hạn bảo hành theo dịch vụ (dịch vụ khách hỏi, hoặc dịch vụ gắn với kịch bản)', 'search_services'),
+    'bac_si_lam_viec': ('Bác sĩ và ngày trực (Lịch nghỉ luân phiên)', 'get_clinic_info'),
+    'goi_cham_soc': ('Gói chăm sóc răng miệng theo năm', 'get_clinic_info'),
+}
+# Nhãn nguồn dữ liệu hiển thị "Trả lời từ: …" theo ô dữ liệu đã dùng
+PLACEHOLDER_SOURCES = {
+    'gia_dich_vu': 'Bảng giá', 'bao_hanh': 'Bảo hành theo dịch vụ', 'gio_lam_viec': 'Lịch làm việc',
+    'ngay_nghi_sap_toi': 'Lịch làm việc', 'bac_si_lam_viec': 'Lịch nghỉ luân phiên', 'gio_trong': 'Giờ trống',
+    'dia_chi': 'Thông tin phòng khám', 'gui_xe': 'Thông tin phòng khám', 'thanh_toan': 'Thanh toán',
+    'chuan_bi': 'Thông tin phòng khám', 'goi_cham_soc': 'Gói chăm sóc',
 }
 PLACEHOLDER_RE = re.compile(r'\{([a-z_]+)\}')
 # Trường nội dung – khóa khi kịch bản đã duyệt
 CONTENT_FIELDS = {'name', 'code', 'category', 'sample_questions', 'keywords', 'answer_template', 'allow_rephrase',
-                  'flow', 'service_ids', 'tool_ids', 'quick_replies', 'handoff_reason', 'company_id', 'min_confidence'}
+                  'flow', 'service_ids', 'tool_ids', 'quick_replies', 'handoff_reason', 'company_id', 'min_confidence',
+                  'doctor_scope'}
 STOPWORDS = {'a', 'ah', 'ad', 'oi', 'cho', 'em', 'minh', 'toi', 'anh', 'chi', 'la', 'thi', 'co', 'khong', 'vay', 'nhe',
              'nha', 'voi', 'duoc', 'cua', 'ben', 'phong', 'kham', 'nha khoa', 'ko', 'k', 'gi', 'nao', 'the', 'ra', 'sao',
              'can', 'hoi', 'xin', 'chao', 'va', 'o', 'u', 'luon', 'rang', 'bac', 'si', 'mot', 'nhu', 'nay', 'kia',
@@ -120,6 +131,9 @@ class DmagAiReplyScript(models.Model):
     service_ids = fields.Many2many('product.product', string='Dịch vụ báo giá', domain=[('is_dental_service', '=', True)],
                                    help='Dịch vụ điền vào {gia_dich_vu} khi khách không nêu rõ dịch vụ.')
     tool_ids = fields.Many2many('dmag.ai.reply.tool', string='Công cụ được phép')
+    doctor_scope = fields.Char('Phạm vi bác sĩ nêu tên',
+                               help='Mã phạm vi hành nghề (vd. scope_ortho) – {bac_si_lam_viec} chỉ liệt kê bác sĩ có '
+                                    'phạm vi này. Để trống = mọi bác sĩ.')
     quick_replies = fields.Char('Nút trả lời nhanh', help='Cách nhau bằng dấu "|", ví dụ: Đặt lịch | Địa chỉ')
     state = fields.Selection([('draft', 'Nháp – chờ Giám đốc duyệt'), ('approved', 'Đã duyệt')], string='Trạng thái',
                              default='draft', required=True, tracking=True, copy=False, index=True)
@@ -128,6 +142,9 @@ class DmagAiReplyScript(models.Model):
     approved_by_id = fields.Many2one('res.users', string='Giám đốc duyệt', readonly=True, copy=False, tracking=True)
     approved_at = fields.Datetime('Duyệt lúc', readonly=True, copy=False)
     source_message_id = fields.Many2one('dmag.ai.conversation.message', string='Từ tin nhắn', readonly=True, copy=False)
+    origin = fields.Selection([('sample', 'Bộ kịch bản chuẩn'), ('manual', 'Quản lý soạn'),
+                               ('proposal', 'Nhân viên đề xuất từ hộp thư')], string='Nguồn', default='manual',
+                              readonly=True, copy=False, index=True)
     example_ids = fields.One2many('dmag.ai.reply.example', 'script_id', string='Ví dụ hỏi – đáp')
     example_count = fields.Integer(compute='_compute_counts')
     usage_count = fields.Integer('Số lần tự trả lời', readonly=True, copy=False)
@@ -346,7 +363,7 @@ class DmagAiReplyScript(models.Model):
                 services |= Product.search([('is_dental_service', '=', True), ('name', 'ilike', word),
                                             ('company_id', 'in', [False, company.id])], limit=2)
             vals = {k: v for k, v in sample.items() if k not in ('tools', 'services')}
-            vals.update(company_id=company.id, sequence=seq * 10,
+            vals.update(company_id=company.id, sequence=seq * 10, origin='sample',
                         tool_ids=[(6, 0, Tool.search([('code', 'in', sample.get('tools', []))]).ids)],
                         service_ids=[(6, 0, services.ids)])
             created |= self.sudo().with_context(mail_create_nolog=True).create(vals)

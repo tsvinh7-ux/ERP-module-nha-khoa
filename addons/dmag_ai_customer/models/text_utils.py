@@ -137,3 +137,33 @@ def given_name(name):
 
 def money(amount):
     return '{:,.0f}'.format(amount or 0).replace(',', '.') + ' đ'
+
+
+def warranty_text(months):
+    """120 → "bảo hành 120 tháng (10 năm)"; 0 → "không áp dụng bảo hành riêng"."""
+    months = int(months or 0)
+    if not months:
+        return 'không áp dụng bảo hành riêng'
+    if months % 12 == 0:
+        return 'bảo hành %s tháng (%s năm)' % (months, months // 12)
+    return 'bảo hành %s tháng' % months
+
+
+NUMBER_RE = re.compile(r'\d+(?:[.,]\d+)*')
+
+
+def numbers_in(text, parts=False):
+    """Các con số trong văn bản, chuẩn hóa để so khớp: "1.500.000 đ" → 1500000; "08:00" → 8, 0; "14/10" → 14, 10.
+
+    ``parts=True`` (phía NGUỒN) thêm từng nhóm số ("2.500.000" → 2, 500, 0) để câu trả lời viết "2,5" vẫn bị chặn
+    nhưng "08:00" / "8:00" khớp nhau."""
+    out = set()
+    for raw in NUMBER_RE.findall(text or ''):
+        compact = raw.replace('.', '').replace(',', '')
+        if compact.isdigit():
+            out.add(int(compact))
+        if parts:
+            for part in re.split(r'[.,]', raw):
+                if part.isdigit():
+                    out.add(int(part))
+    return out

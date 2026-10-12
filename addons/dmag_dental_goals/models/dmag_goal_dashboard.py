@@ -68,9 +68,11 @@ class GoalBoard:
         self.today = today
         # ngày làm việc theo Lịch làm việc phòng khám (thứ nghỉ, nghỉ lễ không tính)
         schedule = env['dmag.clinic.schedule'].get_info(companies[:1] or env.company)
+        self.schedule = schedule
         self.wd_total = schedule.count_open_days(d_from, d_to)
         self.wd_elapsed = schedule.count_open_days(d_from, min(today, d_to)) if today >= d_from else 0
         self.wd_left = self.wd_total - self.wd_elapsed
+        self._doctor_wd = {}
         self.is_past = today > d_to
         self.is_future = today < d_from
         self._scopes = {}
@@ -128,8 +130,19 @@ class GoalBoard:
             return default, 'dmag', rows.browse()
         return None, None, rows.browse()
 
+    def doctor_days(self, doctor):
+        """(ngày trực đã qua, tổng ngày trực của kỳ, còn lại) của một bác sĩ theo Lịch nghỉ luân phiên – nhịp mục tiêu
+        riêng của bác sĩ tính trên NGÀY TRỰC của chính bác sĩ đó (nghỉ luân phiên / nghỉ phép không tính)."""
+        if doctor.id not in self._doctor_wd:
+            days = doctor.duty_days(self.d_from, self.d_to, self.schedule)
+            elapsed = len([d for d in days if d <= self.today]) if self.today >= self.d_from else 0
+            self._doctor_wd[doctor.id] = (elapsed, len(days), len(days) - elapsed)
+        return self._doctor_wd[doctor.id]
+
     # ---------------------------------------------------------------- status
-    def evaluate(self, metric, actual, target):
+    def evaluate(self, metric, actual, target, wd=None):
+        """``wd`` = (ngày làm việc đã qua, tổng, còn lại) – mặc định của phòng khám; bác sĩ: ngày trực riêng."""
+        wd_elapsed, wd_total, wd_left = wd or (self.wd_elapsed, self.wd_total, self.wd_left)
         info = METRICS[metric]
         res = {'achieved_pct': None, 'forecast': None, 'forecast_pct': None, 'gap': None, 'per_day': None,
                'status': 'no_data'}
@@ -137,17 +150,17 @@ class GoalBoard:
             return res
         if target is None:
             res['status'] = 'no_target'
-            if info['kind'] == 'sum' and self.wd_elapsed:
-                res['forecast'] = actual if self.is_past else actual / self.wd_elapsed * self.wd_total
+            if info['kind'] == 'sum' and wd_elapsed:
+                res['forecast'] = actual if self.is_past else actual / wd_elapsed * wd_total
             return res
         if info['kind'] == 'sum':
             res['achieved_pct'] = round(actual * 100.0 / target, 1) if target else None
-            forecast = actual if self.is_past else (actual / self.wd_elapsed * self.wd_total if self.wd_elapsed
+            forecast = actual if self.is_past else (actual / wd_elapsed * wd_total if wd_elapsed
                                                     else None)
             res['forecast'] = forecast
             res['gap'] = max(target - actual, 0.0)
-            if res['gap'] and self.wd_left and not self.is_past:
-                res['per_day'] = res['gap'] / self.wd_left
+            if res['gap'] and wd_left and not self.is_past:
+                res['per_day'] = res['gap'] / wd_left
             if forecast is not None and target:
                 res['forecast_pct'] = round(forecast * 100.0 / target, 1)
             if self.is_past:
@@ -193,7 +206,10 @@ class GoalBoard:
             'note': '\n'.join(n for n in records.mapped('note') if n),
             'target_ids': records.ids,
         }
-        card.update(self.evaluate(metric, actual, target))
+        wd = self.doctor_days(doctor) if doctor else None
+        card.update(self.evaluate(metric, actual, target, wd))
+        if wd:
+            card['duty_days'] = {'elapsed': wd[0], 'total': wd[1], 'left': wd[2]}
         card['status_label'] = STATUS_LABELS[card['status']]
         if trend:
             if not self.is_future:

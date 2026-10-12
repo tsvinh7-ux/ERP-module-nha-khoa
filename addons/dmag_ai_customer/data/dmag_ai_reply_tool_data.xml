@@ -10,7 +10,11 @@
     </record>
     <record id="reply_tool_get_clinic_info" model="dmag.ai.reply.tool">
         <field name="name">Thông tin phòng khám</field><field name="code">get_clinic_info</field><field name="sequence">30</field>
-        <field name="description">Giờ làm việc, địa chỉ, gửi xe, thanh toán, chuẩn bị trước khám</field>
+        <field name="description">Giờ làm việc, địa chỉ, gửi xe, thanh toán, chuẩn bị trước khám, bác sĩ &amp; ngày trực, gói chăm sóc</field>
+    </record>
+    <record id="reply_tool_search_knowledge" model="dmag.ai.reply.tool">
+        <field name="name">Tra kho tri thức đã duyệt</field><field name="code">search_knowledge</field><field name="sequence">35</field>
+        <field name="description">Tìm trong dữ liệu đã nạp (kịch bản, bảng giá, lịch, chính sách, tài liệu, hỏi – đáp đã duyệt)</field>
     </record>
     <record id="reply_tool_find_patient_by_phone" model="dmag.ai.reply.tool">
         <field name="name">Tìm hồ sơ theo SĐT</field><field name="code">find_patient_by_phone</field><field name="sequence">40</field>

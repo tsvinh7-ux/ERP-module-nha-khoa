@@ -7,3 +7,4 @@ from . import dmag_clinic_schedule
 from . import dmag_dental_practitioner
 from . import res_partner
 from . import product_template
+from . import dmag_staff_rotation

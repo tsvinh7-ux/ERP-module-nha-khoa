@@ -7,8 +7,10 @@
             <form string="Lịch làm việc phòng khám" create="0" delete="0">
                 <header>
                     <button name="action_reset_default" type="object" string="Đặt lại ca mặc định"
-                            confirm="Thay toàn bộ ca làm việc bằng mặc định (Thứ 2 – Thứ 7: 08:00–12:00, 13:30–20:00; Chủ nhật nghỉ)?"/>
+                            confirm="Thay toàn bộ ca làm việc bằng mặc định (Thứ 2 – Chủ nhật: 08:00–12:00, 13:30–20:00)?"/>
                     <button name="action_add_holidays_2026" type="object" string="Thêm ngày lễ mẫu 2026"/>
+                    <button name="action_generate_rotation" type="object" string="Xếp lịch nghỉ luân phiên tự động"
+                            confirm="Chia lại ngày nghỉ hằng tuần cho mọi người trong Nhân sự luân phiên (giữ số người trực tối thiểu)?"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -43,6 +45,26 @@
                             <div class="text-muted small">
                                 Mỗi thứ có thể có một hoặc nhiều ca (ví dụ ca sáng 08:00–12:00 và ca chiều – tối 13:30–20:00).
                                 Thứ không có ca nào = nghỉ. Giờ nghỉ trưa là khoảng giữa hai ca.
+                            </div>
+                        </page>
+                        <page string="Lịch nghỉ luân phiên" name="rotation">
+                            <group>
+                                <group string="Số người trực tối thiểu mỗi ngày">
+                                    <field name="min_doctors"/>
+                                    <field name="min_receptionists"/>
+                                    <field name="min_assistants"/>
+                                    <field name="chairs_per_group"/>
+                                </group>
+                                <group string="Ngày nghỉ hằng tuần">
+                                    <field name="rotation_weekday_ids" widget="many2many_checkboxes"/>
+                                    <field name="rotation_allow_sunday"/>
+                                    <field name="rotation_rotate_weekly"/>
+                                </group>
+                            </group>
+                            <div class="text-muted small">
+                                Phòng khám mở cửa cả tuần; Chủ nhật đông khách nhất nên mặc định không ai nghỉ Chủ nhật.
+                                Thêm nhân sự ở <b>Cấu hình › Phòng khám › Nhân sự luân phiên</b>, bấm
+                                <b>Xếp lịch nghỉ luân phiên tự động</b>, xem lịch tháng ở <b>Nha khoa › Lịch nghỉ luân phiên</b>.
                             </div>
                         </page>
                         <page string="Ngày nghỉ lễ / nghỉ đột xuất" name="closures">

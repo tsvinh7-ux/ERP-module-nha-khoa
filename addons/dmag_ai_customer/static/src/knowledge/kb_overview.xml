@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dmag_ai_customer.KbOverview">
+        <div class="dmag-ws dmag-ai-kb">
+            <header class="dmag-ws-header">
+                <div class="dmag-ws-title">
+                    <div class="dmag-brand-mark">D</div>
+                    <div>
+                        <h1>Dữ liệu đã nạp <span class="dmag-ai-code">AI-07</span></h1>
+                        <span class="dmag-ws-sub" t-if="state.data">Kho tri thức trợ lý Zalo · chế độ <b t-esc="MODE_LABELS[state.data.reply_mode]"/> · nạp lần cuối <b t-esc="fmt(state.data.refreshed_at)"/></span>
+                    </div>
+                </div>
+                <div class="dmag-ws-actions" t-if="state.data">
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openSimulator"><i class="fa fa-mobile me-1" title="Mô phỏng"/>Mô phỏng Zalo</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openList"><i class="fa fa-list me-1" title="Kho"/>Kho tri thức</button>
+                    <button t-if="state.data.can_manage" class="dmag-btn dmag-btn-ghost" t-on-click="newDocument"><i class="fa fa-upload me-1" title="Tải tài liệu"/>Tải tài liệu</button>
+                    <button t-if="state.data.can_manage" class="dmag-btn dmag-btn-primary" t-att-disabled="state.refreshing" t-on-click="refresh">
+                        <i t-att-class="'fa me-1 ' + (state.refreshing ? 'fa-spinner fa-spin' : 'fa-refresh')" title="Nạp lại"/>Nạp lại dữ liệu</button>
+                </div>
+            </header>
+            <t t-if="state.data">
+                <section class="dmag-ai-kb-rule">
+                    <i class="fa fa-shield me-2" title="Quy tắc"/>
+                    <div>Trợ lý <b>thay nhân viên trả lời khách 24/7</b> nhưng <b>chỉ</b> bằng nội dung dưới đây (đã duyệt, còn hiệu lực) và dữ liệu thật của Odoo.
+                        Câu trả lời có con số không có trong nguồn bị <b>chặn</b>; câu hỏi ngoài dữ liệu → khách nhận tin giữ chỗ, <b>lễ tân đang trực</b> được báo ngay, quá hạn → Quản lý.</div>
+                    <button class="dmag-ai-kb-gapbtn" t-on-click="openGaps">
+                        <b t-esc="openGapCount"/> câu hỏi ngoài dữ liệu đang chờ<i class="fa fa-arrow-right ms-2" title="Mở"/>
+                    </button>
+                </section>
+                <section class="dmag-ai-kb-kpis">
+                    <div class="dmag-ai-kb-kpi is-ok"><span class="v" t-esc="state.data.total_approved"/><span class="l">mục đã duyệt – trợ lý được dùng</span></div>
+                    <div class="dmag-ai-kb-kpi is-warn"><span class="v" t-esc="state.data.total_draft"/><span class="l">mục nháp chờ Giám đốc duyệt</span></div>
+                    <div class="dmag-ai-kb-kpi"><span class="v" t-esc="state.data.documents.length"/><span class="l">tài liệu đã tải</span></div>
+                    <div class="dmag-ai-kb-kpi"><span class="v" t-esc="state.data.gaps.length"/><span class="l">câu hỏi ngoài dữ liệu gần đây</span></div>
+                </section>
+                <section class="dmag-ai-kb-sources">
+                    <button t-foreach="state.data.groups" t-as="g" t-key="g.code" t-att-class="'dmag-ai-kb-src' + (g.approved + g.draft ? '' : ' is-empty')" t-on-click="() => this.openSource(g.code)">
+                        <div class="dmag-ai-kb-src-icon"><i t-att-class="'fa ' + (SOURCE_ICONS[g.code] || 'fa-database')" t-att-title="g.label"/></div>
+                        <div class="dmag-ai-kb-src-main">
+                            <div class="dmag-ai-kb-src-label" t-esc="g.label"/>
+                            <div class="dmag-ai-kb-src-count"><b t-esc="g.approved"/> đã duyệt<t t-if="g.draft"> · <span class="text-warning fw-bold"><t t-esc="g.draft"/> chờ duyệt</span></t><t t-if="g.extra"> · <t t-esc="g.extra"/></t></div>
+                            <div class="dmag-hint">Nạp lúc <t t-esc="fmt(g.last)"/></div>
+                        </div>
+                    </button>
+                </section>
+                <div class="dmag-ai-kb-grid">
+                    <section class="dmag-panel">
+                        <div class="dmag-panel-title">Thử hỏi trợ lý <span class="dmag-hint">tìm trong dữ liệu đã nạp (không dấu cũng được)</span></div>
+                        <div class="d-flex gap-2">
+                            <input class="dmag-input mb-0" placeholder="Ví dụ: Chủ nhật có làm việc không?" t-model="state.question" t-on-keydown="onKey"/>
+                            <button class="dmag-btn dmag-btn-primary" t-att-disabled="state.asking" t-on-click="() => this.ask()">Hỏi</button>
+                        </div>
+                        <div class="dmag-phrases mt-2">
+                            <button t-foreach="SAMPLES" t-as="q" t-key="q" class="dmag-phrase" t-on-click="() => this.ask(q)" t-esc="q"/>
+                        </div>
+                        <t t-if="state.result">
+                            <div t-att-class="'dmag-ai-kb-verdict ' + (state.result.grounded or state.result.script ? 'is-ok' : 'is-gap')">
+                                <t t-if="state.result.script"><i class="fa fa-check-circle me-1" title="Có dữ liệu"/>Trả lời theo kịch bản “<t t-esc="state.result.script.name"/>” (<t t-esc="state.result.script.confidence"/>%)</t>
+                                <t t-elif="state.result.grounded"><i class="fa fa-check-circle me-1" title="Có dữ liệu"/>Có trong dữ liệu đã nạp – trợ lý tự trả lời</t>
+                                <t t-else=""><i class="fa fa-bell me-1" title="Ngoài dữ liệu"/>Ngoài dữ liệu đã nạp – trợ lý gửi tin giữ chỗ và báo lễ tân đang trực</t>
+                            </div>
+                            <div t-foreach="state.result.hits" t-as="h" t-key="h.id" t-att-class="'dmag-ai-kb-hit' + (h.grounded ? ' is-ok' : '')" t-on-click="() => this.openEntry(h.id)">
+                                <div class="d-flex justify-content-between gap-2"><b t-esc="h.name"/><span class="dmag-chip" t-esc="Math.round(h.score * 100) + '% · phủ ' + Math.round(h.coverage * 100) + '%'"/></div>
+                                <div class="dmag-hint" t-esc="h.source_label"/>
+                                <div class="small" t-esc="h.content"/>
+                            </div>
+                        </t>
+                    </section>
+                    <section class="dmag-panel">
+                        <div class="dmag-panel-title">Chờ Giám đốc duyệt <span class="dmag-badge" t-if="state.data.drafts.length" t-esc="state.data.drafts.length"/></div>
+                        <div t-if="!state.data.drafts.length" class="dmag-hint">Không có mục nháp.</div>
+                        <div t-foreach="state.data.drafts" t-as="d" t-key="d.id" class="dmag-ai-kb-draft">
+                            <div class="d-flex justify-content-between gap-2"><a href="#" t-on-click.prevent="() => this.openEntry(d.id)"><b t-esc="d.name"/></a><span class="dmag-chip is-warning" t-esc="d.source"/></div>
+                            <div class="small" t-esc="d.content"/>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span class="dmag-hint">Đề xuất: <t t-esc="d.proposed_by"/></span>
+                                <button t-if="state.data.is_director" class="dmag-btn dmag-btn-sm dmag-btn-primary" t-on-click="() => this.approve(d)">Duyệt</button>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="dmag-panel">
+                        <div class="dmag-panel-title">Câu hỏi ngoài dữ liệu gần đây <button class="dmag-link" t-on-click="openGaps">Hộp thư</button></div>
+                        <div t-if="!state.data.gaps.length" class="dmag-hint">Chưa có.</div>
+                        <div t-foreach="state.data.gaps" t-as="g" t-key="g.id" t-att-class="'dmag-ai-kb-gaprow is-' + g.state">
+                            <div class="small">“<t t-esc="g.question"/>”</div>
+                            <div class="dmag-hint">Lễ tân <t t-esc="g.assigned or '-'"/> · <span t-att-class="'fw-bold ' + (g.state === 'open' ? 'text-warning' : 'text-success')" t-esc="g.state_label"/><t t-if="g.escalated"> · đã báo QL</t></div>
+                        </div>
+                        <div class="dmag-panel-title mt-3">Dùng nhiều nhất</div>
+                        <div t-foreach="state.data.top" t-as="t" t-key="t.id" class="dmag-ai-kb-toprow">
+                            <span class="text-truncate" t-esc="t.name"/><span class="dmag-chip" t-esc="t.count + ' lần'"/>
+                        </div>
+                        <div t-if="!state.data.top.length" class="dmag-hint">Chưa có lượt dùng.</div>
+                    </section>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

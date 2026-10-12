@@ -19,6 +19,19 @@ patch(FrontDesk.prototype, {
         ].filter((x) => x !== null).join("\n");
     },
 
+    async load() {
+        await super.load(...arguments);
+        try {
+            this.state.aiGaps = await this.orm.call("dmag.ai.kb.gap", "get_open_count", []);
+        } catch {
+            this.state.aiGaps = null;
+        }
+    },
+
+    openAiGaps() {
+        return this.action.doAction("dmag_ai_customer.action_dmag_ai_inbox", { additionalContext: { dmag_inbox_filter: "gaps" } });
+    },
+
     async aiCare(visit) {
         const action = await this.orm.call("dmag.dental.visit", "action_dmag_ai_care_draft", [[visit.id]]);
         return this.action.doAction(action);

@@ -3,7 +3,13 @@
     <menuitem id="menu_dmag_ai_customer" name="Trợ lý AI khách hàng" parent="dmag_dental_journey.menu_dmag_cskh" sequence="2"/>
     <menuitem id="menu_dmag_ai_inbox" name="Hộp thư trợ lý Zalo" parent="menu_dmag_ai_customer" action="action_dmag_ai_inbox" sequence="1"/>
     <menuitem id="menu_dmag_ai_simulator" name="Mô phỏng Zalo OA (demo)" parent="menu_dmag_ai_customer" action="action_dmag_ai_zalo_simulator" sequence="2"/>
+    <menuitem id="menu_dmag_ai_kb_overview" name="Dữ liệu đã nạp (kho tri thức)" parent="menu_dmag_ai_customer" action="action_dmag_ai_kb_overview" sequence="3"/>
+    <menuitem id="menu_dmag_ai_kb_gap" name="Câu hỏi ngoài dữ liệu" parent="menu_dmag_ai_customer" action="action_dmag_ai_kb_gap" sequence="3"/>
     <menuitem id="menu_dmag_ai_reply_script" name="Kịch bản trả lời đã duyệt" parent="menu_dmag_ai_customer" action="action_dmag_ai_reply_script" sequence="3"/>
+    <menuitem id="menu_dmag_ai_knowledge" name="Kho tri thức trợ lý" parent="menu_dmag_ai_customer" action="action_dmag_ai_knowledge" sequence="4"
+              groups="dmag_dental_base.group_dmag_manager"/>
+    <menuitem id="menu_dmag_ai_knowledge_document" name="Tài liệu trợ lý" parent="menu_dmag_ai_customer" action="action_dmag_ai_knowledge_document" sequence="4"
+              groups="dmag_dental_base.group_dmag_manager"/>
     <menuitem id="menu_dmag_ai_reply_example" name="Ví dụ hỏi – đáp (huấn luyện)" parent="menu_dmag_ai_customer" action="action_dmag_ai_reply_example" sequence="4"
               groups="dmag_dental_base.group_dmag_manager"/>
     <menuitem id="menu_dmag_ai_feedback" name="Phản hồi cần xử lý" parent="menu_dmag_ai_customer" action="action_dmag_ai_feedback" sequence="3"/>

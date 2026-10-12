@@ -1,0 +1,75 @@
+// Lịch nghỉ luân phiên
+.dmag-rot {
+    .dmag-rot-nav { display: flex; align-items: center; gap: 8px; b { min-width: 110px; text-align: center; color: #11346A; } }
+    .dmag-rot-kpis {
+        display: grid; grid-template-columns: 200px 220px 1fr 1.2fr; gap: 12px; padding: 0 24px 12px;
+        .dmag-kpi { background: #fff; border: 1px solid #DDE5EF; border-radius: 14px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; }
+        .dmag-kpi.is-alert { border-color: #F3B4B6; background: #FFF6F6; .dmag-kpi-value { color: #B4232A; } }
+        .dmag-kpi.is-warn .dmag-kpi-value { color: #9A5B00; }
+        .dmag-kpi-value { font-size: 26px; font-weight: 800; color: #11346A; line-height: 1; }
+        .dmag-kpi-label { color: #6B7A90; font-size: 12px; }
+    }
+    .dmag-rot-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; padding: 0 24px 24px; }
+    .dmag-rot-cal { background: #fff; border: 1px solid #DDE5EF; border-radius: 14px; padding: 10px; }
+    .dmag-rot-head, .dmag-rot-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .dmag-rot-week { margin-top: 6px; }
+    .dmag-rot-wd {
+        text-align: center; font-weight: 700; color: #11346A; font-size: 12px; padding: 6px 0; border-radius: 8px; background: #F4F7FB;
+        &.is-sunday { background: #E8F3FE; color: #178BEC; small { font-weight: 600; } }
+    }
+    .dmag-rot-day {
+        min-height: 112px; border: 1px solid #E6ECF3; border-radius: 10px; padding: 6px 7px; background: #fff; cursor: pointer;
+        display: flex; flex-direction: column; gap: 4px; transition: box-shadow .15s, border-color .15s;
+        &:hover { border-color: #178BEC; box-shadow: 0 3px 10px rgba(23, 139, 236, .12); }
+        &.is-sunday { background: #F7FBFF; }
+        &.is-out { opacity: .45; }
+        &.is-today { border: 2px solid #178BEC; }
+        &.is-short { border: 2px solid #E5484D; background: #FFF5F5; }
+        &.is-closed { cursor: default; background: repeating-linear-gradient(135deg, #F4F7FB, #F4F7FB 6px, #EDF1F6 6px, #EDF1F6 12px); }
+    }
+    .dmag-rot-daytop { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .dmag-rot-num { font-weight: 800; font-size: 15px; color: #1B2A3D; }
+    .dmag-rot-alert { font-size: 11px; font-weight: 700; color: #fff; background: #E5484D; border-radius: 999px; padding: 1px 7px; }
+    .dmag-rot-todaytag { font-size: 11px; font-weight: 700; color: #178BEC; }
+    .dmag-rot-covs { display: flex; flex-wrap: wrap; gap: 3px; }
+    .dmag-rot-cov {
+        font-size: 11px; border-radius: 6px; padding: 0 5px; background: #E6F7F4; color: #0B7A6D; white-space: nowrap;
+        &.is-bad { background: #E5484D; color: #fff; }
+    }
+    .dmag-rot-offs { display: flex; flex-wrap: wrap; gap: 3px; }
+    .dmag-rot-tag {
+        font-size: 11px; border-radius: 6px; padding: 1px 6px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+        background: #EEF2F7; color: #4A5A70;
+        &.is-leave { background: #FFF4E0; color: #9A5B00; }
+        &.is-swap_off { background: #E8F3FE; color: #11346A; }
+        b { font-weight: 800; }
+    }
+    .dmag-rot-full { font-size: 11px; color: #12A594; font-weight: 600; }
+    .dmag-rot-closed { font-size: 12px; color: #6B7A90; font-weight: 600; margin-top: 6px; }
+    .dmag-rot-side { display: flex; flex-direction: column; gap: 12px; }
+    .dmag-rot-weekly {
+        display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #E6ECF3; font-size: 13px;
+        &:last-child { border-bottom: 0; }
+        &.is-sunday .dmag-rot-weekly-day { color: #178BEC; }
+    }
+    .dmag-rot-weekly-day { width: 70px; flex: none; font-weight: 700; color: #11346A; }
+    .dmag-rot-weekly-names { color: #1B2A3D; }
+    .dmag-rot-leave { border: 1px solid #E6ECF3; border-radius: 10px; padding: 8px 10px; margin-top: 8px; font-size: 13px; &.is-done { background: #F7FAFC; } }
+    .dmag-rot-warn { color: #B4232A; font-size: 12px; font-weight: 600; margin-top: 4px; }
+}
+.dmag-rot-form label { font-size: 12px; font-weight: 700; color: #6B7A90; margin-bottom: 4px; display: block; }
+
+// Dải "Trực hôm nay" trên Bảng điều phối
+.dmag-duty-strip {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 24px 12px; padding: 8px 12px;
+    background: #fff; border: 1px solid #DDE5EF; border-radius: 12px; font-size: 13px;
+    &.is-short { border-color: #F3B4B6; background: #FFF6F6; }
+    .dmag-duty-label { font-weight: 700; color: #11346A; }
+    .dmag-duty-chip {
+        border-radius: 999px; padding: 2px 10px; font-weight: 600; font-size: 12px;
+        &.is-on { background: #E6F7F4; color: #0B7A6D; }
+        &.is-off { background: #EEF2F7; color: #4A5A70; small { font-weight: 500; } }
+        &.is-short { background: #E5484D; color: #fff; }
+    }
+}
+.dmag-day-off { color: #9A5B00; }

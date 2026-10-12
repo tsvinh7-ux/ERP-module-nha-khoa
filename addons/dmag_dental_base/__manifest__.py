@@ -24,6 +24,7 @@
         'views/dmag_dental_practitioner_views.xml',
         'views/dmag_dental_chair_views.xml',
         'views/dmag_clinic_schedule_views.xml',
+        'views/dmag_staff_rotation_views.xml',
         'views/dmag_dental_catalog_views.xml',
         'views/product_template_views.xml',
         'views/res_company_views.xml',

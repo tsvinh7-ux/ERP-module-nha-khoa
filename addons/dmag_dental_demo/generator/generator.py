@@ -7,6 +7,7 @@ Nguyên tắc:
 * Hạt giống ngẫu nhiên cố định → chạy lại cho cùng một bộ dữ liệu (tương đối theo ngày hôm nay).
 * Mọi bản ghi phát sinh được gắn external id ``dmag_dental_demo.gen_*`` để gỡ module / tạo lại xóa sạch.
 """
+import base64
 import heapq
 import itertools
 import json
@@ -276,6 +277,8 @@ class DemoGenerator:
             self._create_compliance()
         with self.section('Nhân sự 3P'):
             self._create_hr()
+        with self.section('Lịch làm việc 7 ngày & lịch nghỉ luân phiên'):
+            self._rotation()
         with self.section('Bệnh nhân', optional=False):
             self._create_patients()
         with self.section('Trợ lý AI: chế độ giả lập, đồng ý AI, thuốc đang dùng'):
@@ -534,8 +537,9 @@ class DemoGenerator:
             if 'mysign_user_id' in Prac._fields:
                 vals['mysign_user_id'] = '079000000999'
             Prac.create(vals)
-        for key in ('doctor', 'doctor2'):
-            self.try_('Lấy chứng thư ký số giả lập', self.prac[key].action_fetch_mysign_certificate)
+        for key in ('doctor', 'doctor2', 'doctor3'):
+            if key in self.prac:
+                self.try_('Lấy chứng thư ký số giả lập', self.prac[key].action_fetch_mysign_certificate)
         # Nhân viên CSKH mặc định cho hành trình khách hàng
         company_vals = {}
         if 'dmag_cskh_user_id' in self.company._fields:
@@ -717,8 +721,10 @@ class DemoGenerator:
             Doc.create(vals)
         practice_type = self.ref('%s.doc_type_practice_license' % compliance_module)
         if practice_type:
-            for key in ('doctor', 'doctor2'):
-                prac = self.prac[key]
+            for key in ('doctor', 'doctor2', 'doctor3'):
+                prac = self.prac.get(key)
+                if not prac:
+                    continue
                 Doc.create({'name': 'Giấy phép hành nghề – %s %s' % (prac.name, D.SAMPLE),
                             'type_id': practice_type.id, 'number': prac.license_number, 'issuer': 'Sở Y tế TP.HCM',
                             'practitioner_id': prac.id, 'company_id': self.company.id,
@@ -755,6 +761,82 @@ class DemoGenerator:
             if key in self.prac:
                 self.prac[key].employee_id = employee
         self.stats['employees'] = len(self.users)
+
+    # ======================================================================== lịch nghỉ luân phiên
+    def _rotation(self):
+        """Phòng khám mở cửa cả tuần (Chủ nhật đông khách); nhân sự nghỉ luân phiên ngày thường: Quản lý demo bấm
+        "Xếp lịch nghỉ luân phiên tự động" (nút thật), một nghỉ phép đã duyệt gây thiếu bác sĩ (ô đỏ trên lịch), một đổi
+        ca, một yêu cầu nghỉ chờ duyệt, một nghỉ phép đã qua (lịch sử khám tôn trọng ngày nghỉ của từng bác sĩ)."""
+        if 'dmag.staff.rotation' not in self.env:
+            return
+        company = self.company
+        schedule = self.env['dmag.clinic.schedule']._get_for_company(company)
+        if not schedule.line_ids.filtered(lambda l: l.weekday == '6'):
+            schedule.write({'line_ids': [(0, 0, {'weekday': '6', 'hour_from': 8.0, 'hour_to': 12.0}),
+                                         (0, 0, {'weekday': '6', 'hour_from': 13.5, 'hour_to': 20.0})]})
+            schedule.message_post(body='Demo: mở cửa Chủ nhật (quyết định 11/10/2026 – Chủ nhật đông khách).')
+            self.stats['schedule_sunday_added'] = 1
+        Rot = self.env['dmag.staff.rotation']
+        for seq, (key, role) in enumerate(D.ROTATION, start=1):
+            user = self.users.get(key)
+            if not user:
+                continue
+            prac = self.prac.get(key)
+            domain = [('company_id', '=', company.id)] + ([('practitioner_id', '=', prac.id)] if prac
+                                                          else [('user_id', '=', user.id)])
+            if not Rot.search(domain, limit=1):
+                Rot.create({'name': user.name, 'role': role, 'practitioner_id': prac.id if prac else False,
+                            'user_id': user.id, 'company_id': company.id, 'sequence': seq * 10})
+        res = Rot.with_user(self.users['manager']).with_company(company).action_generate_rotation()
+        for warning in res['warnings']:
+            self.warnings.append('Lịch luân phiên: %s' % warning)
+        self._schedule_info = None
+        info = self.clinic_schedule
+        roster = info.roster
+        members = {m.user_id.id: m for m in Rot.search([('company_id', '=', company.id)])}
+
+        def member(key):
+            return members.get(self.users[key].id)
+
+        def next_off(key, start, skip=0):
+            m = member(key)
+            days = [start + timedelta(days=i) for i in range(1, 22)]
+            offs = [d for d in days if info.is_open_day(d) and not roster.is_on_duty(m.id, d)]
+            return offs[skip] if len(offs) > skip else None
+
+        Leave = self.env['dmag.staff.leave']
+        manager = self.users['manager']
+        # (1) nghỉ phép đã duyệt trùng ngày bác sĩ khác nghỉ luân phiên → thiếu bác sĩ (cảnh báo đỏ trên lịch tháng)
+        day = next_off('doctor3', self.today + timedelta(days=3))
+        if day:
+            leave = Leave.with_user(self.users['doctor2']).with_company(company).create({
+                'member_id': member('doctor2').id, 'date_from': day, 'date_to': day,
+                'reason': 'Hội thảo chỉnh nha ' + D.SAMPLE})
+            leave.with_user(manager).action_approve()
+        # (2) đổi ca đã duyệt: phụ tá nghỉ ngày khác, đi làm bù ngày nghỉ cố định
+        regular = next_off('assistant2', self.today + timedelta(days=1))
+        if regular:
+            swap_day = regular + timedelta(days=1)
+            while swap_day.weekday() == 6 or not info.is_open_day(swap_day):
+                swap_day += timedelta(days=1)
+            Leave.with_user(self.users['assistant2']).with_company(company).create({
+                'member_id': member('assistant2').id, 'kind': 'swap', 'date_from': swap_day, 'swap_date': regular,
+                'reason': 'Đổi ca với chị Trang ' + D.SAMPLE}).with_user(manager).action_approve()
+        # (3) yêu cầu nghỉ chờ duyệt: tư vấn viên xin nghỉ đúng ngày lễ tân kia nghỉ luân phiên → cảnh báo nếu duyệt
+        day = next_off('receptionist', self.today + timedelta(days=2))
+        if day:
+            Leave.with_user(self.users['consultant']).with_company(company).request_leave({
+                'member_id': member('consultant').id, 'date_from': str(day), 'reason': 'Việc gia đình ' + D.SAMPLE})
+        # (4) nghỉ phép đã qua của bác sĩ chính (lịch sử không có ca của bác sĩ hôm đó)
+        past = self.today - timedelta(days=16)
+        while past.weekday() == 6 or not roster.is_on_duty(member('doctor').id, past):
+            past -= timedelta(days=1)
+        Leave.with_user(self.users['doctor']).with_company(company).create({
+            'member_id': member('doctor').id, 'date_from': past, 'date_to': past,
+            'reason': 'Hội thảo implant ' + D.SAMPLE}).with_user(manager).action_approve()
+        self._schedule_info = None
+        self.stats['rotation_members'] = len(members)
+        self.stats['rotation_leaves'] = Leave.search_count([('company_id', '=', company.id)])
 
     # ======================================================================== patients
     def _create_patients(self):
@@ -847,7 +929,8 @@ class DemoGenerator:
             elif ps.scenario in ('implant', 'wisdom'):
                 ps.doctor_key = 'doctor'
             else:
-                ps.doctor_key = self.rng.choice(['doctor', 'doctor2'])
+                ps.doctor_key = self.rng.choice(['doctor', 'doctor2', 'doctor3'] if 'doctor3' in self.prac
+                                                else ['doctor', 'doctor2'])
             ps.decision = 'pending' if self.rng.random() < 0.25 else 'accept'
             ps.first_day_offset = self.rng.randint(0, 3) if len(self.pstates) < 12 else \
                 self.rng.randint(0, HISTORY_DAYS - 12)
@@ -1116,6 +1199,8 @@ class DemoGenerator:
         for day_idx, day in enumerate(days):
             self.run_events(self.local_dt(day, 7, 0))
             n = rng.randint(*VISITS_PER_DAY)
+            if day.weekday() == 6:  # Chủ nhật đông khách nhất (~1,5–2× ngày thường)
+                n += rng.randint(*D.SUNDAY_EXTRA)
             todo = self._pick_patients(day, day_idx, n)
             # nửa giờ trong ca làm việc của ngày (Lịch làm việc phòng khám), không quá 18:30
             starts = [m for m in self.open_starts(day) if m <= 18 * 60 + 30] or self.open_starts(day)
@@ -1127,17 +1212,25 @@ class DemoGenerator:
                 self.schedule(self.local_dt(day, 19, 40), self._cash_closing, day)
         self.run_events(self.local_dt(self.today, 7, 0))
 
+    def doctor_on_duty(self, doctor_key, day):
+        """Bác sĩ của khách trực ngày ``day`` (Lịch nghỉ luân phiên: nghỉ hằng tuần, nghỉ phép đã duyệt)."""
+        prac = self.prac.get(doctor_key)
+        return not prac or prac.works_on(day, self.clinic_schedule)
+
     def _pick_patients(self, day, day_idx, n):
-        """Chọn bệnh nhân trong ngày: đến hẹn kế hoạch → khách mới → khách quay lại / tái khám."""
+        """Chọn bệnh nhân trong ngày: đến hẹn kế hoạch → khách mới → khách quay lại / tái khám – chỉ khách có bác sĩ
+        phụ trách đang trực ngày đó (bác sĩ nghỉ luân phiên → khách hẹn ngày khác)."""
         rng = self.rng
         chosen = []
-        taken = set()
+        off = {key for key in self.prac if not self.doctor_on_duty(key, day)}
+        taken = {ps.key for ps in self.pstates if ps.doctor_key in off}
 
         def add(ps, kind):
             chosen.append((ps, kind))
             taken.add(ps.key)
 
-        due = [ps for ps in self.pstates if ps.next_due and ps.next_due <= day and ps.last_visit != day]
+        due = [ps for ps in self.pstates if ps.next_due and ps.next_due <= day and ps.last_visit != day
+               and ps.key not in taken]
         rng.shuffle(due)
         for ps in due[:max(n - 2, 1)]:
             add(ps, 'treatment')
@@ -1145,7 +1238,7 @@ class DemoGenerator:
                and ps.key not in taken]
         for ps in new[:max(n - len(chosen) - 1, 1)]:
             add(ps, 'first')
-        for gap in (14, 8):
+        for gap in ((14, 8, 4) if day.weekday() == 6 else (14, 8)):
             if len(chosen) >= n:
                 break
             others = [ps for ps in self.pstates if ps.visits and ps.key not in taken
@@ -1643,7 +1736,7 @@ class DemoGenerator:
 
         def take(pred=lambda ps: True):
             for ps in pool:
-                if ps.key not in used and pred(ps):
+                if ps.key not in used and pred(ps) and self.doctor_on_duty(ps.doctor_key, self.today):
                     used.add(ps.key)
                     return ps
             return False
@@ -1702,7 +1795,10 @@ class DemoGenerator:
             for minute in hours:
                 if not queue:
                     return
-                ps = queue.pop(0)
+                ps = next((p for p in queue if self.doctor_on_duty(p.doctor_key, day)), None)
+                if not ps:
+                    continue
+                queue.remove(ps)
                 start = self.local_dt(day, minute // 60, minute % 60) + timedelta(minutes=rng.choice([0, 30]))
                 kind = 'treatment' if ps.next_due and ps.todo_lines() else 'return'
                 codes, reason, plan = self._visit_plan(ps, kind)
@@ -1885,7 +1981,7 @@ class DemoGenerator:
         for metric in ('plan_acceptance', 'nps'):
             add(metric, base[metric], 'quarter', quarter)
         # Mục tiêu riêng từng bác sĩ: chia doanh thu theo tỷ trọng tháng trước
-        doctors = [self.prac[k] for k in ('doctor', 'doctor2') if self.prac.get(k)]
+        doctors = [self.prac[k] for k in ('doctor', 'doctor2', 'doctor3') if self.prac.get(k)]
         shares = {d.id: actual('revenue', d) for d in doctors}
         total = sum(shares.values()) or 1.0
         for doctor in doctors:
@@ -1967,8 +2063,14 @@ class DemoGenerator:
         if 'dmag_ai_mode' in company._fields:
             self.remember(company, {'dmag_ai_mode': 'simulate'})
         if 'dmag_ai_zalo_reply_mode' in company._fields:
-            # chủ phòng khám đã chốt: tự trả lời nhưng CHỈ theo kịch bản đã duyệt
-            self.remember(company, {'dmag_ai_zalo_reply_mode': 'script'})
+            # chủ phòng khám đã chốt (11/10/2026): trợ lý THAY nhân viên trả lời nhưng CHỈ từ dữ liệu đã nạp; ngoài dữ
+            # liệu → báo lễ tân đang trực (Lịch nghỉ luân phiên), quá 15 phút → Quản lý
+            self.remember(company, {'dmag_ai_zalo_reply_mode': 'grounded', 'dmag_ai_escalation_minutes': 15,
+                                    'dmag_ai_escalation_user_id': self.users['manager'].id})
+            if 'dmag_ai_duty_line_ids' in company._fields and not company.dmag_ai_duty_line_ids:
+                company.write({'dmag_ai_duty_line_ids': [
+                    (0, 0, {'user_id': self.users[key].id, 'sequence': seq, 'channel': 'all'})
+                    for seq, key in enumerate(('receptionist', 'consultant'), start=1)]})
         if 'dmag_ai_consent' in self.env['res.partner']._fields:
             for key, partner in self.patients.items():
                 if key not in D.AI_NO_CONSENT:
@@ -2080,7 +2182,8 @@ class DemoGenerator:
                 self.stats['ai_refunds'] += 1
 
     def _ai_reply_scripts(self):
-        """12 kịch bản trả lời mẫu (module dmag_ai_customer nạp ở dạng nháp) – Giám đốc demo đọc và DUYỆT bằng nút thật."""
+        """Bộ kịch bản trả lời chuẩn đã rà soát (module dmag_ai_customer nạp ở dạng nháp; giá / bảo hành / giờ làm việc
+        / lịch trực bác sĩ lấy từ dữ liệu thật qua ô dữ liệu) – Giám đốc demo đọc và DUYỆT bằng nút thật."""
         Script = self.env['dmag.ai.reply.script']
         Script._load_samples(self.company)
         drafts = Script.search([('company_id', '=', self.company.id), ('state', '=', 'draft'),
@@ -2097,21 +2200,64 @@ class DemoGenerator:
         drafts.with_user(self.users['director']).with_company(self.company).action_approve()
         self.stats['ai_reply_scripts'] = len(drafts)
 
-    def _ai_train_from_inbox(self, Conv):
-        """Câu hỏi chưa có kịch bản → nháp chờ duyệt; lễ tân sửa & gửi rồi bấm "Đề xuất thành kịch bản" (chờ GĐ duyệt)."""
-        conv = Conv._get_or_create('zalo', external_user_id='zalo-demo-004', name='Chị Vân (Zalo)', phone='0912777888')
-        conv.receive_customer_message('Bên mình có xuất hóa đơn VAT cho công ty không ạ? Công ty em muốn khám định kỳ '
-                                      'cho nhân viên.')
-        pending = conv.message_line_ids.filtered(lambda m: m.state == 'pending')[:1]
-        if not pending:
-            return False
-        receptionist = self.users['receptionist']
-        msg = pending.with_user(receptionist).with_company(self.company)
-        msg.approve_and_edit('Dạ có ạ. Phòng khám xuất hóa đơn điện tử cho công ty (ghi tên, mã số thuế, địa chỉ khi '
-                             'thanh toán). Với gói khám định kỳ cho nhân viên, quản lý sẽ gọi lại báo giá theo số '
-                             'lượng trong hôm nay ạ.')
-        msg.action_promote_to_script()
-        self.stats['ai_conversations'] += 1
+    def _ai_knowledge(self):
+        """Kho tri thức trợ lý: Quản lý "Nạp lại dữ liệu" (bảng giá + bảo hành, Lịch làm việc 7 ngày, lịch trực bác sĩ,
+        thông tin phòng khám, gói chăm sóc, kịch bản đã duyệt) và tải "Cẩm nang khách hàng" – Giám đốc duyệt tài liệu."""
+        if 'dmag.ai.knowledge' not in self.env:
+            return
+        company = self.company
+        KB = self.env['dmag.ai.knowledge'].with_user(self.users['manager']).with_company(company)
+        res = KB.action_refresh_all()
+        name, filename, text = D.KB_DOCUMENT
+        Doc = self.env['dmag.ai.knowledge.document'].with_user(self.users['manager']).with_company(company)
+        doc = Doc.create({'name': name, 'filename': filename, 'company_id': company.id,
+                          'datas': base64.b64encode(text.encode('utf-8'))})
+        doc.action_extract()
+        doc.with_user(self.users['director']).action_approve()
+        self.stats['ai_kb_master'] = res['master']
+        self.stats['ai_kb_entries'] = self.env['dmag.ai.knowledge'].search_count([('company_id', '=', company.id)])
+
+    def _ai_gap_chats(self, Conv):
+        """Câu hỏi NGOÀI dữ liệu đã nạp: trợ lý gửi tin giữ chỗ + báo lễ tân đang trực; nhân viên trả lời → "Đề xuất
+        thành kịch bản" (lễ tân / tư vấn đề xuất – Giám đốc duyệt một, còn lại chờ duyệt) và "Nạp vào kho tri thức";
+        một câu quá hạn đã báo Quản lý, một câu còn chờ – vòng huấn luyện hiện đủ trên Hộp thư."""
+        company = self.company
+        Msg = self.env['dmag.ai.conversation.message']
+        director = self.users['director']
+        for uid, name, phone, question, staff_key, answer, actions in D.AI_GAP_CHATS:
+            conv = Conv._get_or_create('zalo', external_user_id=uid, name=name, phone=phone)
+            conv.receive_customer_message(question)
+            gap = conv.gap_ids.sorted('id')[-1:]
+            self.stats['ai_conversations'] += 1
+            if not gap:
+                self.warnings.append('Câu hỏi "%s" không vào hàng ngoài dữ liệu' % question[:40])
+                continue
+            if 'overdue' in actions:
+                gap.write({'notified_at': fields.Datetime.now() - timedelta(minutes=27)})
+                self.env['dmag.ai.kb.gap']._cron_escalate()
+                continue
+            if 'open' in actions or not staff_key:
+                continue
+            user = self.users[staff_key]
+            reply = conv.with_user(user).with_company(company).staff_reply(answer)
+            message = Msg.browse(reply['id']).with_user(user).with_company(company)
+            if {'script_approved', 'script_draft'} & set(actions):
+                res = message.action_promote_to_script()
+                script = self.env['dmag.ai.reply.script'].browse(res['id'])
+                if 'script_approved' in actions:
+                    as_director = script.with_user(director).with_company(company)
+                    as_director.write({'name': 'Xuất hóa đơn VAT cho công ty', 'code': 'hoa_don_vat',
+                                       'keywords': 'hóa đơn, VAT, xuất hóa đơn, hóa đơn đỏ, mã số thuế',
+                                       'quick_replies': 'Đặt lịch khám | Bảng giá'})
+                    as_director.action_approve()
+                self.stats['ai_script_proposals'] += 1
+            if {'kb_approved', 'kb_draft'} & set(actions):
+                card = gap.with_user(user).with_company(company).action_learn()
+                if 'kb_approved' in actions:
+                    self.env['dmag.ai.knowledge'].browse(card['id']).with_user(director).with_company(
+                        company).action_approve()
+        # kịch bản mới được duyệt → nạp lại vào kho tri thức
+        self.env['dmag.ai.knowledge'].with_user(self.users['manager']).with_company(company).load_scripts(company)
         return True
 
     def _ai_customer_samples(self):
@@ -2119,6 +2265,8 @@ class DemoGenerator:
         env = self.env
         if 'dmag.ai.reply.script' in env:
             self.try_('Kịch bản trả lời đã duyệt', self._ai_reply_scripts)
+        if 'dmag.ai.knowledge' in env:
+            self.try_('Kho tri thức trợ lý', self._ai_knowledge)
         if 'dmag.ai.conversation' in env and hasattr(env['dmag.ai.conversation'], '_get_or_create'):
             Conv = env['dmag.ai.conversation'].with_company(self.company)
             # Tin nhắn Zalo OA thật (đường webhook): câu trả lời của trợ lý chờ lễ tân duyệt; ca khẩn / khiếu nại chuyển người
@@ -2130,14 +2278,15 @@ class DemoGenerator:
                     return conv
                 if self.try_('Hội thoại Zalo mẫu', chat):
                     self.stats['ai_conversations'] += 1
-            self.try_('Huấn luyện trợ lý từ hộp thư', self._ai_train_from_inbox, Conv)
+            if 'dmag.ai.kb.gap' in env:
+                self.try_('Câu hỏi ngoài dữ liệu & huấn luyện từ hộp thư', self._ai_gap_chats, Conv)
             if hasattr(Conv, 'simulator_start'):
                 Sim = Conv.with_user(self.users['receptionist'])
                 def simulate():
                     thread = Sim.simulator_start(name='Chị Hồng (mô phỏng)', phone='0901234567')
                     conv = Sim.browse(thread['id'])
-                    for text in ('Phòng khám mở cửa mấy giờ ạ?', 'Cạo vôi răng giá bao nhiêu vậy?',
-                                 'Cho mình đặt lịch cạo vôi chiều mai nhé'):
+                    for text in ('Chủ nhật phòng khám có làm việc không ạ?', 'Cạo vôi răng giá bao nhiêu vậy?',
+                                 'Bác sĩ Yến làm những ngày nào ạ?', 'Cho mình đặt lịch cạo vôi chiều mai nhé'):
                         conv.simulator_send(text)
                     return conv
                 if self.try_('Mô phỏng Zalo', simulate):

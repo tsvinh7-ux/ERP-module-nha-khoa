@@ -79,4 +79,14 @@
         <field name="model_id" ref="model_dmag_clinic_closure"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="rule_dmag_staff_rotation_company" model="ir.rule">
+        <field name="name">Lịch nghỉ luân phiên: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_staff_rotation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_staff_leave_company" model="ir.rule">
+        <field name="name">Nghỉ phép / đổi ca: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_staff_leave"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

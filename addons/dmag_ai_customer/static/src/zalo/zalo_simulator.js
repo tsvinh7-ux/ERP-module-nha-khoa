@@ -7,14 +7,16 @@ import { AiBadge, formatVnd, summarizeTool, TOOL_LABELS } from "../components/ai
 
 const DEMO_SCRIPT = [
     "Cạo vôi răng giá bao nhiêu ạ?",
-    "Phòng khám mở cửa mấy giờ vậy?",
-    "Có chỗ đậu ô tô không ạ?",
-    "Cho em đặt lịch cạo vôi chiều mai",
-    "Bên mình có xuất hóa đơn cho công ty không?",
+    "Chủ nhật phòng khám có làm việc không?",
+    "Bác sĩ Yến làm những ngày nào ạ?",
+    "Bên mình có xuất hóa đơn VAT cho công ty không?",
+    "Phòng khám có nhận bảo hiểm Bảo Việt không ạ?",
+    "Cho em đặt lịch cạo vôi Chủ nhật này",
     "Răng em bị ê buốt khi uống nước lạnh, có sao không ạ?",
     "Răng em sưng to và chảy máu không cầm",
 ];
 const MODE_LABELS = {
+    grounded: "Tự động – chỉ trả lời từ dữ liệu đã nạp",
     approve: "Nhân viên duyệt mọi câu",
     script: "Tự động theo kịch bản đã duyệt",
     auto: "Tự động hoàn toàn",
@@ -61,7 +63,15 @@ export class ZaloSimulator extends Component {
 
     /** Điện thoại của khách: không thấy câu trả lời đang chờ nhân viên duyệt / đã bỏ. */
     get chatMessages() {
-        return this.allMessages.filter((m) => !["pending", "discarded"].includes(m.state));
+        return this.allMessages.filter((m) => !["pending", "discarded"].includes(m.state) && !(m.role === "system" && m.state === "received"));
+    }
+
+    get gaps() {
+        return (this.state.thread && this.state.thread.gaps) || [];
+    }
+
+    openKb() {
+        return this.action.doAction("dmag_ai_customer.action_dmag_ai_kb_overview");
     }
 
     /** Mỗi lượt trợ lý xử lý (câu trả lời, mẫu an toàn, tin báo đã nhận) – mới nhất trước. */
@@ -73,12 +83,15 @@ export class ZaloSimulator extends Component {
     }
 
     get replyMode() {
-        return (this.state.thread && this.state.thread.reply_mode) || "script";
+        return (this.state.thread && this.state.thread.reply_mode) || "grounded";
     }
 
     decisionClass(turn) {
         if (turn.decision === "emergency") {
             return "is-danger";
+        }
+        if (turn.decision === "out_of_data") {
+            return "is-gap";
         }
         return turn.auto ? "is-ok" : turn.escalated ? "is-warning" : "is-info";
     }

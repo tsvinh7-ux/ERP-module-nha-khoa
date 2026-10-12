@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="dmag_ai_customer.FrontDeskAi" t-inherit="dmag_clinic_workspace.FrontDesk" t-inherit-mode="extension">
+        <xpath expr="//header//div[hasclass('dmag-ws-actions')]" position="inside">
+            <button t-if="state.aiGaps and state.aiGaps.open" class="dmag-btn dmag-ai-gapbadge order-first" t-on-click="openAiGaps"
+                    title="Trợ lý Zalo không có dữ liệu để trả lời – lễ tân trả lời khách rồi nạp vào kho tri thức">
+                <i class="fa fa-comments me-1" title="Zalo"/><b t-esc="state.aiGaps.open"/> câu hỏi Zalo ngoài dữ liệu
+                <span t-if="state.aiGaps.mine" class="dmag-badge is-danger" t-esc="state.aiGaps.mine + ' của bạn'"/>
+            </button>
+        </xpath>
         <xpath expr="//article//div[hasclass('dmag-chips')]" position="inside">
             <span t-if="visit.ai_booked" class="dmag-chip is-info" title="Khách tự đặt qua trợ lý Zalo AI – lễ tân gọi xác nhận rồi bấm Xác nhận">
                 <i class="fa fa-magic me-1" title="AI"/>Zalo AI

@@ -5,7 +5,9 @@ ngày làm việc riêng của từng bác sĩ.
 giờ, gợi ý xếp lịch AI-11, trợ lý Zalo AI-07, số ngày làm việc / nhịp mục tiêu và công suất ghế (dmag_dental_goals),
 dự báo AI-16, dữ liệu demo.
 
-Mặc định (khi phòng khám chưa khai báo): Thứ Hai – Thứ Bảy 08:00–12:00 và 13:30–20:00, Chủ nhật nghỉ.
+Mặc định (khi phòng khám chưa khai báo): mở cửa CẢ TUẦN – Thứ Hai – Chủ nhật 08:00–12:00 và 13:30–20:00 (quyết định
+của chủ phòng khám 11/10/2026: Chủ nhật vẫn làm và là ngày đông khách nhất; nhân sự nghỉ LUÂN PHIÊN vào ngày trong tuần –
+xem ``dmag_staff_rotation.py``).
 """
 from datetime import datetime, time, timedelta
 
@@ -20,8 +22,7 @@ WEEKDAYS = [
 ]
 WEEKDAY_SHORT = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']
 # Ca mặc định (giờ thập phân, giờ địa phương)
-DEFAULT_SHIFTS = {wd: [(8.0, 12.0), (13.5, 20.0)] for wd in range(6)}
-DEFAULT_SHIFTS[6] = []
+DEFAULT_SHIFTS = {wd: [(8.0, 12.0), (13.5, 20.0)] for wd in range(7)}  # Chủ nhật làm như ngày thường
 NOON = 12 * 60
 MORNING_WINDOW = (0, NOON)          # buổi sáng = giờ mở cửa trước 12:00
 AFTERNOON_WINDOW = (NOON, 24 * 60)  # buổi chiều – tối = giờ mở cửa từ 12:00
@@ -54,11 +55,13 @@ class ScheduleInfo:
     * ``closures``: [(từ ngày, đến ngày, tên)]
     """
 
-    def __init__(self, weekly, closures=(), slot_step=15, enforce='block'):
+    def __init__(self, weekly, closures=(), slot_step=15, enforce='block', roster=None):
         self.weekly = {wd: sorted(weekly.get(wd) or []) for wd in range(7)}
         self.closures = list(closures)
         self.slot_step = slot_step or 15
         self.enforce = enforce or 'block'
+        # Lịch nghỉ luân phiên của nhân sự (``RosterInfo``) – None = chưa khai báo (mọi người làm mọi ngày mở cửa)
+        self.roster = roster
 
     @classmethod
     def default(cls):
@@ -166,7 +169,7 @@ class ScheduleInfo:
         return ', '.join('%s–%s' % (fmt_minutes(s), fmt_minutes(e)) for s, e in shifts)
 
     def weekly_text(self):
-        """Ví dụ: "Thứ 2 – Thứ 7: 08:00–12:00, 13:30–20:00 · Chủ nhật: nghỉ"."""
+        """Ví dụ: "Thứ 2 – Chủ nhật: 08:00–12:00, 13:30–20:00" hoặc "Thứ 2 – Thứ 7: … · Chủ nhật: nghỉ"."""
         groups = []
         for wd in range(7):
             key = tuple(self.weekly.get(wd) or [])
@@ -224,6 +227,25 @@ class DmagClinicSchedule(models.Model):
     ], string='Đặt lịch ngoài giờ làm việc', default='block', required=True, tracking=True)
     note = fields.Text('Ghi chú cho khách', help='Hiện kèm giờ làm việc khi trợ lý trả lời khách, ví dụ: '
                                                   '"Ngày lễ phòng khám vẫn nhận ca khẩn qua hotline".')
+    # Lịch nghỉ luân phiên (nhân sự nghỉ ngày trong tuần, Chủ nhật đông khách)
+    min_doctors = fields.Integer('Tối thiểu bác sĩ / ngày', default=2,
+                                 help='Bộ xếp lịch nghỉ luân phiên giữ ít nhất số bác sĩ này trực mỗi ngày mở cửa.')
+    min_receptionists = fields.Integer('Tối thiểu lễ tân / ngày', default=1)
+    min_assistants = fields.Integer('Tối thiểu phụ tá mỗi nhóm ghế', default=1)
+    chairs_per_group = fields.Integer('Số ghế mỗi nhóm', default=4,
+                                      help='Số phụ tá tối thiểu = (tối thiểu mỗi nhóm) × số nhóm ghế; số nhóm = số ghế '
+                                           'đang dùng chia cho số ghế mỗi nhóm (làm tròn lên).')
+    rotation_weekday_ids = fields.Many2many(
+        'dmag.weekday', 'dmag_clinic_schedule_rotation_weekday_rel', 'schedule_id', 'weekday_id',
+        string='Ngày được xếp nghỉ luân phiên',
+        default=lambda self: self.env['dmag.weekday'].search([('code', 'in', [0, 1, 2, 3, 4])]),
+        help='Bộ xếp lịch chỉ chọn ngày nghỉ trong các thứ này (mặc định Thứ 2 – Thứ 6: Thứ 7, Chủ nhật đông khách).')
+    rotation_allow_sunday = fields.Boolean('Cho phép nghỉ Chủ nhật',
+                                           help='Mặc định không cho xếp nghỉ hằng tuần vào Chủ nhật (ngày đông khách nhất).')
+    rotation_rotate_weekly = fields.Boolean(
+        'Xoay vòng ngày nghỉ mỗi tuần',
+        help='Bật: ngày nghỉ của mỗi người lùi sang thứ kế tiếp (trong các ngày được nghỉ) sau mỗi tuần – mọi người cùng '
+             'xoay nên số người trực mỗi ngày không đổi.')
     hours_text = fields.Char('Giờ làm việc (tóm tắt)', compute='_compute_hours_text')
     weekday_summary = fields.Html('Tóm tắt tuần', compute='_compute_hours_text', sanitize=False)
 
@@ -278,7 +300,18 @@ class DmagClinicSchedule(models.Model):
                 weekly[int(line.weekday)].append((int(round(line.hour_from * 60)), int(round(line.hour_to * 60))))
         closures = [(c.date_from, c.date_to or c.date_from, c.name) for c in self.closure_ids
                     if c.date_from and c.closed]
-        return ScheduleInfo(weekly, closures, self.slot_step, self.enforce)
+        roster = None
+        if self.id and 'dmag.staff.rotation' in self.env:
+            roster = self.env['dmag.staff.rotation'].sudo()._roster_info(self)
+        return ScheduleInfo(weekly, closures, self.slot_step, self.enforce, roster)
+
+    def _requirements(self):
+        """Số người trực tối thiểu mỗi ngày theo vai trò: {'doctor': 2, 'assistant': 1, 'receptionist': 1}."""
+        self.ensure_one()
+        chairs = self.env['dmag.dental.chair'].sudo().search_count([('company_id', '=', self.company_id.id)])
+        groups = max(1, -(-chairs // max(1, self.chairs_per_group or 4))) if chairs else 1
+        return {'doctor': max(0, self.min_doctors), 'assistant': max(0, self.min_assistants) * groups,
+                'receptionist': max(0, self.min_receptionists)}
 
     @api.model
     def action_open_for_company(self):
@@ -289,12 +322,20 @@ class DmagClinicSchedule(models.Model):
         }
 
     def action_reset_default(self):
-        """Đặt lại ca mặc định (Thứ 2 – Thứ 7 08:00–12:00, 13:30–20:00; Chủ nhật nghỉ)."""
+        """Đặt lại ca mặc định (Thứ 2 – Chủ nhật 08:00–12:00, 13:30–20:00)."""
         for schedule in self:
             schedule.line_ids.unlink()
             schedule.write({'line_ids': self._default_line_vals()})
             schedule.message_post(body=_('Đặt lại ca làm việc mặc định.'))
         return True
+
+    def action_generate_rotation(self):
+        self.ensure_one()
+        res = self.env['dmag.staff.rotation'].action_generate_rotation(self.company_id)
+        message = _('Đã xếp lịch nghỉ luân phiên.') + (' ' + ' '.join(res['warnings']) if res['warnings'] else '')
+        return {'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {'title': _('Lịch nghỉ luân phiên'), 'message': message, 'sticky': bool(res['warnings']),
+                           'type': 'warning' if res['warnings'] else 'success'}}
 
     def action_add_holidays_2026(self):
         for schedule in self:

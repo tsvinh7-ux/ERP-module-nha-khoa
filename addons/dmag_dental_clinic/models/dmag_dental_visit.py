@@ -174,7 +174,9 @@ class DmagDentalVisit(models.Model):
         for visit in self:
             messages = visit._get_schedule_conflicts(soft=True)
             hours_issue = visit._dmag_opening_issue() if visit.state in ('draft', 'confirmed') else None
-            if hours_issue:
+            if hours_issue and visit.doctor_id and hours_issue.startswith(_('bác sĩ')):
+                messages.append(_('Bác sĩ không trực: %s.', hours_issue))
+            elif hours_issue:
                 messages.append(_('Ngoài lịch làm việc: %s.', hours_issue))
             visit.schedule_warning = '; '.join(messages) or False
 
@@ -225,10 +227,18 @@ class DmagDentalVisit(models.Model):
         start = local_naive(self.env, self.scheduled_start)
         end = local_naive(self.env, self.scheduled_end or self.scheduled_start + timedelta(minutes=30))
         reason = info.check_interval(start, end)
-        if not reason and self.doctor_id and not self.doctor_id.works_on(start.date(), info):
-            reason = _('bác sĩ %(doc)s không làm việc %(wd)s', doc=self.doctor_id.name,
-                       wd=WEEKDAY_SHORT[start.weekday()])
+        if not reason and self.doctor_id:
+            reason = self._dmag_doctor_off_text(self.doctor_id, start.date(), info)
         return reason
+
+    @api.model
+    def _dmag_doctor_off_text(self, doctor, day, info):
+        """Bác sĩ không trực ngày ``day`` (ngày làm việc riêng / nghỉ luân phiên / nghỉ phép) → câu cảnh báo."""
+        off = doctor.off_reason(day, info)
+        if not off:
+            return None
+        return _('bác sĩ %(doc)s %(why)s (%(wd)s %(day)s)', doc=doctor.name, why=off,
+                 wd=WEEKDAY_SHORT[day.weekday()], day=day.strftime('%d/%m'))
 
     def _dmag_check_opening_vals(self, vals, visit=None):
         """Đặt / dời lịch hẹn TƯƠNG LAI ngoài Lịch làm việc phòng khám (kiểm tra TRƯỚC khi ghi): nhân viên bị chặn;
@@ -256,8 +266,13 @@ class DmagDentalVisit(models.Model):
         info = self.env['dmag.clinic.schedule'].get_info(company)
         local_start = local_naive(self.env, start)
         reason = info.check_interval(local_start, local_start + timedelta(minutes=duration))
-        if not reason and doctor and not doctor.works_on(local_start.date(), info):
-            reason = _('bác sĩ %(doc)s không làm việc %(wd)s', doc=doctor.name, wd=WEEKDAY_SHORT[local_start.weekday()])
+        if not reason and doctor:
+            # Bác sĩ nghỉ (luân phiên / phép / không làm thứ này) trong giờ mở cửa: CẢNH BÁO, không chặn – lễ tân có thể
+            # đã thỏa thuận với bác sĩ; ghi chatter để Quản lý thấy.
+            off = self._dmag_doctor_off_text(doctor, local_start.date(), info)
+            if off:
+                return _('Lưu ý: đặt lịch khi %(off)s – đặt bởi %(user)s, cần xác nhận lại với bác sĩ.',
+                         off=off, user=self.env.user.name)
         if not reason:
             return None
         if info.enforce == 'block' and not is_manager(self.env):
@@ -582,6 +597,21 @@ class DmagDentalVisit(models.Model):
         ], order='scheduled_start asc')
         chairs = self.env['dmag.dental.chair'].search([('company_id', 'in', self.env.companies.ids)])
         busy = {v.chair_id.id: v for v in visits if v.state == 'in_chair' and v.chair_id}
+        info = self.env['dmag.clinic.schedule'].get_info(self.env.company)
+        doctors = []
+        for d in self.env['dmag.dental.practitioner'].search([('role', '=', 'doctor')]):
+            off = d.off_reason(day, info) if info.is_open_day(day) else _('phòng khám nghỉ')
+            doctors.append({'id': d.id, 'name': d.name, 'color': d.color, 'title': d.title or '',
+                            'on_duty': not off, 'off_reason': off or ''})
+        duty = {'open': info.is_open_day(day), 'closure': info.closure(day) or '', 'staff_off': []}
+        if info.roster and duty['open']:
+            role_short = {'doctor': 'BS', 'assistant': 'PT', 'receptionist': 'LT', 'other': 'NV'}
+            for mid, member in info.roster.members.items():
+                on, _kind, label = info.roster.status(mid, day)
+                if not on:
+                    duty['staff_off'].append({'name': member['name'], 'role': role_short.get(member['role'], ''),
+                                              'label': label})
+            duty['shortages'] = [{'role': role, 'n': n, 'min': need} for role, n, need in info.roster.shortages(day)]
         return {
             'date': fields.Date.to_string(day),
             'visits': [v._workspace_card() for v in visits],
@@ -589,8 +619,8 @@ class DmagDentalVisit(models.Model):
                 'id': c.id, 'name': c.name, 'room': c.room or '',
                 'visit': busy[c.id]._workspace_card() if c.id in busy else False,
             } for c in chairs],
-            'doctors': [{'id': d.id, 'name': d.name, 'color': d.color}
-                        for d in self.env['dmag.dental.practitioner'].search([('role', '=', 'doctor')])],
+            'doctors': doctors,
+            'duty': duty,
             'currency': self.env.company.currency_id.symbol,
         }
 

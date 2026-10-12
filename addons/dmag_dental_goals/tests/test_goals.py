@@ -141,17 +141,18 @@ class TestGoalEngine(TransactionCase):
         revenue = self.metric('revenue')
         self._target('revenue', revenue * 4)
         board = GoalBoard(self.env, 'month', D_FROM, D_TO, self.company, date(2025, 3, 15))
-        self.assertEqual((board.wd_total, board.wd_elapsed, board.wd_left), (26, 13, 13))
+        # Mặc định mở cửa 7 ngày / tuần (Chủ nhật vẫn làm): tháng 3/2025 = 31 ngày làm việc, đã qua 15
+        self.assertEqual((board.wd_total, board.wd_elapsed, board.wd_left), (31, 15, 16))
         card = board.card('revenue', trend=False)
         self.assertEqual(card['target_source'], 'target')
         self.assertAlmostEqual(card['achieved_pct'], 25.0)
-        self.assertAlmostEqual(card['forecast'], revenue * 2)  # nhịp 13/26 ngày → ×2
-        self.assertAlmostEqual(card['forecast_pct'], 50.0)
+        self.assertAlmostEqual(card['forecast'], revenue * 31 / 15)  # nhịp 15/31 ngày
+        self.assertAlmostEqual(card['forecast_pct'], round(31 / 15 * 25.0, 1))
         self.assertEqual(card['status'], 'at_risk')
-        self.assertAlmostEqual(card['per_day'], revenue * 3 / 13)
-        res = board.evaluate('revenue', 95.0, 180.0)  # dự báo 190 ≥ 180 → đúng tiến độ
+        self.assertAlmostEqual(card['per_day'], revenue * 3 / 16)
+        res = board.evaluate('revenue', 90.0, 180.0)  # dự báo 90 × 31/15 = 186 ≥ 180 → đúng tiến độ
         self.assertEqual(res['status'], 'on_track')
-        self.assertEqual(board.evaluate('revenue', 85.0, 180.0)['status'], 'behind')  # 170/180 = 94%
+        self.assertEqual(board.evaluate('revenue', 80.0, 180.0)['status'], 'behind')  # 165/180 = 92%
         self.assertEqual(board.evaluate('avg_wait', 12.0, 15.0)['status'], 'on_track')
         self.assertEqual(board.evaluate('avg_wait', 25.0, 15.0)['status'], 'at_risk')
         self.assertEqual(board.evaluate('nps', 45.0, 50.0)['status'], 'behind')
@@ -196,15 +197,35 @@ class TestGoalEngine(TransactionCase):
     # ------------------------------------------------------------------ lịch làm việc phòng khám
     def test_working_days_follow_schedule(self):
         board = GoalBoard(self.env, 'month', D_FROM, D_TO, self.company, date(2025, 3, 15))
-        self.assertEqual((board.wd_total, board.wd_elapsed), (26, 13), 'Mặc định = Thứ 2 – Thứ 7 như trước')
-        # Nghỉ lễ 2 ngày + mở thêm sáng Chủ nhật
-        self.env['dmag.clinic.schedule']._get_for_company(self.company).write({
-            'closure_ids': [(0, 0, {'name': 'Nghỉ bảo trì', 'date_from': date(2025, 3, 3),
-                                    'date_to': date(2025, 3, 4)})],
-            'line_ids': [(0, 0, {'weekday': '6', 'hour_from': 8.0, 'hour_to': 12.0})]})
+        self.assertEqual((board.wd_total, board.wd_elapsed), (31, 15), 'Mặc định 7 ngày / tuần')
+        # Nghỉ lễ 2 ngày + Chủ nhật nghỉ
+        schedule = self.env['dmag.clinic.schedule']._get_for_company(self.company)
+        schedule.line_ids.filtered(lambda l: l.weekday == '6').unlink()
+        schedule.write({'closure_ids': [(0, 0, {'name': 'Nghỉ bảo trì', 'date_from': date(2025, 3, 3),
+                                                'date_to': date(2025, 3, 4)})]})
         board = GoalBoard(self.env, 'month', D_FROM, D_TO, self.company, date(2025, 3, 15))
-        self.assertEqual(board.wd_total, 26 - 2 + 5)
-        self.assertEqual(board.wd_elapsed, 13 - 2 + 2)
+        self.assertEqual(board.wd_total, 26 - 2)
+        self.assertEqual(board.wd_elapsed, 13 - 2)
+
+    def test_doctor_pace_uses_duty_days(self):
+        """Nhịp mục tiêu riêng của bác sĩ tính trên NGÀY TRỰC của bác sĩ (nghỉ luân phiên Thứ 3 không tính)."""
+        self.env['dmag.staff.rotation'].create({
+            'name': self.doc_a.name, 'role': 'doctor', 'practitioner_id': self.doc_a.id,
+            'off_weekday_ids': [(6, 0, self.env.ref('dmag_dental_base.weekday_1').ids)]})
+        self._target('revenue', 100000000, doctor=self.doc_a)
+        board = GoalBoard(self.env, 'month', D_FROM, D_TO, self.company, date(2025, 3, 15))
+        self.assertEqual(board.doctor_days(self.doc_a), (13, 27, 14), '3/2025 có 4 Thứ 3; đến 15/3 đã qua 2')
+        self.assertEqual(board.doctor_days(self.doc_b), (15, 31, 16))
+        card = board.card('revenue', self.doc_a, trend=False)
+        actual = card['actual']
+        self.assertAlmostEqual(card['forecast'], actual / 13 * 27)
+        self.assertAlmostEqual(card['per_day'], (100000000 - actual) / 14)
+        self.assertEqual(card['duty_days'], {'elapsed': 13, 'total': 27, 'left': 14})
+        # công suất ghế của riêng bác sĩ: mẫu số chỉ gồm ngày trực
+        scope_all = self.engine._scope(D_FROM, D_TO, self.company, self.doc_b, today=date(2025, 3, 31))
+        scope_off = self.engine._scope(D_FROM, D_TO, self.company, self.doc_a, today=date(2025, 3, 31))
+        self.assertIsNotNone(self.engine.compute_metric('chair_util_am', scope_off))
+        self.assertIsNotNone(self.engine.compute_metric('chair_util_am', scope_all))
 
     def test_chair_capacity_follows_shifts(self):
         schedule = self.env['dmag.clinic.schedule']._get_for_company(self.company)

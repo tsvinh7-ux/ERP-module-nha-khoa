@@ -40,7 +40,7 @@
                     <div class="d-flex gap-2 mt-3 flex-wrap">
                         <select class="dmag-select" t-on-change="setDoctor">
                             <option value="">Bác sĩ bất kỳ</option>
-                            <option t-foreach="state.catalog.doctors" t-as="d" t-key="d.id" t-att-value="d.id" t-att-selected="d.id === state.doctorId" t-esc="(d.title ? d.title + ' ' : '') + d.name"/>
+                            <option t-foreach="state.catalog.doctors" t-as="d" t-key="d.id" t-att-value="d.id" t-att-selected="d.id === state.doctorId" t-esc="(d.title ? d.title + ' ' : '') + d.name + (doctorOff(d.id) ? ' – nghỉ ngày này' : '')"/>
                         </select>
                         <input class="dmag-input flex-grow-1 mb-0" placeholder="Lý do / ghi chú (ví dụ: đau răng hàm dưới)" t-model="state.reason"/>
                     </div>
@@ -58,6 +58,13 @@
                         <i t-att-class="'fa me-1 ' + (state.dayInfo.open ? 'fa-clock-o' : 'fa-ban')" title="Lịch làm việc"/>
                         <t t-if="state.dayInfo.open"><t t-esc="state.dayInfo.weekday"/>: làm việc <b t-esc="state.dayInfo.text"/></t>
                         <t t-else=""><t t-esc="state.dayInfo.weekday"/>: <b>phòng khám nghỉ</b><t t-if="state.dayInfo.closure"> – <t t-esc="state.dayInfo.closure"/></t></t>
+                        <t t-if="state.dayInfo.open and offDoctors.length">
+                            <span class="dmag-day-off"> · Bác sĩ nghỉ: <t t-esc="offDoctors.map((d) => d.name + ' (' + d.off_reason + ')').join(', ')"/></span>
+                        </t>
+                    </div>
+                    <div t-if="selectedDoctorOff" class="dmag-day-hours is-closed">
+                        <i class="fa fa-exclamation-triangle me-1" title="Cảnh báo"/>
+                        <b>Bác sĩ <t t-esc="selectedDoctorOff.name"/> <t t-esc="selectedDoctorOff.off_reason"/></b> – vẫn đặt được nhưng hệ thống ghi cảnh báo; nên chọn bác sĩ đang trực hoặc ngày khác.
                     </div>
                     <div t-if="state.loadingSlots" class="text-muted small py-3">Đang tìm giờ trống…</div>
                     <t t-else="">

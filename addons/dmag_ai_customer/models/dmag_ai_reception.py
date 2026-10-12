@@ -15,7 +15,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 from .text_utils import (extract_date, extract_part_of_day, extract_phone, extract_time, fold, given_name, has_any,
-                         match_words, money)
+                         match_words, money, warranty_text)
 
 EMERGENCY_WORDS = ['chảy máu không cầm', 'chảy máu nhiều', 'sưng to', 'sưng mặt', 'sốt cao', 'khó thở', 'khó nuốt',
                    'tai nạn', 'gãy răng', 'văng răng', 'rơi răng', 'đau dữ dội', 'đau không chịu nổi', 'cấp cứu',
@@ -112,12 +112,26 @@ TOOLS = [
     },
     {
         'name': 'get_clinic_info',
-        'description': 'Thông tin phòng khám: giờ làm việc, địa chỉ, hotline, gửi xe, thanh toán, chuẩn bị trước khi khám.',
+        'description': 'Thông tin phòng khám: giờ làm việc (Lịch làm việc), địa chỉ, hotline, gửi xe, thanh toán, chuẩn bị '
+                       'trước khi khám, bác sĩ và ngày trực (Lịch nghỉ luân phiên), gói chăm sóc theo năm.',
         'strict': True,
         'input_schema': {
             'type': 'object',
-            'properties': {'topic': {'type': 'string', 'enum': ['hours', 'address', 'parking', 'payment', 'preparation', 'all']}},
+            'properties': {'topic': {'type': 'string', 'enum': ['hours', 'address', 'parking', 'payment', 'preparation',
+                                                                 'doctors', 'care_plans', 'all']}},
             'required': ['topic'], 'additionalProperties': False,
+        },
+    },
+    {
+        'name': 'search_knowledge',
+        'description': 'Tìm trong KHO TRI THỨC ĐÃ DUYỆT của phòng khám (kịch bản đã duyệt, bảng giá, lịch làm việc, lịch '
+                       'trực bác sĩ, chính sách, tài liệu đã nạp, hỏi – đáp nhân viên đã trả lời). Chỉ được trả lời bằng '
+                       'nội dung có trong kết quả; không có → báo không có dữ liệu.',
+        'strict': True,
+        'input_schema': {
+            'type': 'object',
+            'properties': {'query': {'type': 'string', 'description': 'Câu hỏi / từ khóa của khách'}},
+            'required': ['query'], 'additionalProperties': False,
         },
     },
     {
@@ -207,6 +221,7 @@ class DmagAiReception(models.AbstractModel):
             'id': p.id, 'name': p.name, 'price_vnd': round(self._service_price(p)),
             'price_text': money(self._service_price(p)), 'duration_min': p.dental_duration or 30,
             'category': dict(p._fields['dental_category']._description_selection(self.env)).get(p.dental_category, ''),
+            'warranty_months': p.warranty_months or 0, 'warranty_text': warranty_text(p.warranty_months),
         } for p in products[:8]], 'note': 'Giá niêm yết theo bảng giá phòng khám; chi phí cuối cùng theo chỉ định sau khi khám.'}
 
     @api.model
@@ -336,11 +351,42 @@ class DmagAiReception(models.AbstractModel):
             'hotline': company.phone or '', 'parking': company.dmag_ai_parking_info,
             'payment': company.dmag_ai_payment_info, 'preparation': company.dmag_ai_preparation_info,
         }
+        if topic in ('doctors', 'all'):
+            info['doctors'] = self._doctor_lines(company)
+        if topic in ('care_plans', 'all'):
+            info['care_plans'] = self._care_plan_lines(company)
         if topic and topic != 'all':
             keep = {'hours': ['hours', 'hotline'], 'address': ['address', 'parking', 'hotline'],
-                    'parking': ['parking', 'address'], 'payment': ['payment'], 'preparation': ['preparation']}
+                    'parking': ['parking', 'address'], 'payment': ['payment'], 'preparation': ['preparation'],
+                    'doctors': ['doctors', 'hours'], 'care_plans': ['care_plans']}
             info = {k: v for k, v in info.items() if k in keep.get(topic, info) or k == 'clinic'}
         return info
+
+    @api.model
+    def _doctor_lines(self, company=None, scope_xmlid=None):
+        """Bác sĩ và ngày trực (Lịch làm việc + Lịch nghỉ luân phiên): ["BSCKII Trần Minh Đức: làm việc …"]."""
+        company = company or self.env.company
+        info = self.env['dmag.clinic.schedule'].get_info(company)
+        domain = [('role', '=', 'doctor'), ('company_id', '=', company.id)]
+        if scope_xmlid:
+            scope = self.env.ref('dmag_dental_base.%s' % scope_xmlid, raise_if_not_found=False)
+            if scope:
+                domain.append(('scope_ids', 'in', scope.ids))
+        doctors = self.env['dmag.dental.practitioner'].sudo().search(domain)
+        return ['%s %s: %s' % (d.title or 'BS', d.name, d.duty_text(info)) for d in doctors]
+
+    @api.model
+    def _care_plan_lines(self, company=None):
+        if 'dmag.care.plan' not in self.env:
+            return []
+        company = company or self.env.company
+        plans = self.env['dmag.care.plan'].sudo().search([('company_id', 'in', [False, company.id])])
+        lines = []
+        for plan in plans:
+            items = ', '.join('%s× %s' % (('%g' % l.quantity), l.product_id.name) for l in plan.line_ids)
+            lines.append('%s: %s / %s tháng%s' % (plan.name, money(plan.price), plan.duration_months,
+                                                  (' – gồm %s' % items) if items else ''))
+        return lines
 
     @api.model
     def tool_handoff_to_staff(self, conversation, reason, summary):
@@ -368,8 +414,17 @@ class DmagAiReception(models.AbstractModel):
             'find_patient_by_phone': lambda i: self.tool_find_patient_by_phone(i.get('phone')),
             'book_appointment': lambda i: self.tool_book_appointment(conversation, i),
             'get_clinic_info': lambda i: self.tool_get_clinic_info(i.get('topic', 'all')),
+            'search_knowledge': lambda i: self.tool_search_knowledge(i.get('query', ''), conversation),
             'handoff_to_staff': lambda i: self.tool_handoff_to_staff(conversation, i.get('reason', 'other'), i.get('summary', '')),
         }
+
+    @api.model
+    def tool_search_knowledge(self, query, conversation=None):
+        company = conversation.company_id if conversation else self.env.company
+        hits = self.env['dmag.ai.knowledge'].sudo().search_knowledge(query, company=company, limit=4)
+        return {'results': [{'id': 'kb:%s' % h['id'], 'title': h['name'], 'source': h['source_label'],
+                             'content': h['content'], 'score': h['score']} for h in hits],
+                'note': 'Chỉ dùng nội dung trong results; rỗng = không có trong dữ liệu đã nạp.'}
 
     @api.model
     def get_tools(self, allowed=None):
@@ -704,6 +759,39 @@ class DmagAiReception(models.AbstractModel):
             else:
                 values['gia_dich_vu'] = '• (chưa có giá niêm yết – bác sĩ tư vấn sau khi khám)'
                 missing.append('gia_dich_vu')
+        if 'bao_hanh' in needed:
+            query = self._detect_service(fold(text)) if text else False
+            found = call('search_services', {'query': query}).get('services') or [] if query else []
+            if found:
+                words = fold(text).split()
+                found.sort(key=lambda svc: -sum(1 for w in fold(svc['name']).split() if len(w) > 1 and w in words))
+            if not found and script.service_ids:
+                for product in script.service_ids[:5]:
+                    res = call('search_services', {'query': product.name}).get('services') or []
+                    found += [svc for svc in res if svc['id'] == product.id and svc.get('warranty_months')][:1]
+            if found:
+                values['bao_hanh'] = '\n'.join('• %s: %s' % (svc['name'], svc.get('warranty_text') or '')
+                                                for svc in found[:5])
+            else:
+                values['bao_hanh'] = '• (thời hạn ghi trên thẻ bảo hành của từng dịch vụ)'
+                missing.append('bao_hanh')
+        if 'bac_si_lam_viec' in needed:
+            info = call('get_clinic_info', {'topic': 'doctors'})
+            lines = info.get('doctors') or []
+            scope = getattr(script, 'doctor_scope', False)
+            if scope:
+                lines = self._doctor_lines(company, scope) or lines
+            values['bac_si_lam_viec'] = '\n'.join('• %s' % l for l in lines) if lines else \
+                '• (lễ tân sẽ báo lịch trực của bác sĩ)'
+            if not lines:
+                missing.append('bac_si_lam_viec')
+        if 'goi_cham_soc' in needed:
+            info = call('get_clinic_info', {'topic': 'care_plans'})
+            lines = info.get('care_plans') or []
+            values['goi_cham_soc'] = '\n'.join('• %s' % l for l in lines) if lines else \
+                '• (nhân viên tư vấn sẽ giới thiệu các gói hiện có)'
+            if not lines:
+                missing.append('goi_cham_soc')
         if 'gio_trong' in needed:
             schedule = self.env['dmag.clinic.schedule'].get_info(company)
             today = fields.Date.context_today(self)
@@ -725,7 +813,13 @@ class DmagAiReception(models.AbstractModel):
         body = PLACEHOLDER_SUB.sub(lambda m: str(values.get(m.group(1), m.group(0))), script.answer_template or '')
         body = re.sub(r'\n{3,}', '\n\n', body).strip()
         quick = [q.strip() for q in (script.quick_replies or '').split('|') if q.strip()] or quick
-        return {'text': body, 'trace': trace, 'quick': quick, 'missing': missing}
+        from .dmag_ai_reply_script import PLACEHOLDER_SOURCES
+        labels = []
+        for key in sorted(needed, key=lambda k: list(PLACEHOLDER_SOURCES).index(k) if k in PLACEHOLDER_SOURCES else 99):
+            label = PLACEHOLDER_SOURCES.get(key)
+            if label and label not in labels and key not in missing:
+                labels.append(label)
+        return {'text': body, 'trace': trace, 'quick': quick, 'missing': missing, 'source_labels': labels}
 
     @api.model
     def classify_live(self, conversation, text, scripts):

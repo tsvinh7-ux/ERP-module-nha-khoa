@@ -45,4 +45,24 @@
         <field name="model_id" ref="model_dmag_ai_reply_example"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="rule_dmag_ai_knowledge_company" model="ir.rule">
+        <field name="name">Kho tri thức trợ lý: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_knowledge"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_knowledge_document_company" model="ir.rule">
+        <field name="name">Tài liệu trợ lý: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_knowledge_document"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_kb_gap_company" model="ir.rule">
+        <field name="name">Câu hỏi ngoài dữ liệu: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_kb_gap"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dmag_ai_duty_line_company" model="ir.rule">
+        <field name="name">Lễ tân phụ trách: theo phòng khám</field>
+        <field name="model_id" ref="model_dmag_ai_duty_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

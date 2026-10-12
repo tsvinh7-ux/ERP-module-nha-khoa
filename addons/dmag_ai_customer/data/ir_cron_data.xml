@@ -29,5 +29,23 @@
             <field name="interval_type">minutes</field>
             <field name="numbercall">-1</field>
         </record>
+        <record id="ir_cron_dmag_ai_gap_escalate" model="ir.cron">
+            <field name="name">AI-07: báo Quản lý câu hỏi ngoài dữ liệu quá hạn</field>
+            <field name="model_id" ref="model_dmag_ai_kb_gap"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_escalate()</field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+        </record>
+        <record id="ir_cron_dmag_ai_kb_refresh" model="ir.cron">
+            <field name="name">AI-07: nạp lại dữ liệu gốc vào kho tri thức trợ lý</field>
+            <field name="model_id" ref="model_dmag_ai_knowledge"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_refresh()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+        </record>
     </data>
 </odoo>

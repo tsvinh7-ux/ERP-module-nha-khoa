@@ -3,8 +3,9 @@
 Doanh thu từng ngày làm việc còn lại của kỳ = phần đã có lịch + phần sẽ phát sinh thêm:
 * **Lịch đã đặt**: Σ giá trị dịch vụ dự kiến của lượt hẹn (hoặc giá trị trung bình / lượt nếu chưa ghi dịch vụ)
   × tỷ lệ đến khám lịch sử × hệ số quy đổi lịch sử (doanh thu thực / giá trị dự kiến của lượt đã đến);
-* **Sẽ phát sinh**: dự báo chuỗi doanh thu ngày mở cửa theo Lịch làm việc phòng khám (Holt-Winters cộng tính, mùa vụ
-  tuần = số thứ mở cửa, mặc định 6; ngày nghỉ lễ không tính, xu hướng hãm) ×
+* **Sẽ phát sinh**: dự báo chuỗi doanh thu ngày mở cửa theo Lịch làm việc phòng khám – **mùa vụ theo thứ trong tuần**
+  (phòng khám mở 7 ngày, Chủ nhật đông nhất: chênh lệch của từng thứ so với trung bình, gắn theo thứ thật nên ngày nghỉ
+  lễ không làm lệch pha) + mức / xu hướng hãm (Holt) trên chuỗi đã khử mùa vụ thứ ×
   (1 − tỷ trọng doanh thu thường đã có lịch ở cùng khoảng cách ngày) – học từ thời điểm đặt lịch trong lịch sử;
 * **Mùa vụ theo tháng**: chỉ số tháng khi có ≥ 13 tháng lịch sử (chưa đủ → 1,0 và ghi rõ);
 * **Khoảng tin cậy 80 %**: sai số dự báo một bước của mô hình + phương sai nhị thức của việc khách đến / không đến.
@@ -27,6 +28,7 @@ from . import forecast_math as fm
 from .ai_common import vnd
 
 HISTORY_DAYS = 120
+WEEKDAY_LABELS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']
 MAX_LEAD = 30
 
 
@@ -126,9 +128,13 @@ class DmagAiForecast(models.AbstractModel):
         all_future = schedule.open_days(today, m_to) if m_to >= today else []
         while len(series) > 12 and series[0] == 0.0:  # bỏ các ngày trước khi có hoạt động
             series = series[1:]
-        capped, spike_rate, spike_var, spike_cap = fm.split_spikes(series)
-        # mùa vụ tuần = số ngày mở cửa trong tuần (mặc định 6: Thứ 2 – Thứ 7)
-        hw = fm.holt_winters(capped, len(all_future) + 1, season=max(1, len(schedule.open_weekdays())))
+        # mùa vụ theo THỨ (gắn theo thứ thật – Chủ nhật đông khách; ngày nghỉ lễ không làm lệch pha) → khử mùa vụ →
+        # tách ca lớn đột biến → Holt (mức + xu hướng hãm)
+        hist_days = days[len(days) - len(series):]
+        profile = fm.weekday_profile(hist_days, series) if len(series) >= 14 else {}
+        deseason = [v - profile.get(d.weekday(), (0.0,))[0] for d, v in zip(hist_days, series)]
+        capped, spike_rate, spike_var, spike_cap = fm.split_spikes(deseason)
+        hw = fm.holt_winters(capped, len(all_future) + 1, season=0)
         step = {d: i for i, d in enumerate(all_future)}
         future = [d for d in all_future if d >= m_from]
         seasonal, months_hist = self._monthly_index(today)
@@ -160,7 +166,8 @@ class DmagAiForecast(models.AbstractModel):
             i = step[day]
             h = (day - today).days
             share = stats['booked_share'][min(h, MAX_LEAD)] if stats['booked_share'] else 0.0
-            base = (hw['forecast'][i] + spike_rate) * (seasonal.get(day.month, 1.0) if seasonal else 1.0)
+            base = (max(0.0, hw['forecast'][i] + profile.get(day.weekday(), (0.0,))[0]) + spike_rate) \
+                * (seasonal.get(day.month, 1.0) if seasonal else 1.0)
             b_val, b_var, b_cnt = booked_by_day.get(day, (0.0, 0.0, 0))
             if reliable:
                 unbooked = max(0.0, base * (1.0 - share))
@@ -216,7 +223,12 @@ class DmagAiForecast(models.AbstractModel):
             'booked_part': booked_total, 'unbooked_part': remaining - booked_total, 'total': total,
             'low': max(actual_to_date, total - half), 'high': total + half, 'target': board_target,
             'prob_target': prob, 'days': rows, 'cumulative': cumulative,
-            'model': {'method': hw['method'], 'params': hw['params'], 'sigma_day': sigma,
+            'model': {'method': (hw['method'] + ' + mùa vụ theo thứ') if profile else hw['method'],
+                      'params': hw['params'], 'sigma_day': sigma,
+                      'weekday_profile': [{'weekday': wd, 'label': WEEKDAY_LABELS[wd], 'index': round(idx, 2),
+                                           'diff': round(diff), 'samples': n}
+                                          for wd, (diff, idx, n) in sorted(profile.items())],
+                      'peak_weekday': WEEKDAY_LABELS[max(profile, key=lambda w: profile[w][0])] if profile else None,
                       'history_days': len(series), 'show_rate': round(stats['show_rate'], 3),
                       'conversion': round(stats['conversion'], 3), 'avg_ticket': stats['avg_ticket'],
                       'booked_share_d1': round(stats['booked_share'][1], 3) if stats['booked_share'] else None,

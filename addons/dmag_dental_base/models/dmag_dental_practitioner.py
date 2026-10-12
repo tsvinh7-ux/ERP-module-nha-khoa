@@ -3,6 +3,21 @@ from datetime import timedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+from .dmag_clinic_schedule import WEEKDAY_SHORT
+
+
+def _join_weekdays(days):
+    """[0, 1, 2, 4, 5, 6] → "Thứ 2 – Thứ 4, Thứ 6 – Chủ nhật"."""
+    groups = []
+    for wd in sorted(days):
+        if groups and groups[-1][-1] == wd - 1:
+            groups[-1].append(wd)
+        else:
+            groups.append([wd])
+    return ', '.join(WEEKDAY_SHORT[g[0]] if len(g) == 1 else
+                     ('%s, %s' % (WEEKDAY_SHORT[g[0]], WEEKDAY_SHORT[g[1]]) if len(g) == 2 else
+                      '%s – %s' % (WEEKDAY_SHORT[g[0]], WEEKDAY_SHORT[g[-1]])) for g in groups)
+
 
 class DmagDentalPractitioner(models.Model):
     """Nhân sự lâm sàng (bác sĩ, phụ tá, KTV).
@@ -99,14 +114,55 @@ class DmagDentalPractitioner(models.Model):
                                  svc=product.name, lvl=product.min_clinical_level_id.name, doc=self.name))
         return reasons
 
+    def off_reason(self, day, info=None):
+        """Lý do nhân sự KHÔNG trực ngày ``day`` (phòng khám mở cửa) hoặc None: không làm thứ này (ngày làm việc
+        riêng), nghỉ luân phiên hằng tuần, nghỉ phép / đổi ca đã duyệt (Lịch nghỉ luân phiên)."""
+        self.ensure_one()
+        info = info or self.env['dmag.clinic.schedule'].get_info(self.company_id)
+        codes = self.work_weekday_ids.mapped('code')
+        if codes and day.weekday() not in codes:
+            return _('không làm việc %s', WEEKDAY_SHORT[day.weekday()])
+        roster = getattr(info, 'roster', None)
+        if roster:
+            return roster.practitioner_off_reason(self.id, day)
+        return None
+
     def works_on(self, day, info=None):
-        """Bác sĩ làm việc ngày ``day``: phòng khám mở cửa và (nếu có khai) đúng thứ làm việc của bác sĩ."""
+        """Nhân sự trực ngày ``day``: phòng khám mở cửa, đúng thứ làm việc riêng (nếu có khai) và không nghỉ luân
+        phiên / nghỉ phép theo Lịch nghỉ luân phiên."""
         self.ensure_one()
         info = info or self.env['dmag.clinic.schedule'].get_info(self.company_id)
         if not info.is_open_day(day):
             return False
-        codes = self.work_weekday_ids.mapped('code')
-        return not codes or day.weekday() in codes
+        return not self.off_reason(day, info)
+
+    def duty_days(self, date_from, date_to, info=None):
+        """Các ngày nhân sự trực trong [date_from, date_to] (nhịp mục tiêu riêng của bác sĩ, công suất)."""
+        self.ensure_one()
+        info = info or self.env['dmag.clinic.schedule'].get_info(self.company_id)
+        return [d for d in info.open_days(date_from, date_to) if not self.off_reason(d, info)]
+
+    def duty_text(self, info=None):
+        """Ví dụ: "làm việc Thứ 3 – Chủ nhật (nghỉ luân phiên Thứ 2)" – trợ lý dùng để báo khách."""
+        self.ensure_one()
+        info = info or self.env['dmag.clinic.schedule'].get_info(self.company_id)
+        open_wd = info.open_weekdays()
+        codes = set(self.work_weekday_ids.mapped('code')) or set(open_wd)
+        off = set()
+        roster = getattr(info, 'roster', None)
+        if roster and self.id in roster.by_practitioner:
+            off = set(roster.members[roster.by_practitioner[self.id]]['off'])
+        days = [wd for wd in open_wd if wd in codes and wd not in off]
+        if not days:
+            return _('chưa có lịch làm việc')
+        if len(days) == 7:
+            text = _('làm việc tất cả các ngày trong tuần')
+        else:
+            text = _('làm việc %s', _join_weekdays(days))
+        if off:
+            text += _(' (nghỉ luân phiên %s%s)', ', '.join(WEEKDAY_SHORT[wd] for wd in sorted(off)),
+                      _(', đổi theo tuần') if roster.rotate_weekly else '')
+        return text
 
     def check_can_perform(self, products):
         for practitioner in self:

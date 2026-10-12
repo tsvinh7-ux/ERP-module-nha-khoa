@@ -19,10 +19,11 @@
                     <select class="dmag-select" t-on-change="(ev) => this.state.doctorId = Number(ev.target.value) || false">
                         <option value="">Tất cả bác sĩ</option>
                         <t t-foreach="state.board.doctors" t-as="doc" t-key="doc.id">
-                            <option t-att-value="doc.id" t-att-selected="doc.id === state.doctorId" t-esc="doc.name"/>
+                            <option t-att-value="doc.id" t-att-selected="doc.id === state.doctorId" t-esc="doc.name + (doc.on_duty === false ? ' (nghỉ hôm nay)' : '')"/>
                         </t>
                     </select>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="openCalendar"><i class="fa fa-calendar me-1" title="Lịch"/>Lịch</button>
+                    <button class="dmag-btn dmag-btn-ghost" t-on-click="openRotation" title="Lịch nghỉ luân phiên"><i class="fa fa-users me-1" title="Luân phiên"/>Trực / nghỉ</button>
                     <button class="dmag-btn dmag-btn-ghost" t-on-click="newPatient"><i class="fa fa-user-plus me-1" title="Bệnh nhân mới"/>Bệnh nhân mới</button>
                     <button class="dmag-btn dmag-btn-primary" t-on-click="newBooking"><i class="fa fa-plus me-1" title="Đặt lịch"/>Đặt lịch</button>
                 </div>
@@ -33,6 +34,19 @@
                     <span class="dmag-kpi-value" t-esc="kpi.value"/>
                     <span class="dmag-kpi-label" t-esc="kpi.label"/>
                 </div>
+            </section>
+
+            <section t-if="state.board.duty and state.board.doctors.length" t-att-class="'dmag-duty-strip' + (dutyShortage ? ' is-short' : '')">
+                <span class="dmag-duty-label"><i class="fa fa-user-md me-1" title="Trực hôm nay"/>Trực hôm nay</span>
+                <t t-if="state.board.duty.open">
+                    <span t-foreach="onDutyDoctors" t-as="doc" t-key="doc.id" class="dmag-duty-chip is-on" t-esc="(doc.title ? doc.title + ' ' : 'BS ') + doc.name"/>
+                    <span t-if="state.board.duty.staff_off.length" class="dmag-duty-label ms-2"><i class="fa fa-moon-o me-1" title="Nghỉ"/>Nghỉ</span>
+                    <span t-foreach="state.board.duty.staff_off" t-as="off" t-key="off_index" class="dmag-duty-chip is-off" t-att-title="off.label">
+                        <b t-esc="off.role"/> <t t-esc="off.name"/> <small t-esc="'· ' + off.label"/>
+                    </span>
+                    <span t-if="dutyShortage" class="dmag-duty-chip is-short"><i class="fa fa-exclamation-triangle me-1" title="Thiếu người"/><t t-esc="dutyShortage"/></span>
+                </t>
+                <span t-else="" class="dmag-duty-chip is-off">Phòng khám nghỉ<t t-if="state.board.duty.closure"> – <t t-esc="state.board.duty.closure"/></t></span>
             </section>
 
             <section class="dmag-chairs">

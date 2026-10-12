@@ -4,6 +4,8 @@ from . import res_company
 from . import dmag_ai_reception
 from . import dmag_ai_reply_script
 from . import dmag_ai_conversation
+from . import dmag_ai_knowledge
+from . import dmag_ai_grounded
 from . import dmag_ai_feedback
 from . import dmag_ai_noshow
 from . import dmag_workspace

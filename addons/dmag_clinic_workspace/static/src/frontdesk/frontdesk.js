@@ -49,6 +49,24 @@ export class FrontDesk extends Component {
         this.state.loading = false;
     }
 
+    // ---------------------------------------------------------------- lịch trực
+    get onDutyDoctors() {
+        return (this.state.board.doctors || []).filter((d) => d.on_duty !== false);
+    }
+
+    get dutyShortage() {
+        const duty = this.state.board.duty;
+        const labels = { doctor: "bác sĩ", assistant: "phụ tá", receptionist: "lễ tân" };
+        if (!duty || !duty.shortages || !duty.shortages.length) {
+            return "";
+        }
+        return "Thiếu người: " + duty.shortages.map((s) => `${s.n}/${s.min} ${labels[s.role] || s.role}`).join(", ");
+    }
+
+    openRotation() {
+        return this.action.doAction("dmag_clinic_workspace.action_dmag_staff_rotation_calendar");
+    }
+
     // ---------------------------------------------------------------- data
     get visits() {
         const q = this.state.search.trim().toLowerCase();

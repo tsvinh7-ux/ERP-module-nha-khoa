@@ -24,6 +24,7 @@
         'data/ir_cron_data.xml',
         'views/dmag_ai_conversation_views.xml',
         'views/dmag_ai_reply_script_views.xml',
+        'views/dmag_ai_knowledge_views.xml',
         'views/dmag_ai_feedback_views.xml',
         'views/dmag_ai_care_views.xml',
         'views/dmag_ai_followup_views.xml',
@@ -40,6 +41,7 @@
             'dmag_ai_customer/static/src/components/**/*',
             'dmag_ai_customer/static/src/zalo/**/*',
             'dmag_ai_customer/static/src/inbox/**/*',
+            'dmag_ai_customer/static/src/knowledge/**/*',
             'dmag_ai_customer/static/src/patches/**/*',
         ],
         'web.assets_frontend': [

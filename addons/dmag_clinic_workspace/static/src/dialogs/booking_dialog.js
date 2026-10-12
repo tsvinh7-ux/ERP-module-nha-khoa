@@ -66,6 +66,19 @@ export class BookingDialog extends Component {
             .reduce((sum, s) => sum + (s.price || 0), 0);
     }
 
+    get offDoctors() {
+        const info = this.state.dayInfo;
+        return info && info.doctors ? info.doctors.filter((d) => !d.on_duty) : [];
+    }
+
+    doctorOff(id) {
+        return this.offDoctors.find((d) => d.id === id);
+    }
+
+    get selectedDoctorOff() {
+        return this.state.doctorId ? this.doctorOff(this.state.doctorId) : null;
+    }
+
     get morningSlots() {
         return this.state.slots.filter((s) => Number(s.time.slice(0, 2)) < 12);
     }

@@ -14,8 +14,14 @@
         <field name="name">Bảng điều hành mục tiêu</field>
         <field name="tag">dmag_goal_dashboard</field>
     </record>
+    <record id="action_dmag_staff_rotation_calendar" model="ir.actions.client">
+        <field name="name">Lịch nghỉ luân phiên</field>
+        <field name="tag">dmag_staff_rotation_calendar</field>
+    </record>
     <menuitem id="menu_dmag_frontdesk" name="Bảng điều phối" parent="dmag_dental_base.menu_dmag_dental_root"
               action="action_dmag_frontdesk" sequence="1"/>
     <menuitem id="menu_dmag_doctor_desk" name="Bàn làm việc bác sĩ" parent="dmag_dental_base.menu_dmag_dental_root"
               action="action_dmag_doctor_desk" sequence="2" groups="dmag_dental_base.group_dmag_assistant"/>
+    <menuitem id="menu_dmag_staff_rotation_calendar" name="Lịch nghỉ luân phiên" parent="dmag_dental_base.menu_dmag_dental_root"
+              action="action_dmag_staff_rotation_calendar" sequence="3"/>
 </odoo>

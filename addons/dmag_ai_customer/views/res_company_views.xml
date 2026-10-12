@@ -14,7 +14,16 @@
                             <b>Tự động hoàn toàn:</b> AI tự soạn và gửi mọi câu trả lời (vẫn chặn ca khẩn / khiếu nại theo
                             quy tắc an toàn) – câu chữ không qua kịch bản đã duyệt. Chỉ nên bật khi đã thử kỹ.
                         </div>
-                        <field name="dmag_ai_script_threshold" widget="percentage" invisible="dmag_ai_zalo_reply_mode != 'script'"/>
+                        <div colspan="2" class="alert alert-info mb-2" role="alert" invisible="dmag_ai_zalo_reply_mode != 'grounded'">
+                            <b>Chỉ trả lời từ dữ liệu đã nạp:</b> trợ lý thay nhân viên trả lời khách 24/7 nhưng mọi câu phải có
+                            nguồn trong <i>Kho tri thức trợ lý</i> / dữ liệu thật của Odoo; ngoài dữ liệu → tin giữ chỗ và báo
+                            lễ tân đang trực (quá hạn → Quản lý).
+                        </div>
+                        <field name="dmag_ai_grounded_holding" invisible="dmag_ai_zalo_reply_mode != 'grounded'"/>
+                        <field name="dmag_ai_escalation_minutes" invisible="dmag_ai_zalo_reply_mode != 'grounded'"/>
+                        <field name="dmag_ai_escalation_user_id" invisible="dmag_ai_zalo_reply_mode != 'grounded'"
+                               options="{'no_create': True}"/>
+                        <field name="dmag_ai_script_threshold" widget="percentage" invisible="dmag_ai_zalo_reply_mode not in ('script', 'grounded')"/>
                         <field name="dmag_ai_escalation_ack" invisible="dmag_ai_zalo_reply_mode != 'script'"/>
                         <field name="phone" string="Hotline trợ lý báo khách"/>
                     </group>
@@ -24,6 +33,18 @@
                         <field name="dmag_ai_payment_info"/>
                         <field name="dmag_ai_preparation_info"/>
                     </group>
+                </group>
+                <group string="Lễ tân phụ trách trả lời khách (câu hỏi ngoài dữ liệu)">
+                    <field name="dmag_ai_duty_line_ids" nolabel="1" colspan="2">
+                        <tree editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="user_id" options="{'no_create': True}"/>
+                            <field name="channel"/>
+                            <field name="on_duty_today" widget="boolean"/>
+                        </tree>
+                    </field>
+                    <div colspan="2" class="text-muted small">Trợ lý báo người <b>đang trực hôm nay</b> theo Lịch nghỉ luân
+                        phiên (ít câu chờ nhất); không ai trực → người đầu danh sách và Quản lý.</div>
                 </group>
                 <group string="Lịch hẹn &amp; chăm sóc (AI-08, AI-11, AI-18)">
                     <group>

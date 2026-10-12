@@ -22,6 +22,7 @@
             'dmag_clinic_workspace/static/src/cockpit/**/*',
             'dmag_clinic_workspace/static/src/frontdesk/**/*',
             'dmag_clinic_workspace/static/src/doctor_desk/**/*',
+            'dmag_clinic_workspace/static/src/rotation/**/*',
         ],
     },
     'installable': True,
