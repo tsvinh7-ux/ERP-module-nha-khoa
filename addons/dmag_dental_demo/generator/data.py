@@ -553,8 +553,8 @@ AI_GAP_CHATS = [
      'Dạ phòng khám chưa có xe đưa đón ạ. Bác đặt lịch trước, khi đến lễ tân sẽ hỗ trợ bác từ cửa xe vào ghế khám; tầng '
      'trệt có lối đi cho xe lăn ạ.', ('script_draft', 'kb_draft')),
     ('zalo-demo-006', 'Anh Tuấn (Zalo)', '0987654321',
-     'Phòng khám có chỗ cho bé chơi trong lúc bố mẹ khám không?', 'receptionist',
-     'Dạ có góc chơi cho bé ở khu chờ tầng trệt, lễ tân trông giúp trong lúc anh/chị khám ạ.', ('script_draft',)),
+     'Phòng khám có wifi và chỗ sạc điện thoại cho khách ngồi chờ không ạ?', 'receptionist',
+     'Dạ có ạ: wifi miễn phí (mật khẩu dán ở quầy lễ tân) và ổ sạc điện thoại ở khu chờ tầng trệt.', ('script_draft',)),
     ('zalo-demo-007', 'Chị Mai Anh (Zalo)', '0934222111',
      'Phòng khám có nhận bảo hiểm sức khỏe Bảo Việt không ạ?', None, None, ('overdue',)),
     ('zalo-demo-008', 'Anh Phát (Zalo)', '0966888999',
@@ -565,14 +565,12 @@ KB_DOCUMENT = ('Cẩm nang khách hàng ' + SAMPLE, 'cam-nang-khach-hang.md', ""
 Khách đổi hoặc hủy lịch trước 24 giờ không mất phí giữ chỗ. Lịch niềng răng, implant đã đặt cọc: hoàn cọc nếu hủy trước
 khi bắt đầu điều trị.
 
-# Khám cho người cao tuổi và người khuyết tật
-Tầng trệt có lối đi cho xe lăn, ghế nha nâng hạ; lễ tân hỗ trợ từ cửa vào ghế khám.
+# Sau tẩy trắng răng
+Trong 48 giờ đầu tránh cà phê, trà, nước ngọt có màu, thuốc lá; ê buốt nhẹ 1–2 ngày là thường gặp, dùng kem đánh răng
+chống ê buốt theo hướng dẫn của bác sĩ.
 
-# Đi khám cùng trẻ nhỏ
-Khu chờ có góc chơi cho bé; trẻ dưới 16 tuổi cần bố mẹ hoặc người giám hộ đi cùng khi khám, làm thủ thuật.
-
-# Hóa đơn và chứng từ
-Phòng khám xuất hóa đơn điện tử cho cá nhân và công ty; bản sao bệnh án, đơn thuốc cung cấp khi khách yêu cầu.
+# Máng chống nghiến, khay chỉnh nha
+Rửa máng bằng nước mát và bàn chải mềm, không ngâm nước nóng; mang theo máng mỗi lần tái khám.
 """)
 
 AI_ZALO_CHATS = [

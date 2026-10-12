@@ -13,11 +13,11 @@
             <div t-if="m.role === 'system' and chatPerspective === 'staff' and m.decision === 'out_of_data'" class="dmag-ai-sysmsg is-gap">
                 <i class="fa fa-bell me-1" title="Ngoài dữ liệu"/><t t-esc="m.decision_note"/><div class="small text-muted" t-if="m.state !== 'received'">Khách nhận: “<t t-esc="m.body"/>”</div>
             </div>
-            <div t-elif="m.role === 'system'" class="dmag-ai-sysmsg" t-esc="m.body"/>
+            <div t-elif="m.role === 'system' and !(chatPerspective === 'customer' and m.decision)" class="dmag-ai-sysmsg" t-esc="m.body"/>
             <div t-else="" t-att-class="'dmag-ai-bubble-row' + (mine ? ' is-mine' : '')">
                 <div t-att-class="'dmag-ai-bubble is-' + m.role + (m.state === 'pending' ? ' is-pending' : '') + (m.state === 'discarded' ? ' is-discarded' : '')">
                     <div t-if="m.role !== 'customer'" class="dmag-ai-bubble-who">
-                        <t t-if="m.role === 'bot'"><i class="fa fa-magic me-1" title="Trợ lý AI"/>Trợ lý AI</t>
+                        <t t-if="m.role === 'bot' or m.role === 'system'"><i class="fa fa-magic me-1" title="Trợ lý AI"/>Trợ lý AI</t>
                         <t t-else=""><i class="fa fa-user me-1" title="Nhân viên"/><t t-esc="m.author or 'Nhân viên'"/></t>
                     </div>
                     <div class="dmag-ai-bubble-body" t-esc="m.body"/>

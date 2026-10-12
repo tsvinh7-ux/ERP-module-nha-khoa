@@ -12,6 +12,8 @@ GROUPS = {
     'phuta.demo': 'dmag_dental_base.group_dmag_assistant',
     'bacsi.demo': 'dmag_dental_base.group_dmag_doctor',
     'bacsi2.demo': 'dmag_dental_base.group_dmag_doctor',
+    'bacsi3.demo': 'dmag_dental_base.group_dmag_doctor',
+    'phuta2.demo': 'dmag_dental_base.group_dmag_assistant',
     'quanly.demo': 'dmag_dental_base.group_dmag_manager',
     'giamdoc.demo': 'dmag_dental_base.group_dmag_director',
 }
@@ -189,6 +191,62 @@ class TestDemoData(TransactionCase):
                 self.assertTrue(self.env['ir.model.data'].search_count([
                     ('module', '=', 'dmag_dental_demo'), ('model', '=', model)]),
                     'Dữ liệu AI demo phải gắn xmlid để gỡ module là xóa sạch (%s)' % model)
+
+    def test_11_rotation_and_sunday(self):
+        """Mở cửa 7 ngày; Chủ nhật đông nhất; lịch sử tôn trọng ngày nghỉ luân phiên của từng bác sĩ; lịch luân phiên
+        có ô thiếu người (nghỉ phép đã duyệt) và yêu cầu chờ duyệt."""
+        from datetime import timedelta
+        from collections import Counter
+        from odoo import fields
+        schedule = self.env['dmag.clinic.schedule'].get_info(self.company)
+        self.assertEqual(sorted(schedule.open_weekdays()), list(range(7)))
+        roster = schedule.roster
+        self.assertTrue(roster)
+        members = self.env['dmag.staff.rotation'].search([('company_id', '=', self.company.id)])
+        self.assertGreaterEqual(len(members), 7)
+        self.assertFalse(members.filtered(lambda m: 6 in m.off_weekday_ids.mapped('code')), 'Không ai nghỉ Chủ nhật')
+        today = fields.Date.context_today(self.Visit)
+        shortages = [d for d in (today + timedelta(days=i) for i in range(1, 29)) if roster.shortages(d)]
+        self.assertGreaterEqual(len(shortages), 1, 'Có một ngày thiếu bác sĩ (nghỉ phép đã duyệt) để demo cảnh báo')
+        self.assertLessEqual(len(shortages), 3)
+        self.assertTrue(self.env['dmag.staff.leave'].search_count([('state', '=', 'draft')]))
+        # lịch sử: bác sĩ không có ca vào ngày nghỉ luân phiên / nghỉ phép
+        done = self.Visit.search([('state', '=', 'done'), ('company_id', '=', self.company.id),
+                                  ('scheduled_start', '<', fields.Datetime.now() - timedelta(days=1))])
+        tz = 'Asia/Ho_Chi_Minh'
+        bad = [v for v in done if v.doctor_id and v.doctor_id.off_reason(
+            fields.Datetime.context_timestamp(v.with_context(tz=tz), v.scheduled_start).date(), schedule)]
+        self.assertFalse(bad, 'Lượt khám vào ngày bác sĩ nghỉ: %s' % [v.name for v in bad[:5]])
+        per_day = Counter(fields.Datetime.context_timestamp(v.with_context(tz=tz), v.scheduled_start).date()
+                          for v in self.Visit.search([('company_id', '=', self.company.id),
+                                                      ('scheduled_start', '<', fields.Datetime.now() - timedelta(days=1)),
+                                                      ('state', 'in', ('done', 'no_show', 'cancel'))]))
+        sundays = [n for d, n in per_day.items() if d.weekday() == 6]
+        weekdays = [n for d, n in per_day.items() if d.weekday() != 6]
+        self.assertTrue(sundays and weekdays)
+        self.assertGreater(sum(sundays) / len(sundays), 1.3 * sum(weekdays) / len(weekdays), 'Chủ nhật đông nhất')
+
+    def test_12_grounded_assistant_demo(self):
+        """Trợ lý Zalo: chế độ chỉ trả lời từ dữ liệu đã nạp, kho tri thức đã nạp, đề xuất kịch bản của lễ tân,
+        câu hỏi ngoài dữ liệu (đã trả lời / nạp kho / quá hạn báo Quản lý)."""
+        if 'dmag.ai.knowledge' not in self.env:
+            self.skipTest('Chưa cài dmag_ai_customer')
+        self.assertEqual(self.company.dmag_ai_zalo_reply_mode, 'grounded')
+        KB = self.env['dmag.ai.knowledge']
+        self.assertGreaterEqual(KB.search_count([('state', '=', 'approved'), ('source_type', '=', 'pricelist')]), 20)
+        self.assertTrue(KB.search_count([('source_type', '=', 'document'), ('state', '=', 'approved')]))
+        self.assertTrue(KB.search_count([('source_type', '=', 'inbox'), ('state', '=', 'approved')]))
+        self.assertTrue(KB.search_count([('source_type', '=', 'inbox'), ('state', '=', 'draft')]))
+        Script = self.env['dmag.ai.reply.script']
+        self.assertGreaterEqual(Script.search_count([('origin', '=', 'sample'), ('state', '=', 'approved')]), 14)
+        self.assertGreaterEqual(Script.search_count([('origin', '=', 'proposal'), ('state', '=', 'draft')]), 2)
+        self.assertTrue(Script.search_count([('origin', '=', 'proposal'), ('state', '=', 'approved')]))
+        Gap = self.env['dmag.ai.kb.gap']
+        self.assertTrue(Gap.search_count([('state', '=', 'open'), ('escalated_at', '!=', False)]))
+        self.assertTrue(Gap.search_count([('state', '=', 'learned')]))
+        self.assertTrue(Gap.search_count([('state', '=', 'open'), ('assigned_user_id', '!=', False)]))
+        grounded = self.env['dmag.ai.conversation.message'].search_count([('decision', '=', 'grounded')])
+        self.assertGreaterEqual(grounded, 3)
 
     def test_09_regenerate(self):
         receptionist = demo_user(self.env, 'letan.demo')

@@ -781,6 +781,11 @@ class DmagAiReception(models.AbstractModel):
             scope = getattr(script, 'doctor_scope', False)
             if scope:
                 lines = self._doctor_lines(company, scope) or lines
+            # khách hỏi đích danh bác sĩ ("bác sĩ Yến…") → chỉ nêu bác sĩ đó
+            words = set(fold(text).split()) if text else set()
+            named = [l for l in lines if fold(l.split(':')[0].split()[-1]) in words]
+            if named:
+                lines = named
             values['bac_si_lam_viec'] = '\n'.join('• %s' % l for l in lines) if lines else \
                 '• (lễ tân sẽ báo lịch trực của bác sĩ)'
             if not lines:

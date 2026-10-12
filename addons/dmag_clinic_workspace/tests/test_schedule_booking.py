@@ -115,6 +115,8 @@ class TestScheduleBooking(TransactionCase):
         self.assertIn('nghỉ luân phiên', visit.schedule_warning or '')
         self.assertIn('Bác sĩ không trực', visit.schedule_warning)
         self.assertIn('cần xác nhận lại với bác sĩ', ' '.join(visit.message_ids.mapped('body')))
-        # cả hai bác sĩ nghỉ Thứ 3 → không có giờ trống
+        # mọi bác sĩ nghỉ Thứ 3 → không có giờ trống
         Rot.search([('practitioner_id', '=', self.doctor_all.id)]).off_weekday_ids = tuesday
+        self.env['dmag.dental.practitioner'].search([('role', '=', 'doctor'), (
+            'id', 'not in', (self.doctor | self.doctor_all).ids)]).write({'active': False})
         self.assertFalse(self.ws.get_free_slots(tue.isoformat(), False, 30))

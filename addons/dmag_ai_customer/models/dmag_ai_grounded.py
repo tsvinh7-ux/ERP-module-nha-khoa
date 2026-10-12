@@ -23,6 +23,9 @@ from .text_utils import extract_date, extract_time, fold, has_any, numbers_in
 
 GROUNDED_TOOLS = {'search_knowledge', 'search_services', 'get_free_slots', 'get_clinic_info', 'find_patient_by_phone',
                   'book_appointment', 'handoff_to_staff'}
+# Ý định đặt lịch rõ ràng (không tính "muốn khám", "đến khám"… vốn hay xuất hiện trong câu hỏi khác)
+STRONG_BOOK_WORDS = ['đặt lịch', 'đặt hẹn', 'hẹn lịch', 'đặt chỗ', 'book', 'lấy lịch', 'đăng ký khám', 'giữ chỗ',
+                     'lịch trống', 'giờ trống', 'còn lịch']
 BOOKING_TOOLS = {'search_services', 'get_free_slots', 'find_patient_by_phone', 'book_appointment', 'get_clinic_info'}
 TOOL_LABELS = {
     'search_services': 'Bảng giá', 'get_free_slots': 'Giờ trống', 'get_clinic_info': 'Thông tin phòng khám',
@@ -278,8 +281,8 @@ class DmagAiConversationGrounded(models.Model):
         threshold = Script.threshold_for(best, company) if best else 0.6
         stage = self._sim_state().get('stage')
         booking = (stage and stage != 'done') or (best and best.flow == 'booking' and confidence >= threshold) or (
-            has_any(folded, BOOK_WORDS) and not has_any(folded, ['đổi lịch', 'hủy lịch', 'huỷ lịch', 'dời lịch'])) \
-            or (extract_date(text, fields.Date.context_today(self)) and extract_time(text))
+            has_any(folded, STRONG_BOOK_WORDS) and not has_any(folded, ['đổi lịch', 'hủy lịch', 'huỷ lịch', 'dời lịch'])) \
+            or (extract_date(text, fields.Date.context_today(self)) and (extract_time(text) or has_any(folded, BOOK_WORDS)))
         if booking and not (best and best.flow == 'handoff' and confidence >= threshold):
             res = Reception.simulate_reply(self, text, allowed_tools=BOOKING_TOOLS)
             tools = list(dict.fromkeys(t['tool'] for t in res.get('tool_trace') or [] if not t.get('error')))

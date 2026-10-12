@@ -47,6 +47,43 @@ AI-07 – Trợ lý Zalo OA
 * Giờ làm việc / ngày nghỉ trợ lý báo khách và giờ trống lấy từ **Lịch làm việc phòng khám** (``dmag.clinic.schedule``,
   *Nha khoa › Cấu hình › Phòng khám › Lịch làm việc*); ngày nghỉ → báo ngày làm việc gần nhất.
 
+AI-07 – Chế độ MẶC ĐỊNH "Tự động – chỉ trả lời từ dữ liệu đã nạp" (quyết định 12/10/2026)
+-------------------------------------------------------------------------------------------
+Chủ phòng khám: *"muốn thay hoàn toàn nhưng có chuẩn trả lời những cái có trong database được nạp, còn ngoài mà không có
+thì phải thông báo tới người phụ trách như lễ tân"*.
+
+* **Kho tri thức trợ lý** (``dmag.ai.knowledge``, *CSKH › Trợ lý AI khách hàng › Kho tri thức trợ lý*): chủ đề, các cách
+  khách hỏi, nội dung được phép trả lời, thẻ, nguồn, hiệu lực từ / đến; Quản lý soạn, **chỉ Giám đốc duyệt**, đã duyệt
+  bị khóa ("Mở lại để sửa"). Bộ nạp: kịch bản đã duyệt; **dữ liệu gốc Odoo** (bảng giá + bảo hành theo dịch vụ, Lịch làm
+  việc, ngày nghỉ lễ, bác sĩ & ngày trực theo Lịch nghỉ luân phiên, địa chỉ, gửi xe, thanh toán, chuẩn bị, hotline, gói
+  chăm sóc) – tự duyệt vì là dữ liệu gốc, nội dung giá dựng lại lúc trả lời; **tài liệu** TXT / Markdown / PDF
+  (``dmag.ai.knowledge.document``: trích văn bản, tách đoạn theo tiêu đề → nháp, Giám đốc duyệt tài liệu); **hỏi – đáp
+  từ hộp thư**. Màn hình **"Dữ liệu đã nạp"** (thẻ ``dmag_ai_kb_overview``): số mục theo nguồn, lần nạp cuối, "Nạp lại dữ
+  liệu", "Thử hỏi trợ lý" (kết quả tìm + kết luận có / ngoài dữ liệu), mục chờ duyệt, câu hỏi ngoài dữ liệu gần đây. Cron
+  hằng ngày nạp lại; trợ lý tự nạp nếu kho cũ hơn 6 giờ.
+* **Tìm kiếm**: BM25 tại chỗ, không phân biệt dấu, từ đồng nghĩa nha khoa (trồng răng ~ implant, niềng ~ chỉnh nha…);
+  chỉ mục ĐÃ DUYỆT, còn hiệu lực; đủ tin cậy khi có từ hiếm khớp, độ phủ ≥ 60 %, điểm ≥ 0,32.
+* **Trả lời** – giả lập: an toàn tại chỗ (ca khẩn → mẫu an toàn cố định + chuyển người; khiếu nại / muốn gặp người →
+  chuyển người; không chẩn đoán) → luồng đặt lịch (công cụ thật, lịch nháp, chỉ bác sĩ đang trực) → kịch bản đã duyệt →
+  kho tri thức (trích câu liên quan) → bảng giá → mẫu chào hỏi cố định → **ngoài dữ liệu**. Claude: ``dmag.ai.run`` với
+  công cụ chỉ đọc ``search_knowledge``, ``search_services``, ``get_free_slots``, ``get_clinic_info``,
+  ``find_patient_by_phone`` + ``book_appointment`` (nháp) + ``handoff_to_staff`` và structured output
+  ``{answer, grounded, sources, needs_staff, reason}``.
+* **Kiểm tra phía máy chủ** (cả hai chế độ): ``grounded`` sai / ``needs_staff`` / không có nguồn / nguồn không phải công
+  cụ hay mục tri thức thực sự được gọi trong lượt / câu trả lời có **con số** (giá, giờ, ngày, số tháng…) không có
+  trong nguồn → KHÔNG gửi (nháp bị chặn để nhân viên sửa, quyết định ``blocked_unverified``).
+* **Ngoài dữ liệu**: khách nhận **tin giữ chỗ cố định** (một lần mỗi đợt chờ); tạo **"Câu hỏi ngoài dữ liệu"**
+  (``dmag.ai.kb.gap``) giao **lễ tân đang trực hôm nay** trong danh sách *Lễ tân phụ trách trả lời khách* (theo phòng khám /
+  kênh, ``dmag.ai.duty.line``; tôn trọng Lịch nghỉ luân phiên, ít câu chờ nhất; chưa khai danh sách → lễ tân đang trực
+  theo lịch luân phiên → CSKH mặc định): việc cần làm + thông báo nổi (bus) + huy hiệu trên Bảng điều phối và Hộp thư.
+  Quá **N phút** (mặc định 15, cấu hình) chưa trả lời → báo **Quản lý** (cron 5 phút). Hội thoại vẫn do trợ lý trả lời
+  các câu khác.
+* **Hộp thư**: tab **"Ngoài dữ liệu"**; thẻ câu hỏi (đã báo ai, lúc nào, quá hạn / đã báo Quản lý); nhân viên trả lời khách
+  → **"Nạp vào kho tri thức"** một chạm (nháp hỏi – đáp → Giám đốc duyệt → lần sau trợ lý tự trả lời) – khép vòng.
+* Mô phỏng Zalo hiện **"Trả lời từ: Bảng giá · Lịch làm việc · Kịch bản 'Giá dịch vụ'"** hoặc **"Ngoài dữ liệu đã nạp
+  → đã báo lễ tân …"** cho từng lượt. Các chế độ cũ (nhân viên duyệt mọi câu / theo kịch bản / tự động hoàn toàn) vẫn
+  chọn được trong cấu hình phòng khám.
+
 AI-07 – Kịch bản trả lời đã duyệt (quyết định 11/10/2026)
 ----------------------------------------------------------
 Chủ phòng khám: *"cho tự trả lời nhưng theo kịch bản hoặc được duyệt training trước"*.
@@ -60,10 +97,13 @@ Chủ phòng khám: *"cho tự trả lời nhưng theo kịch bản hoặc đư�
 * Quyền: Lễ tân xem; **Quản lý trở lên tạo / sửa bản nháp**; **chỉ Giám đốc duyệt**; kịch bản đã duyệt **bị khóa** (kể cả
   Giám đốc) – "Mở lại để sửa" (Giám đốc, ghi vết) → trợ lý ngừng dùng tới khi duyệt lại. Duyệt kiểm tra ô dữ liệu cần
   công cụ đã được phép.
-* 12 kịch bản mẫu tiếng Việt (``models/reply_script_samples.py``, nạp ở trạng thái **nháp** khi cài – nút "Nạp kịch bản
-  mẫu"): giá dịch vụ, giờ mở cửa, địa chỉ / đỗ xe, đặt lịch, đổi / hủy lịch, chuẩn bị trước khám, bảo hành, trả góp,
-  đau sau nhổ răng (mẫu an toàn + chuyển nhân viên), niềng răng, tẩy trắng, khám cho trẻ em. ``dmag_dental_demo`` duyệt
-  chúng bằng tài khoản Giám đốc demo.
+* **Bộ 14 kịch bản chuẩn đã rà soát** (``models/reply_script_samples.py``, nạp ở trạng thái **nháp** khi cài – nút "Nạp
+  kịch bản mẫu"): giá dịch vụ, giờ làm việc (mở cả tuần, Chủ nhật), địa chỉ / đỗ xe, đặt lịch, đổi / hủy lịch, chuẩn bị
+  trước khám, bảo hành (``{bao_hanh}`` – số tháng theo từng dịch vụ), trả góp & thanh toán, đau sau nhổ răng (mẫu an toàn
+  + chuyển bác sĩ), niềng răng (kèm bác sĩ chỉnh nha & ngày trực), tẩy trắng, khám trẻ em, **bác sĩ làm việc ngày nào**
+  (``{bac_si_lam_viec}`` – Lịch nghỉ luân phiên), **gói chăm sóc theo năm** (``{goi_cham_soc}``). Không ghi cứng số liệu:
+  giá / bảo hành / giờ / bác sĩ lấy từ dữ liệu thật. ``dmag_dental_demo`` duyệt bằng tài khoản Giám đốc demo. Kịch bản có
+  trường **Nguồn** (bộ chuẩn / Quản lý soạn / **nhân viên đề xuất từ hộp thư**) và bộ lọc "Nhân viên đề xuất".
 * Chế độ trả lời theo phòng khám (``dmag_ai_zalo_reply_mode``, áp cho Zalo OA và Mô phỏng Zalo):
 
   - ``approve`` – **Nhân viên duyệt mọi câu** (như trước);
@@ -110,6 +150,12 @@ Thư viện bên thứ ba
 
 Kiểm thử
 ========
+``tests/test_grounded.py``: chế độ mặc định; trả lời có nguồn (kịch bản + bảng giá, hỏi – đáp, giờ làm việc, lịch trực);
+ngoài dữ liệu → tin giữ chỗ (không lặp), câu hỏi giao lễ tân ĐANG TRỰC (người kia nghỉ luân phiên), việc cần làm, thông
+báo nổi, hàng "Ngoài dữ liệu"; quá 15 phút → Quản lý; nhân viên trả lời → nạp kho (Lễ tân / Quản lý không duyệt, Giám đốc
+duyệt) → lần sau trợ lý tự trả lời; an toàn (ca khẩn, câu hỏi chuyên môn, đau sau nhổ răng); đặt lịch chỉ bác sĩ đang
+trực; kiểm tra nguồn & con số (giá sai, không nguồn, nguồn không gọi); Claude (client giả) trả lời đúng → gửi, bịa giá →
+chặn + nháp + báo lễ tân; bộ nạp, khóa, tài liệu Markdown, tìm không dấu; ô dữ liệu mới của kịch bản.
 ``tests/test_reply_scripts.py``: 12 kịch bản mẫu; khớp kịch bản → tự gửi mẫu điền giá / giờ làm việc thật (mô phỏng và
 Zalo); không khớp / chuyên môn → nháp chờ duyệt + tin báo đã nhận một lần; ca khẩn / khiếu nại / mẫu an toàn đau sau nhổ
 răng; kịch bản đặt lịch tạo lịch nháp; kịch bản mở lại không được dùng; quyền (lễ tân không tạo, Quản lý không duyệt,

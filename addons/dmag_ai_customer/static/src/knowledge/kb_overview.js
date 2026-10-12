@@ -106,7 +106,8 @@ export class KbOverview extends Component {
             return "chưa nạp";
         }
         const d = new Date(dt.replace(" ", "T") + "Z");
-        return d.toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(d.getHours())}:${pad(d.getMinutes())} ngày ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
     }
 
     get openGapCount() {

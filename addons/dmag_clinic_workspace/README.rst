@@ -21,3 +21,11 @@ Giao diện vận hành cho người không quen Odoo (tablet-first, nhận di�
   Hộp thoại *Đặt lịch* hiện giờ làm việc của ngày (hoặc "phòng khám nghỉ – lý do", ``get_day_info``). Đặt / dời lịch
   tương lai ngoài giờ: lễ tân / bác sĩ bị chặn, Quản lý trở lên đặt được (ghi chatter) – kiểm tra nằm ở
   ``dmag.dental.visit`` (``dmag_dental_clinic``) nên áp cho mọi đường đặt lịch.
+* **Lịch nghỉ luân phiên** (*Nha khoa › Lịch nghỉ luân phiên*, thẻ ``dmag_staff_rotation_calendar``): lịch tháng 7 cột
+  (Chủ nhật tô xanh "đông khách"), mỗi ngày số người trực / tối thiểu theo vai trò (BS · PT · LT), ai nghỉ (luân phiên ·
+  nghỉ phép · đổi ca), ô **đỏ** khi thiếu người; cột phải: ngày nghỉ hằng tuần, yêu cầu chờ duyệt (Duyệt / Từ chối, cảnh
+  báo nếu duyệt sẽ thiếu người), đã duyệt trong tháng; nút "Xếp lịch tự động", "Nghỉ phép / đổi ca" (bấm một ngày cũng mở).
+* Giờ trống chỉ tính ngày có bác sĩ **đang trực**; bác sĩ nghỉ luân phiên / nghỉ phép → ``doctor_free`` = False. Đặt lịch
+  bác sĩ đang nghỉ: **không chặn mà cảnh báo** (hộp thoại Đặt lịch hiện "Bác sĩ X nghỉ luân phiên Thứ 3", lịch hẹn có cảnh
+  báo "Bác sĩ không trực" + chatter). Bảng điều phối: dải **"Trực hôm nay"** (bác sĩ trực, ai nghỉ, thiếu người), danh
+  sách bác sĩ ghi "(nghỉ hôm nay)", nút "Trực / nghỉ".

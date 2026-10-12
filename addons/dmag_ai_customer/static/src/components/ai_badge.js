@@ -81,7 +81,7 @@ export function summarizeTool(step) {
                 ? { kind: "list", items: out.results.map((r) => `${r.source || r.title}${r.score ? " · " + Math.round(r.score * 100) + "%" : ""}${r.title && r.source !== r.title ? " – " + r.title : ""}`) }
                 : { kind: "error", text: "Không có mục nào đủ khớp trong dữ liệu đã nạp" };
         case "get_clinic_info":
-            return { kind: "list", items: Object.entries(out).filter(([k]) => k !== "clinic").map(([k, v]) => v) };
+            return { kind: "list", items: Object.entries(out).filter(([k]) => k !== "clinic").flatMap(([k, v]) => (Array.isArray(v) ? v : [v])) };
         case "handoff_to_staff":
             return { kind: "alert", text: `Đã chuyển nhân viên (${(step.input || {}).reason || ""})` };
         default:

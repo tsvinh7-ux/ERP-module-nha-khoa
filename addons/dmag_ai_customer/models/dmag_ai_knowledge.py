@@ -56,7 +56,7 @@ SOURCE_TYPES = [
 MASTER_SOURCES = ('pricelist', 'schedule', 'rotation', 'clinic', 'care_plan')
 SOURCE_LABELS = {'pricelist': 'Bảng giá', 'schedule': 'Lịch làm việc', 'rotation': 'Lịch nghỉ luân phiên',
                  'clinic': 'Thông tin phòng khám', 'care_plan': 'Gói chăm sóc', 'script': 'Kịch bản',
-                 'document': 'Tài liệu', 'inbox': 'Hỏi – đáp đã duyệt', 'manual': 'Kho tri thức'}
+                 'document': 'Tài liệu', 'inbox': 'Hỏi – đáp từ hộp thư', 'manual': 'Nhập tay'}
 LOCKED_FIELDS = {'name', 'category', 'question_variants', 'content', 'tags', 'valid_from', 'valid_to', 'company_id'}
 
 KB_STOPWORDS = {
@@ -532,7 +532,8 @@ class DmagAiKnowledge(models.Model):
             'refreshed_at': fields.Datetime.to_string(company.dmag_ai_kb_refreshed_at)
             if company.dmag_ai_kb_refreshed_at else '',
             'reply_mode': company.dmag_ai_zalo_reply_mode,
-            'drafts': [{'id': d.id, 'name': d.name, 'content': (d.content or '')[:220], 'source': d._source_label(),
+            'drafts': [{'id': d.id, 'name': d.name, 'content': (d.content or '')[:220],
+                        'source': SOURCE_LABELS.get(d.source_type, ''),
                         'proposed_by': d.proposed_by_id.name or '', 'category': dict(KB_CATEGORIES).get(d.category)}
                        for d in drafts],
             'gaps': [g._card() for g in gaps],

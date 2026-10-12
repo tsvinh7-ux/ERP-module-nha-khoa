@@ -61,6 +61,14 @@ Cài đặt / vận hành
 4. *Hồ sơ bác sĩ*: nhập **Tài khoản MySign** (mã người dùng / số CCCD), bấm "Lấy thông tin chứng thư"
    để lưu credential, serial, hạn chứng thư.
 5. Bật tác vụ định kỳ "Ký số: kiểm tra trạng thái yêu cầu đang chờ MySign" (mặc định 2 phút).
+
+   * **Hồ sơ ký số của Giám đốc** (Giám đốc có hồ sơ Viettel MySign – không cần sửa mã): vào *Nha khoa › Cấu hình ›
+     Nhân sự lâm sàng*, bỏ lọc "Đang hoạt động" (hoặc tạo mới) hồ sơ của Giám đốc: vai trò *Bác sĩ*, **Tài khoản đăng
+     nhập** = tài khoản Giám đốc, số giấy phép hành nghề (nếu có), **Tài khoản MySign** = mã người dùng / số CCCD Viettel cấp
+     → bấm "Lấy thông tin chứng thư". Có thể **Lưu trữ** hồ sơ này để Giám đốc không hiện trong danh sách bác sĩ / xếp lịch
+     nhưng vẫn dùng để ký – ví dụ "Duyệt vượt & ký chịu trách nhiệm" đơn thuốc (AI-03) và ký bổ sung bệnh án. Dữ liệu demo
+     đã tạo sẵn hồ sơ lưu trữ này cho ``giamdoc.demo`` (nhà cung cấp giả lập).
+
 6. Máy chủ in PDF cần **wkhtmltopdf** (0.12.6 có patch Qt). Thiếu wkhtmltopdf hệ thống băm và ký
    bản HTML của bệnh án (ghi rõ định dạng trên hồ sơ ký).
 

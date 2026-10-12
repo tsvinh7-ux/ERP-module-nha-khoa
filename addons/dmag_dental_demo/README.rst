@@ -43,9 +43,17 @@ thanh toán, chatter đều khớp thực tế. Hạt giống ngẫu nhiên cố
 6. **40 bệnh nhân** (CCCD 12 số, ngày sinh, giới, đồng ý xử lý dữ liệu; 3 gia đình có chủ hộ, trẻ dưới 6 tuổi
    có người giám hộ, cảnh báo dị ứng / tim mạch / chống đông, nguồn khách và người giới thiệu); một bệnh nhân có
    tài khoản cổng ``/my/dental``.
-7. **Lịch sử 60 ngày** (~4–7 lượt / ngày làm việc) – chỉ vào **ngày và giờ mở cửa** theo Lịch làm việc phòng khám
-   (``dmag.clinic.schedule``, mặc định Thứ 2 – Thứ 7 08:00–12:00, 13:30–20:00; giờ hẹn được dời cho trọn trong ca;
-   ngày lễ mẫu 2026 nghỉ); lịch tương lai cũng theo lịch làm việc: hoàn tất + ký + thu đủ (đa số), thu một phần / trả góp,
+
+   * **Lịch làm việc 7 ngày & Lịch nghỉ luân phiên**: phòng khám mở cả tuần (thêm ca Chủ nhật nếu CSDL còn lịch cũ); 3 bác
+     sĩ, 2 phụ tá, 2 lễ tân / tư vấn trong lịch luân phiên – Quản lý demo bấm **"Xếp lịch nghỉ luân phiên tự động"** (mỗi
+     người một ngày thường, đủ ≥ 2 bác sĩ / ≥ 1 phụ tá / ≥ 1 lễ tân mỗi ngày, không ai nghỉ Chủ nhật); một nghỉ phép bác sĩ
+     đã duyệt trùng ngày bác sĩ khác nghỉ luân phiên (ô **đỏ** thiếu bác sĩ trên lịch tháng), một đổi ca phụ tá, một yêu cầu
+     nghỉ của tư vấn viên chờ duyệt (cảnh báo nếu duyệt), một nghỉ phép đã qua của bác sĩ chính.
+
+7. **Lịch sử 60 ngày** (~4–6 lượt / ngày thường, **Chủ nhật thêm 3–5 lượt ≈ 1,5–2×**) – chỉ vào **ngày và giờ mở cửa**
+   theo Lịch làm việc phòng khám (mặc định Thứ 2 – Chủ nhật 08:00–12:00, 13:30–20:00; giờ hẹn được dời cho trọn trong ca;
+   ngày lễ mẫu 2026 nghỉ) và **chỉ khi bác sĩ phụ trách đang trực** (khách của bác sĩ nghỉ luân phiên / nghỉ phép hẹn ngày
+   khác – bảng điều phối hôm nay và lịch tương lai cũng vậy); lịch tương lai cũng theo lịch làm việc: hoàn tất + ký + thu đủ (đa số), thu một phần / trả góp,
    không đến, hủy lịch; kế hoạch điều trị 2 phương án (đã chốt / đang cân nhắc, cầu chì bác sĩ thứ hai cho
    mão sứ / veneer); đơn thuốc phát hành mã 14 ký tự và liên thông giả lập; NPS; phiếu labo (có phiếu trễ hạn);
    vật tư tiêu hao; thẻ bảo hành; điểm và hạng thành viên. **Hôm nay**: bảng điều phối đủ trạng thái (đã đặt,
@@ -61,17 +69,21 @@ thanh toán, chatter đều khớp thực tế. Hạt giống ngẫu nhiên cố
     tháng sau đang chờ Giám đốc chốt. Mở **Nha khoa › Điều hành mục tiêu** bằng ``giamdoc.demo``.
 11. **Trợ lý AI** (``dmag_ai_core``, ``dmag_ai_insights``, ``dmag_ai_clinical``, ``dmag_ai_customer``):
 
-    * chế độ AI = **Giả lập** (không gọi AI thật, không tốn phí); trợ lý Zalo ở chế độ **Tự động theo kịch bản đã
-      duyệt** – 12 kịch bản mẫu được Giám đốc demo duyệt bằng nút thật; giờ làm việc lấy từ Lịch làm việc; 36/40 bệnh nhân
+    * chế độ AI = **Giả lập** (không gọi AI thật, không tốn phí); trợ lý Zalo ở chế độ **Tự động – chỉ trả lời từ dữ liệu
+      đã nạp** (lễ tân phụ trách: letan + tuvan, quá 15 phút báo ``quanly.demo``) – bộ 14 kịch bản chuẩn được Giám đốc
+      demo duyệt bằng nút thật; Quản lý "Nạp lại dữ liệu" vào kho tri thức và tải *Cẩm nang khách hàng (mẫu)* (Giám đốc
+      duyệt); 5 câu hỏi ngoài dữ liệu: VAT (lễ tân trả lời → **đề xuất kịch bản – Giám đốc đã duyệt** + nạp kho đã
+      duyệt), xe đưa đón người cao tuổi & góc chơi cho bé (tư vấn / lễ tân trả lời → **đề xuất kịch bản chờ Giám đốc
+      duyệt**, nạp kho chờ duyệt), bảo hiểm Bảo Việt (**quá hạn – đã báo Quản lý**), răng sứ cho người chạy thận (đang
+      chờ lễ tân); 36/40 bệnh nhân
       (kể cả ``benhnhan.demo`` và mọi khách khám hôm nay) **đồng ý hỗ trợ bằng AI**; bệnh nhân dùng Warfarin /
       Aspirin / Metformin (``current_medication``) và một sản phụ (``is_pregnant``) để AI-03 cảnh báo;
     * **lịch sử có quy luật thật** cho AI-08: ~15–20 % không đến, dồn vào khách đặt online (Zalo / Facebook / web)
       từ sớm, chưa xác nhận, khách mới, người từng bỏ hẹn; ngày tạo lịch hẹn = lúc khách đặt; 2–3 lịch hôm nay /
       ngày mai rủi ro cao → huấn luyện lại mô hình AI-08 và chấm điểm mọi lịch sắp tới (huy hiệu trên Bảng điều phối);
     * phản hồi NPS đa dạng (chờ lâu, đau, giá, thái độ nhân viên, khen) → AI-09 phân loại; 3 hội thoại Zalo OA qua
-      đường webhook (hỏi giá niềng + trả góp – trợ lý tự trả lời theo kịch bản, ca khẩn – mẫu an toàn, khiếu nại –
-      chuyển người) + 1 câu hỏi chưa có kịch bản (hóa đơn VAT cho công ty) mà lễ tân sửa, gửi và "Đề xuất thành kịch
-      bản" (chờ Giám đốc duyệt) + 1 hội thoại mô phỏng đặt lịch;
+      đường webhook (hỏi giá niềng + trả góp – trợ lý tự trả lời có nguồn, ca khẩn – mẫu an toàn, khiếu nại – chuyển
+      người) + 5 câu hỏi ngoài dữ liệu ở trên + 1 hội thoại mô phỏng (Chủ nhật, giá cạo vôi, lịch bác sĩ, đặt lịch);
     * thủ thuật xâm lấn 1–3 ngày trước có câu trả lời theo dõi sau điều trị (bình thường + một ca bất thường – AI-18);
       phim X-quang mẫu gắn vào lượt khám của *Nguyễn Thị Mai* và *Đỗ Thanh Hương* (AI-06);
     * tình huống cho AI-15: bác sĩ 2 hay giảm 10 % trên kế hoạch, bác sĩ chính thỉnh thoảng 5 %; vật tư dùng thêm
@@ -92,6 +104,8 @@ Tài khoản demo
 ``phuta.demo``      ``demo``   Phụ tá / điều dưỡng
 ``bacsi.demo``      ``demo``   Bác sĩ bậc 3 (implant, phẫu thuật, phục hình)
 ``bacsi2.demo``     ``demo``   Bác sĩ bậc 2 (chỉnh nha, răng trẻ em)
+``bacsi3.demo``     ``demo``   Bác sĩ bậc 2 (tổng quát, nội nha, phục hình, nha chu)
+``phuta2.demo``     ``demo``   Phụ tá / điều dưỡng (ca luân phiên)
 ``quanly.demo``     ``demo``   Quản lý phòng khám
 ``giamdoc.demo``    ``demo``   Giám đốc / Quản lý cấp cao
 ``benhnhan.demo``   ``demo``   Bệnh nhân – cổng ``/my/dental``

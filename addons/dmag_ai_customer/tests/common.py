@@ -34,9 +34,8 @@ class AiCustomerCase(TransactionCase):
                                   'dmag_ai_zalo_reply_mode': 'auto', 'phone': '028 3999 9999',
                                   'dmag_zns_mode': 'mock'})
         Chair = cls.env['dmag.dental.chair']
-        cls.chairs = Chair.search([('company_id', '=', cls.company.id)])
-        if not cls.chairs:
-            cls.chairs = Chair.create([{'name': 'Ghế AI 1'}, {'name': 'Ghế AI 2'}])
+        # ghế riêng cho bài test – không trùng lịch demo (bảng điều phối hôm nay sinh theo giờ mở máy)
+        cls.chairs = Chair.create([{'name': 'Ghế AI 1'}, {'name': 'Ghế AI 2'}])
         Practitioner = cls.env['dmag.dental.practitioner']
         cls.doctor = Practitioner.create({'name': 'BS Trợ Lý Test', 'role': 'doctor', 'user_id': cls.env.user.id
                                           if not Practitioner.search([('user_id', '=', cls.env.user.id)]) else False})

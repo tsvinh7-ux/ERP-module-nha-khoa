@@ -194,9 +194,9 @@ $ai-violet: #6E56CF;
 // ---------------------------------------------------------------- Chế độ "chỉ trả lời từ dữ liệu đã nạp"
 .dmag-ai-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; }
 .dmag-ai-sources-l { color: $ai-muted; font-weight: 600; margin-right: 2px; }
-.dmag-ai-src { background: #E6F7F4; color: #0B7A6D; border-radius: 999px; padding: 1px 9px; font-weight: 700; }
-.dmag-ai-src.is-kb { background: #E8F3FE; color: #11346A; }
-.dmag-ai-src-sep { color: $ai-muted; }
+.dmag-ai-src { background: #fff; color: #0B7A6D; border: 1px solid #9BD8CD; border-radius: 999px; padding: 1px 10px; font-weight: 700; line-height: 1.5; }
+.dmag-ai-src.is-kb { color: #11346A; border-color: #A9CDF2; background: #F4F9FF; }
+.dmag-ai-src-sep { display: none; }
 .dmag-ai-decision.is-gap, .dmag-ai-turn.is-gap .dmag-ai-decision { background: #FFF4E0; border-color: #F5C26B; color: #7A4A00; }
 .dmag-ai-turn.is-gap { border-left: 3px solid #F5A524; }
 .dmag-ai-sysmsg.is-gap { background: #FFF4E0; color: #7A4A00; text-align: left; font-size: 12px; }
@@ -207,7 +207,7 @@ $ai-violet: #6E56CF;
 }
 .dmag-ai-gapcard-q { font-weight: 600; margin-bottom: 4px; }
 .dmag-ai-gap {
-    margin: 10px 16px 0; border: 1px solid #F5C26B; background: #FFFBF2; border-radius: 12px; padding: 10px 12px;
+    margin: 10px 16px 0; border: 1px solid #F5C26B; background: #FFFBF2; border-radius: 12px; padding: 10px 12px; flex: none;
     &.is-overdue { border-color: #E5484D; background: #FFF6F6; }
     &.is-answered, &.is-learned { border-color: #9BD8CD; background: #F2FBF9; }
 }

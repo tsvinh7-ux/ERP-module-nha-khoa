@@ -363,7 +363,7 @@ class DmagAiReplyScript(models.Model):
                 services |= Product.search([('is_dental_service', '=', True), ('name', 'ilike', word),
                                             ('company_id', 'in', [False, company.id])], limit=2)
             vals = {k: v for k, v in sample.items() if k not in ('tools', 'services')}
-            vals.update(company_id=company.id, sequence=seq * 10, origin='sample',
+            vals.update(company_id=company.id, sequence=seq * 10, origin='sample', proposed_by_id=False,
                         tool_ids=[(6, 0, Tool.search([('code', 'in', sample.get('tools', []))]).ids)],
                         service_ids=[(6, 0, services.ids)])
             created |= self.sudo().with_context(mail_create_nolog=True).create(vals)

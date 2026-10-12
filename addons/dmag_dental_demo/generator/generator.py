@@ -1757,7 +1757,16 @@ class DemoGenerator:
             kind = 'treatment' if ps.next_due and ps.todo_lines() else ('first' if not ps.visits else 'return')
             if kind == 'treatment' and stop in ('in_chair',):
                 kind = 'return'
-            self._simulate_today(ps, kind, start, stop, chair_idx)
+            # ghế dự kiến bận (ca trước kéo dài – tùy giờ mở máy) → thử ghế khác
+            chairs = [chair_idx] + [i for i in range(len(self.chairs)) if i != chair_idx] if chair_idx is not None \
+                else [None]
+            for idx in chairs:
+                try:
+                    with self.env.cr.savepoint():
+                        self._simulate_today(ps, kind, start, stop, idx)
+                    break
+                except ValidationError as exc:
+                    _logger.info('DMAG demo: bảng hôm nay – ghế %s bận (%s), thử ghế khác', idx, exc)
         self.max_time = None
         self.stats['today_visits'] = self.env['dmag.dental.visit'].search_count([
             ('scheduled_start', '>=', self.local_dt(self.today, 0, 0)),

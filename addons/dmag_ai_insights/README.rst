@@ -61,3 +61,10 @@ Kiểm thử
 ``--test-tags /dmag_ai_insights``: giả lập trả đúng số của bộ máy chỉ số; chạy thật với client giả (vòng gọi công cụ,
 công cụ strict, không ``tool_choice``); bản tin (giả lập, thật với JSON schema, tác vụ định kỳ); phát hiện bất thường
 trên dữ liệu mẫu cố định + luồng duyệt; dự báo tất định; Trung tâm AI đủ 20 tính năng, trạng thái và lọc theo vai trò.
+
+AI-16 – mùa vụ theo thứ (cập nhật 12/10/2026)
+---------------------------------------------
+Phòng khám mở 7 ngày, Chủ nhật đông nhất: dự báo dùng **mùa vụ theo thứ trong tuần** (trung vị doanh thu từng thứ so với
+trung vị chung, co về 0 khi ít mẫu – ``forecast_math.weekday_profile``), gắn theo thứ thật nên ngày nghỉ lễ không làm
+lệch pha; khử mùa vụ → tách ca lớn đột biến → Holt (mức + xu hướng hãm). Màn hình Dự báo hiện chỉ số từng thứ (vd.
+"Chủ nhật ×1,7").

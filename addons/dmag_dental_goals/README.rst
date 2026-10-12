@@ -55,7 +55,10 @@ Khung "mục tiêu – thực tế – nhịp độ"
 ====================================
 
 * **% đạt** = thực tế / mục tiêu; **% kỳ đã qua** theo ngày làm việc của **Lịch làm việc phòng khám**
-  (``dmag.clinic.schedule``: thứ nghỉ, ngày nghỉ lễ / đột xuất không tính; mặc định thứ Hai – thứ Bảy).
+  (``dmag.clinic.schedule``: thứ nghỉ, ngày nghỉ lễ / đột xuất không tính; mặc định mở cửa 7 ngày / tuần).
+* **Mục tiêu riêng của bác sĩ**: nhịp / dự báo / cần thêm mỗi ngày tính trên **ngày trực của chính bác sĩ đó** (Lịch nghỉ
+  luân phiên: nghỉ hằng tuần, nghỉ phép không tính – ``GoalBoard.doctor_days``); công suất ghế của một bác sĩ cũng chỉ
+  tính ngày trực.
 * **Dự báo cuối kỳ** (chỉ số cộng dồn) = thực tế ÷ ngày làm việc đã qua × tổng ngày làm việc của kỳ.
 * **Còn thiếu** = mục tiêu − thực tế; **cần thêm / ngày** = còn thiếu ÷ ngày làm việc còn lại.
 * **Trạng thái**: *Đúng tiến độ* (dự báo ≥ 100 % mục tiêu) · *Chậm* (90–100 %) · *Nguy cơ* (< 90 %) · *Đã đạt* ·
