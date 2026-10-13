@@ -21,7 +21,7 @@ Lần đầu khởi động, hệ thống tự làm các việc sau:
 | Tắt (giữ dữ liệu) | `./stop.sh` | `stop.bat` |
 | Làm lại từ đầu (dữ liệu mẫu mới theo hôm nay) | `./reset.sh` | `reset.bat` |
 
-Mở **http://localhost:8069**. Lần đầu mất **3–5 phút**; xem tiến trình bằng `docker compose logs -f odoo`.
+Mở **http://localhost:8069**. Lần đầu mất **5–8 phút** (tải ảnh Docker + sinh dữ liệu mẫu); xem tiến trình bằng `docker compose logs -f odoo`.
 Muốn dùng cổng khác: `DMAG_PORT=8080 ./start.sh`.
 
 ## Tài khoản (mật khẩu `demo`)
@@ -29,11 +29,11 @@ Muốn dùng cổng khác: `DMAG_PORT=8080 ./start.sh`.
 | Đăng nhập | Vai trò | Nên thử |
 |---|---|---|
 | `giamdoc.demo` | Giám đốc | **Điều hành mục tiêu** (mục tiêu kinh doanh, OKR, KPI, hỏi AI về số liệu); **Trung tâm AI**; bản tin tuần, cảnh báo bất thường, dự báo; duyệt lương 3P |
-| `quanly.demo` | Quản lý | Điều hành mục tiêu, labo, kho, pháp chế |
-| `letan.demo` | Lễ tân | Bảng điều phối: đặt lịch, check-in, thu tiền QR → **"Giả lập khách chuyển khoản"** |
+| `quanly.demo` | Quản lý | **Lịch nghỉ luân phiên** (Xếp lịch tự động, duyệt nghỉ phép), **Dữ liệu đã nạp** của trợ lý Zalo, Điều hành mục tiêu, labo, kho, pháp chế |
+| `letan.demo` | Lễ tân | Bảng điều phối: đặt lịch, check-in, thu tiền QR → **"Giả lập khách chuyển khoản"**; **Mô phỏng Zalo** (hỏi giá, giờ làm việc, đặt lịch; hỏi câu ngoài dữ liệu để thấy báo lễ tân); **Hộp thư lễ tân** (trả lời → "Nạp vào kho tri thức") |
 | `tuvan.demo` | Tư vấn | Chế độ tư vấn 2 phương án, chốt kế hoạch |
-| `bacsi.demo`, `bacsi2.demo` | Bác sĩ | Sơ đồ răng, bệnh án 16/BV1, kê đơn thuốc, ký bệnh án |
-| `phuta.demo` | Phụ tá | Thủ thuật, vật tư |
+| `bacsi.demo`, `bacsi2.demo`, `bacsi3.demo` | Bác sĩ | Sơ đồ răng, bệnh án 16/BV1 (đọc bằng giọng nói), kê đơn thuốc (an toàn đơn thuốc), ký bệnh án; bệnh nhân Nguyễn Thị Mai có sẵn phim mẫu |
+| `phuta.demo`, `phuta2.demo` | Phụ tá | Thủ thuật, vật tư |
 | `benhnhan.demo` | Bệnh nhân | http://localhost:8069/my/dental |
 | `admin` (mật khẩu `admin`) | Quản trị hệ thống | Cài đặt kỹ thuật |
 
